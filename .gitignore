@@ -1,0 +1,17 @@
+# Test tooling, installed locally rather than committed
+node_modules/
+package.json
+package-lock.json
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp

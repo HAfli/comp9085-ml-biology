@@ -1,0 +1,622 @@
+{
+ "heart": {
+  "n": 13,
+  "class_counts": {
+   "High": 3,
+   "Low": 10
+  },
+  "overall_entropy": 0.779,
+  "splits": [
+   {
+    "feature": "Age",
+    "threshold": 52.5,
+    "remainder": 0.25,
+    "gain": 0.53
+   },
+   {
+    "feature": "Cholesterol",
+    "threshold": 260.5,
+    "remainder": 0.573,
+    "gain": 0.207
+   },
+   {
+    "feature": "Chest Pain",
+    "threshold": 2.5,
+    "remainder": 0.656,
+    "gain": 0.123
+   },
+   {
+    "feature": "Blood Pressure",
+    "threshold": 141.0,
+    "remainder": 0.678,
+    "gain": 0.101
+   }
+  ]
+ },
+ "workshop": {
+  "before": 1.0,
+  "rows": [
+   {
+    "feature": "Smoker",
+    "partitions": [
+     {
+      "level": "true",
+      "n": 4,
+      "high": 3,
+      "low": 1,
+      "entropy": 0.811
+     },
+     {
+      "level": "false",
+      "n": 2,
+      "high": 0,
+      "low": 2,
+      "entropy": 0.0
+     }
+    ],
+    "remainder": 0.541,
+    "gain": 0.459
+   },
+   {
+    "feature": "Drinks alcohol",
+    "partitions": [
+     {
+      "level": "true",
+      "n": 5,
+      "high": 3,
+      "low": 2,
+      "entropy": 0.971
+     },
+     {
+      "level": "false",
+      "n": 1,
+      "high": 0,
+      "low": 1,
+      "entropy": 0.0
+     }
+    ],
+    "remainder": 0.809,
+    "gain": 0.191
+   },
+   {
+    "feature": "Obese",
+    "partitions": [
+     {
+      "level": "true",
+      "n": 3,
+      "high": 1,
+      "low": 2,
+      "entropy": 0.918
+     },
+     {
+      "level": "false",
+      "n": 3,
+      "high": 2,
+      "low": 1,
+      "entropy": 0.918
+     }
+    ],
+    "remainder": 0.918,
+    "gain": 0.082
+   }
+  ],
+  "table": [
+   [
+    1,
+    "true",
+    "false",
+    "true",
+    "low"
+   ],
+   [
+    2,
+    "true",
+    "true",
+    "true",
+    "high"
+   ],
+   [
+    3,
+    "true",
+    "false",
+    "true",
+    "low"
+   ],
+   [
+    4,
+    "false",
+    "true",
+    "true",
+    "high"
+   ],
+   [
+    5,
+    "false",
+    "true",
+    "false",
+    "low"
+   ],
+   [
+    6,
+    "false",
+    "true",
+    "true",
+    "high"
+   ]
+  ]
+ },
+ "wdbc": {
+  "n_samples": 569,
+  "n_features": 30,
+  "malignant": 212,
+  "benign": 357,
+  "majority_baseline": 0.6274,
+  "source": "UCI Breast Cancer Wisconsin (Diagnostic), via sklearn.datasets.load_breast_cancer"
+ },
+ "split": {
+  "train": 398,
+  "test": 171,
+  "test_size": 0.3,
+  "stratified": true,
+  "random_state": 42
+ },
+ "full_tree": {
+  "depth": 8,
+  "leaves": 16,
+  "train_acc": 1.0,
+  "test_acc": 0.9415
+ },
+ "depth_sweep": [
+  {
+   "depth": 1,
+   "train": 0.9296,
+   "test": 0.8947,
+   "leaves": 2
+  },
+  {
+   "depth": 2,
+   "train": 0.9497,
+   "test": 0.9064,
+   "leaves": 4
+  },
+  {
+   "depth": 3,
+   "train": 0.9623,
+   "test": 0.9181,
+   "leaves": 6
+  },
+  {
+   "depth": 4,
+   "train": 0.9749,
+   "test": 0.9298,
+   "leaves": 9
+  },
+  {
+   "depth": 5,
+   "train": 0.9899,
+   "test": 0.9415,
+   "leaves": 12
+  },
+  {
+   "depth": 6,
+   "train": 0.9975,
+   "test": 0.9357,
+   "leaves": 14
+  },
+  {
+   "depth": 7,
+   "train": 0.9975,
+   "test": 0.9415,
+   "leaves": 15
+  },
+  {
+   "depth": 8,
+   "train": 1.0,
+   "test": 0.9415,
+   "leaves": 16
+  },
+  {
+   "depth": 9,
+   "train": 1.0,
+   "test": 0.9415,
+   "leaves": 16
+  },
+  {
+   "depth": 10,
+   "train": 1.0,
+   "test": 0.9415,
+   "leaves": 16
+  },
+  {
+   "depth": 11,
+   "train": 1.0,
+   "test": 0.9415,
+   "leaves": 16
+  },
+  {
+   "depth": 12,
+   "train": 1.0,
+   "test": 0.9415,
+   "leaves": 16
+  },
+  {
+   "depth": 13,
+   "train": 1.0,
+   "test": 0.9415,
+   "leaves": 16
+  },
+  {
+   "depth": 14,
+   "train": 1.0,
+   "test": 0.9415,
+   "leaves": 16
+  },
+  {
+   "depth": 15,
+   "train": 1.0,
+   "test": 0.9415,
+   "leaves": 16
+  }
+ ],
+ "tree3": {
+  "criterion": "entropy",
+  "max_depth": 3,
+  "random_state": 42,
+  "depth": 3,
+  "leaves": 6,
+  "train_acc": 0.9623,
+  "test_acc": 0.9181,
+  "confusion": {
+   "tn": 107,
+   "fp": 0,
+   "fn": 14,
+   "tp": 50
+  }
+ },
+ "root_split": {
+  "feature": "worst perimeter",
+  "threshold": 112.8,
+  "entropy_before": 0.9521,
+  "entropy_after": 0.3671,
+  "information_gain": 0.585,
+  "left_n": 260,
+  "right_n": 138,
+  "left_entropy": 0.3773,
+  "right_entropy": 0.3478
+ },
+ "candidates": [
+  {
+   "feature": "worst perimeter",
+   "threshold": 112.8,
+   "entropy_before": 0.9521,
+   "entropy_after": 0.3671,
+   "gain": 0.585,
+   "left": {
+    "n": 260,
+    "malignant": 19,
+    "entropy": 0.3773
+   },
+   "right": {
+    "n": 138,
+    "malignant": 129,
+    "entropy": 0.3478
+   }
+  },
+  {
+   "feature": "worst radius",
+   "threshold": 16.795,
+   "entropy_before": 0.9521,
+   "entropy_after": 0.3755,
+   "gain": 0.5766,
+   "left": {
+    "n": 263,
+    "malignant": 21,
+    "entropy": 0.4016
+   },
+   "right": {
+    "n": 135,
+    "malignant": 127,
+    "entropy": 0.3245
+   }
+  },
+  {
+   "feature": "mean texture",
+   "threshold": 18.46,
+   "entropy_before": 0.9521,
+   "entropy_after": 0.8088,
+   "gain": 0.1433,
+   "left": {
+    "n": 175,
+    "malignant": 24,
+    "entropy": 0.5767
+   },
+   "right": {
+    "n": 223,
+    "malignant": 124,
+    "entropy": 0.9909
+   }
+  }
+ ],
+ "pruning": [
+  {
+   "alpha": 0.008732,
+   "leaves": 14,
+   "depth": 6,
+   "train": 0.9975,
+   "test": 0.9357
+  },
+  {
+   "alpha": 0.009069,
+   "leaves": 12,
+   "depth": 6,
+   "train": 0.9925,
+   "test": 0.9357
+  },
+  {
+   "alpha": 0.012517,
+   "leaves": 11,
+   "depth": 5,
+   "train": 0.9899,
+   "test": 0.9357
+  },
+  {
+   "alpha": 0.018139,
+   "leaves": 9,
+   "depth": 5,
+   "train": 0.9799,
+   "test": 0.9474
+  },
+  {
+   "alpha": 0.020239,
+   "leaves": 8,
+   "depth": 4,
+   "train": 0.9749,
+   "test": 0.9474
+  },
+  {
+   "alpha": 0.022387,
+   "leaves": 7,
+   "depth": 4,
+   "train": 0.9749,
+   "test": 0.9474
+  },
+  {
+   "alpha": 0.022936,
+   "leaves": 6,
+   "depth": 4,
+   "train": 0.9623,
+   "test": 0.9357
+  },
+  {
+   "alpha": 0.036555,
+   "leaves": 4,
+   "depth": 2,
+   "train": 0.9497,
+   "test": 0.9064
+  },
+  {
+   "alpha": 0.061386,
+   "leaves": 3,
+   "depth": 2,
+   "train": 0.9497,
+   "test": 0.9064
+  },
+  {
+   "alpha": 0.082624,
+   "leaves": 2,
+   "depth": 1,
+   "train": 0.9296,
+   "test": 0.8947
+  },
+  {
+   "alpha": 0.58501,
+   "leaves": 1,
+   "depth": 0,
+   "train": 0.6281,
+   "test": 0.6257
+  }
+ ],
+ "ranges": {
+  "mean radius": {
+   "min": 6.981,
+   "max": 28.11,
+   "mean": 14.1273
+  },
+  "mean texture": {
+   "min": 9.71,
+   "max": 39.28,
+   "mean": 19.2896
+  },
+  "mean perimeter": {
+   "min": 43.79,
+   "max": 188.5,
+   "mean": 91.969
+  },
+  "mean area": {
+   "min": 143.5,
+   "max": 2501.0,
+   "mean": 654.8891
+  },
+  "mean smoothness": {
+   "min": 0.0526,
+   "max": 0.1634,
+   "mean": 0.0964
+  },
+  "mean compactness": {
+   "min": 0.0194,
+   "max": 0.3454,
+   "mean": 0.1043
+  },
+  "mean concavity": {
+   "min": 0.0,
+   "max": 0.4268,
+   "mean": 0.0888
+  },
+  "mean concave points": {
+   "min": 0.0,
+   "max": 0.2012,
+   "mean": 0.0489
+  },
+  "mean symmetry": {
+   "min": 0.106,
+   "max": 0.304,
+   "mean": 0.1812
+  },
+  "mean fractal dimension": {
+   "min": 0.05,
+   "max": 0.0974,
+   "mean": 0.0628
+  },
+  "radius error": {
+   "min": 0.1115,
+   "max": 2.873,
+   "mean": 0.4052
+  },
+  "texture error": {
+   "min": 0.3602,
+   "max": 4.885,
+   "mean": 1.2169
+  },
+  "perimeter error": {
+   "min": 0.757,
+   "max": 21.98,
+   "mean": 2.8661
+  },
+  "area error": {
+   "min": 6.802,
+   "max": 542.2,
+   "mean": 40.3371
+  },
+  "smoothness error": {
+   "min": 0.0017,
+   "max": 0.0311,
+   "mean": 0.007
+  },
+  "compactness error": {
+   "min": 0.0023,
+   "max": 0.1354,
+   "mean": 0.0255
+  },
+  "concavity error": {
+   "min": 0.0,
+   "max": 0.396,
+   "mean": 0.0319
+  },
+  "concave points error": {
+   "min": 0.0,
+   "max": 0.0528,
+   "mean": 0.0118
+  },
+  "symmetry error": {
+   "min": 0.0079,
+   "max": 0.079,
+   "mean": 0.0205
+  },
+  "fractal dimension error": {
+   "min": 0.0009,
+   "max": 0.0298,
+   "mean": 0.0038
+  },
+  "worst radius": {
+   "min": 7.93,
+   "max": 36.04,
+   "mean": 16.2692
+  },
+  "worst texture": {
+   "min": 12.02,
+   "max": 49.54,
+   "mean": 25.6772
+  },
+  "worst perimeter": {
+   "min": 50.41,
+   "max": 251.2,
+   "mean": 107.2612
+  },
+  "worst area": {
+   "min": 185.2,
+   "max": 4254.0,
+   "mean": 880.5831
+  },
+  "worst smoothness": {
+   "min": 0.0712,
+   "max": 0.2226,
+   "mean": 0.1324
+  },
+  "worst compactness": {
+   "min": 0.0273,
+   "max": 1.058,
+   "mean": 0.2543
+  },
+  "worst concavity": {
+   "min": 0.0,
+   "max": 1.252,
+   "mean": 0.2722
+  },
+  "worst concave points": {
+   "min": 0.0,
+   "max": 0.291,
+   "mean": 0.1146
+  },
+  "worst symmetry": {
+   "min": 0.1565,
+   "max": 0.6638,
+   "mean": 0.2901
+  },
+  "worst fractal dimension": {
+   "min": 0.055,
+   "max": 0.2075,
+   "mean": 0.0839
+  }
+ },
+ "trace": {
+  "case": "test-006",
+  "truth": "malignant",
+  "steps": [
+   {
+    "feature": "worst perimeter",
+    "threshold": 112.8,
+    "value": 152.2,
+    "test": "worst perimeter = 152.2000 \u2264 112.8000 ?",
+    "answer": "false"
+   },
+   {
+    "feature": "worst concave points",
+    "threshold": 0.1398,
+    "value": 0.1625,
+    "test": "worst concave points = 0.1625 \u2264 0.1398 ?",
+    "answer": "false"
+   }
+  ],
+  "leaf": {
+   "id": 10,
+   "leaf": true,
+   "feature": null,
+   "featureIndex": null,
+   "threshold": null,
+   "left": null,
+   "right": null,
+   "samples": 113,
+   "benign": 0,
+   "malignant": 113,
+   "entropy": 0.0,
+   "predict": "malignant"
+  },
+  "path": [
+   0,
+   6,
+   10
+  ]
+ },
+ "guess_who": {
+  "glasses_entropy": 0.811,
+  "man_entropy": 1.0
+ },
+ "thresholds": {
+  "feature": "worst perimeter",
+  "n_candidates": 374,
+  "chosen": 112.8,
+  "chosen_gain": 0.585,
+  "mean": 107.4012,
+  "mean_gain": 0.516
+ }
+}

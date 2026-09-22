@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" data-root="" data-section="canvas" data-chrome="none">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COMP9085 course materials</title>
+<meta name="description" content="A low-chrome index of every COMP9085 lecture, slide deck and lab, designed to be embedded in Canvas.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Crect width='26' height='26' rx='6' fill='%231f5f4b'/%3E%3Cpath d='M8 5.5c0 4 10 4 10 8s-10 4-10 8' stroke='white' stroke-width='1.6' fill='none'/%3E%3Cpath d='M18 5.5c0 4-10 4-10 8s10 4 10 8' stroke='%23e7c48a' stroke-width='1.6' fill='none'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/responsive.css">
+<style>
+  /* Canvas supplies its own page chrome, so this page carries none of its
+     own. It is deliberately plain: it has to sit inside an iframe without
+     fighting the surrounding LMS styling. */
+  body { background: transparent; }
+  .wrap { max-width: 940px; }
+  h1 { margin-top: 0; }
+</style>
+</head>
+<body>
+<main id="main">
+  <div class="wrap" style="padding-top:2rem">
+    <noscript>
+      <div class="noscript-note">
+        <h1>COMP9085 course materials</h1>
+        <p><strong>This page needs JavaScript.</strong> Open the course site
+        directly, or use the week links in your Canvas module list.</p>
+      </div>
+    </noscript>
+    <p class="muted">Loading...</p>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/data/course.js"></script>
+<script src="js/data/labs.js"></script>
+<script src="js/store.js"></script>
+<script src="js/components.js"></script>
+<script src="js/navigation.js"></script>
+<script src="js/pages.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.renderCanvas();
+  });
+</script>
+</body>
+</html>

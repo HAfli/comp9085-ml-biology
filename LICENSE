@@ -1,0 +1,64 @@
+COMP9085 — Machine Learning and Foundation Models for Biology, Healthcare and
+Nutrition. Course website.
+
+Copyright (c) 2026 Dr Haithem Afli, Munster Technological University.
+
+This repository is dual-licensed.
+
+================================================================================
+COURSE CONTENT — Creative Commons Attribution 4.0 International (CC BY 4.0)
+================================================================================
+
+Applies to the curriculum, lecture content, lab briefs, worked examples, quiz
+questions, dataset descriptions and documentation, that is to everything in
+js/data/course.js, js/data/labs.js, js/data/datasets.js, js/data/models.js,
+js/data/references.js and docs/.
+
+You are free to share and adapt this material for any purpose, including
+commercially, provided you give appropriate credit, link to the licence, and
+indicate if changes were made.
+
+Full text: https://creativecommons.org/licenses/by/4.0/
+
+================================================================================
+SITE CODE — MIT Licence
+================================================================================
+
+Applies to the HTML, CSS, JavaScript and Python in this repository, excluding
+third-party code in js/vendor/.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+================================================================================
+THIRD-PARTY AND DATA
+================================================================================
+
+D3.js v7.9.0 (js/vendor/d3.min.js)
+    Copyright 2010-2023 Mike Bostock. ISC Licence.
+    Full text in js/vendor/d3-LICENSE.txt
+
+UCI Breast Cancer Wisconsin (Diagnostic) — js/data/wdbc.js
+    Wolberg, W., Mangasarian, O., Street, N. & Street, W. (1993).
+    UCI Machine Learning Repository. DOI 10.24432/C5DW2B. CC BY 4.0.
+
+Kyte-Doolittle hydropathy values used in data/scripts/03_build_sequences.py
+    Kyte, J. & Doolittle, R. F. (1982). J Mol Biol 157(1):105-132.
+
+Datasets referenced but not redistributed here (NHANES, openFDA, TCGA/GDC,
+AlphaFold DB) retain their own licences, which are recorded on the datasets page
+of the site.
