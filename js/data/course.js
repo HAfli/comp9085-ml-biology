@@ -148,7 +148,7 @@ window.COURSE = {
           'themes in this module, particularly the material on trust and ' +
           'evaluation in Week 12, come directly out of that work.',
         howToUse: [
-          { what: 'The lecture', body: 'Two hours a week. The slides are on this site and on Canvas, as both PowerPoint and PDF, before the lecture.' },
+          { what: 'The lecture', body: 'Two hours a week. Slides are posted on Canvas, as both PowerPoint and PDF, before the lecture.' },
           { what: 'This website', body: 'Every week has a page with the concepts, an interactive figure you can manipulate, a worked example and a self-check. The figures are live models, not pictures: when you move a control, a model is genuinely fitted in your browser.' },
           { what: 'The practical', body: 'Two hours a week from Week 2. Bring the deliverable to the following session.' },
           { what: 'Canvas', body: 'Announcements, submissions and grades. The teaching material is here and linked from Canvas, so there is one copy of it rather than two that drift apart.' },

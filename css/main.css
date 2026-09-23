@@ -909,17 +909,6 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-size: 0.85em;
 }
 .video-placeholder h4 { margin-top: 0; color: var(--warn); }
 
-/* Slide download block */
-.slide-downloads {
-  display: flex; flex-wrap: wrap; gap: var(--s3); align-items: center;
-  padding: var(--s4) var(--s5);
-  background: var(--specimen-soft);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-lg);
-  margin-bottom: var(--s6);
-}
-.slide-downloads .sd-label { font-weight: 620; font-size: 0.92rem; color: var(--specimen); margin-right: var(--s2); }
-.slide-downloads .btn { background: var(--ground); }
 
 /* "No lab this week" notice */
 .no-lab-notice {

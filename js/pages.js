@@ -173,7 +173,7 @@
       '<section id="structure"><h2>How the pieces fit together</h2>' +
         '<div class="grid grid-2">' +
           card('The lecture', 'Two hours a week. Slides are published as ' +
-            'PowerPoint and PDF before each lecture, on this site and on Canvas.') +
+            'PowerPoint and PDF on Canvas before each lecture.') +
           card('This website', 'The concepts, worked examples and interactive ' +
             'figures. The figures are live models fitted in your browser, not ' +
             'pictures: moving a control refits the model on real data.') +
