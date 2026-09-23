@@ -15,3 +15,32 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Instructor-only lab solutions: never commit to the public repository.
+# labs/week03/solutions/README.md documents the policy and stays tracked -
+# only the generated notebook/HTML next to it are excluded.
+labs/**/solutions/*.ipynb
+labs/**/solutions/*.html
+
+# Pre-existing Week 2 instructor solution file (flat layout, not in a
+# solutions/ subfolder) - excluded by exact path rather than moved, so the
+# existing Week 2 file layout is not changed.
+labs/week02/COMP9085_Week02_Lab_Decision_Trees_Solutions.ipynb
+
+# Files removed from the public site but not yet deletable from this
+# session's sandbox (local delete permission was declined) - moved here so
+# they are out of the tree and clearly out of scope for the next commit.
+# Haithem: safe to delete this whole _to_delete/ folder from Finder/Terminal.
+_to_delete/
+
+# Lecture slide decks: built locally by slides/build_slides.py for Canvas
+# distribution and for rendering PNG previews during QA. These must NEVER be
+# committed or pushed, because this repository is served directly as the
+# public GitHub Pages site (Settings -> Pages -> Deploy from a branch), so
+# anything committed here is publicly fetchable at its repo path whether or
+# not any page links to it. Lecture slides are Canvas-only.
+slides/week*/*.pptx
+slides/week*/*.pdf
+slides/template/*.pptx
+slides/*.png
+slides/**/*.png

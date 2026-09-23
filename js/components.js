@@ -248,8 +248,7 @@
 
       '<p class="privacy-note">Stored with your browser\'s local storage under ' +
       'the key <code>comp9085.feedback</code>. Clearing your browser data ' +
-      'removes it. You can also <a href="' + (window.siteUrl ? window.siteUrl('resources.html') : 'resources.html') +
-      '#privacy">clear every saved response across the whole site</a>.</p>' +
+      'removes it.</p>' +
     '</div>';
   };
 
@@ -394,23 +393,10 @@
     return '<div class="video-card">' + head + media + body + '</div>';
   };
 
-  /* --- Slide downloads -------------------------------------------------- */
-
-  C.slideDownloads = function (week) {
-    var cfg = window.SITE_CONFIG;
-    if (!cfg) return '';
-    var nn = week < 10 ? '0' + week : String(week);
-    var base = window.siteUrl ? window.siteUrl('') : '';
-    return '' +
-      '<div class="slide-downloads">' +
-        '<span class="sd-label">Week ' + nn + ' lecture slides</span>' +
-        '<a class="btn btn-sm" href="' + base + cfg.slidePath(week, 'pptx') + '" ' +
-          'download>PowerPoint (.pptx)</a>' +
-        '<a class="btn btn-sm" href="' + base + cfg.slidePath(week, 'pdf') + '" ' +
-          'download>PDF</a>' +
-        '<span class="small muted">Also posted on Canvas before the lecture.</span>' +
-      '</div>';
-  };
+  /* Lecture slides are distributed through Canvas only and are never
+     committed to this public repository or linked from this public site -
+     see README.md, "Lecture slides". C.slideDownloads() used to render a
+     PPTX/PDF download block here; it has been removed. */
 
   /* --- External link, honest about placeholders ------------------------- */
 

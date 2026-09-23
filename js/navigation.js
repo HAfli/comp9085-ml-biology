@@ -16,9 +16,7 @@
     { id: 'weeks',     label: 'Weeks',             href: 'weeks/index.html' },
     { id: 'labs',      label: 'Labs',              href: 'labs/index.html' },
     { id: 'datasets',  label: 'Datasets',          href: 'datasets.html' },
-    { id: 'fm',        label: 'Foundation models', href: 'foundation-models.html' },
-    { id: 'assess',    label: 'Assessment',        href: 'assessment.html' },
-    { id: 'resources', label: 'Resources',         href: 'resources.html' }
+    { id: 'fm',        label: 'Foundation models', href: 'foundation-models.html' }
   ];
 
   var root = document.documentElement.getAttribute('data-root') || '';
@@ -99,7 +97,6 @@
               '<li><a href="' + url('index.html') + '">Home</a></li>' +
               '<li><a href="' + url('roadmap.html') + '">Course roadmap</a></li>' +
               '<li><a href="' + url('weeks/index.html') + '">All twelve weeks</a></li>' +
-              '<li><a href="' + url('assessment.html') + '">Assessment</a></li>' +
             '</ul>' +
           '</div>' +
           '<div>' +
@@ -108,7 +105,6 @@
               '<li><a href="' + url('labs/index.html') + '">Practical labs</a></li>' +
               '<li><a href="' + url('datasets.html') + '">Dataset catalogue</a></li>' +
               '<li><a href="' + url('foundation-models.html') + '">Foundation models</a></li>' +
-              '<li><a href="' + url('resources.html') + '">Resources and reading</a></li>' +
             '</ul>' +
           '</div>' +
           '<div>' +
@@ -135,8 +131,7 @@
           '<p class="tiny muted">Course content licensed CC BY 4.0; site code ' +
           'licensed MIT. Interactive components run entirely in your browser. ' +
           'Weekly check-in responses are stored only in this browser\'s local ' +
-          'storage and are never transmitted anywhere. ' +
-          '<a href="' + url('resources.html') + '#privacy">More on this</a>.</p>' +
+          'storage and are never transmitted anywhere.</p>' +
         '</div>' +
       '</div>';
     return footer;

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
 Generate the top-level page shells (home, roadmap, labs index, datasets,
-foundation models, assessment, resources, weeks index).
+foundation models, weeks index). Assessment and Resources are Canvas-only
+and are deliberately not generated here - see README.md, "Lecture slides"
+and the public/private boundary notes.
 
 Like build_pages.py, these are thin shells; all content comes from the data
 files, so this only needs re-running if the shell changes.
@@ -169,16 +171,6 @@ PAGES = [
          desc="What biological foundation models are, how pretraining and "
               "embeddings work, the adaptation ladder from zero-shot to LoRA, "
               "and where these models stop."),
-    dict(path="assessment.html", root="", section="assess",
-         render="renderAssessment",
-         title="Assessment | COMP9085", h1="Assessment",
-         desc="Two projects at 50% each, and the full learning-outcome map for "
-              "COMP9085."),
-    dict(path="resources.html", root="", section="resources",
-         render="renderResources",
-         title="Resources | COMP9085", h1="Resources and references",
-         desc="Software, data access, the full reference list, and what this "
-              "site stores in your browser."),
 ]
 
 

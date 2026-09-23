@@ -56,8 +56,6 @@ comp9085-ml-biology/
 ├── roadmap.html                Interactive twelve-week roadmap
 ├── datasets.html               Dataset catalogue with licences and limitations
 ├── foundation-models.html      Explainer and model reference
-├── assessment.html             Projects and the learning-outcome map
-├── resources.html              Software, references, privacy controls
 ├── weeks/
 │   ├── index.html              Weeks index
 │   └── week01.html … week12.html
@@ -220,15 +218,24 @@ to use and why the two existing MP4s must **not** be re-uploaded.
 
 ## Lecture slides
 
-Twelve decks, in both PowerPoint and PDF:
+**Lecture slides are distributed through Canvas. This public website contains
+interactive learning materials, demonstrations, labs and supporting
+resources, but does not host lecture slide decks.**
+
+Twelve decks, in both PowerPoint and PDF, are generated locally for Canvas
+upload:
 
 ```
 slides/weekNN/COMP9085_WeekNN.pptx
 slides/weekNN/COMP9085_WeekNN.pdf
 ```
 
-They are linked at the top of every week page, on `resources.html#lectures` and
-on `canvas.html`.
+These files are `.gitignore`d and are never committed. This repository
+deploys to GitHub Pages by pushing it, so anything committed here is
+publicly fetchable at its repo path whether or not any page links to it -
+the only safe rule is that the built `.pptx`/`.pdf` files never enter git
+history. Nothing on the site - no week page or `canvas.html` - links to or
+downloads a slide file.
 
 They are built on `slides/template/MTU_COMP9085.pptx`, which is the 2025/26
 COMP9085 deck with its slides removed and its master, layouts, theme, MTU

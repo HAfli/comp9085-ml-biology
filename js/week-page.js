@@ -576,8 +576,11 @@
 
     html += '<div class="wrap"><div class="week-layout"><div>';
 
-    /* Lecture slides, immediately available at the top of every week. */
-    html += U.slideDownloads(n);
+    /* Lecture slides are distributed through Canvas, not this public site
+       (see README "Lecture slides") - no download button here. */
+    html += '<p class="canvas-note small muted">The Week ' + n + ' lecture is ' +
+      'given from slides posted on Canvas. This page is the interactive ' +
+      'companion: explore the ideas here, then work through the lab below.</p>';
 
     /* 0. Welcome and orientation (Week 1 only) */
     if (w.welcome) {
@@ -671,9 +674,8 @@
           '<p>Three things are worth doing before then, none of them assessed:</p>' +
           '<ol>' +
             '<li>Install Python and the scientific stack, so that Week 2 starts ' +
-            'with the material rather than with an installation problem. The ' +
-            'commands are on the <a href="' + window.siteUrl('resources.html') +
-            '#software">resources page</a>.</li>' +
+            'with the material rather than with an installation problem. Setup ' +
+            'commands are on Canvas, in the module resources.</li>' +
             '<li>Watch the two videos above and write a sentence on each ' +
             'question.</li>' +
             '<li>Read Greener et al. (2022), listed under further reading. It ' +

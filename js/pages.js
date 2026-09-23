@@ -44,7 +44,6 @@
           '<a class="btn btn-primary" href="' + url('roadmap.html') + '">' +
             'See the twelve-week roadmap</a>' +
           '<a class="btn" href="' + url('weeks/week01.html') + '">Start at Week 1</a>' +
-          '<a class="btn" href="' + url('assessment.html') + '">Assessment</a>' +
         '</div>' +
       '</div></div>' +
 
@@ -79,9 +78,7 @@
       /* Learning outcomes */
       '<section id="outcomes"><h2>Module learning outcomes</h2>' +
         '<p>These are the approved outcomes from the COMP9085 module descriptor, ' +
-        'retained unchanged in this redesign. Every week states which it serves, ' +
-        'and the <a href="' + url('assessment.html') + '#mapping">learning-outcome ' +
-        'map</a> shows the full coverage.</p>' +
+        'retained unchanged in this redesign. Every week states which it serves.</p>' +
         '<div class="grid grid-2">' + C.learningOutcomes.map(function (lo) {
           return '<div class="card"><span class="pill pill-lo">' + lo.id +
             '</span><p style="margin-top:var(--s3)" class="mb0">' +
@@ -99,8 +96,7 @@
       /* Progress */
       '<section id="progress"><h2>Your progress</h2>' +
         '<p class="small muted">Recorded in this browser only. Nothing is sent ' +
-        'anywhere and no account is involved. You can clear it from the ' +
-        '<a href="' + url('resources.html') + '#privacy">resources page</a>.</p>' +
+        'anywhere and no account is involved.</p>' +
         '<div class="grid grid-3">' +
           '<div class="card">' + window.progressWidget('weeks', 'Weeks opened') + '</div>' +
           '<div class="card">' + window.progressWidget('checkins', 'Check-ins saved') + '</div>' +
@@ -126,9 +122,9 @@
     var steps = [
       { n: 1, t: 'Read this page', b: 'Five minutes. It tells you what the module is, how it is assessed, and where everything lives.' },
       { n: 2, t: 'Open Week 1', b: 'Week 1 is orientation and has no practical. Watch the two short videos, try the interactive activity, and read the one recommended paper.', href: url('weeks/week01.html'), cta: 'Go to Week 1' },
-      { n: 3, t: 'Install Python before Week 2', b: 'So that the first lab starts with the material rather than with an installation problem. One command, listed on the resources page.', href: url('resources.html') + '#software', cta: 'Setup commands' },
+      { n: 3, t: 'Install Python before Week 2', b: 'So that the first lab starts with the material rather than with an installation problem. Setup commands are on Canvas, in the module resources.' },
       { n: 4, t: 'Skim the roadmap', b: 'See where the twelve weeks are going and why they are in that order. Useful again in week six when the shape of the module matters.', href: url('roadmap.html'), cta: 'Course roadmap' },
-      { n: 5, t: 'Read the assessment brief early', b: 'Both projects are described in full now, not released later. Reading Project 2 in Week 1 changes what you notice in Weeks 7 and 9.', href: url('assessment.html'), cta: 'Assessment' }
+      { n: 5, t: 'Read the assessment brief early', b: 'Both projects are described in full on Canvas now, not released later. Reading Project 2 in Week 1 changes what you notice in Weeks 7 and 9.' }
     ];
 
     document.getElementById('main').innerHTML =
@@ -222,28 +218,9 @@
         }).join('') + '</tbody></table></div>' +
       '</section>' +
 
-      '<section id="assessment-summary"><h2>Assessment, in brief</h2>' +
-        '<div class="grid grid-2">' +
-          '<div class="card"><span class="pill">50%</span>' +
-            '<h3 style="margin-top:var(--s3)">Project 1: supervised</h3>' +
-            '<p class="small">Define a biological classification or regression ' +
-            'problem, build a defensible workflow, and report what you found ' +
-            'and what you cannot conclude.</p>' +
-            '<p class="small mb0"><a href="' + url('assessment.html') +
-            '">Full brief</a></p></div>' +
-          '<div class="card"><span class="pill">50%</span>' +
-            '<h3 style="margin-top:var(--s3)">Project 2: unsupervised</h3>' +
-            '<p class="small">Find structure in biological data, then do the ' +
-            'harder work of establishing whether it is real.</p>' +
-            '<p class="small mb0"><a href="' + url('assessment.html') +
-            '">Full brief</a></p></div>' +
-        '</div>' +
-        U.callout('warn', 'On using generative AI',
-          '<p class="mb0">Permitted, and it must be disclosed. Submit a ' +
-          'track-changed version of your report and an AI Assistance ' +
-          'Statement naming the tools, the purpose and the extent. ' +
-          'Non-disclosure is an academic integrity breach. The full policy is ' +
-          'on the <a href="' + url('assessment.html') + '">assessment page</a>.</p>') +
+      '<section id="assessment-summary"><h2>Assessment</h2>' +
+        '<p class="lede">Assessment, lecture materials and module resources ' +
+        'are available on Canvas.</p>' +
       '</section>' +
 
       '<section id="jump"><h2>Everything, in one place</h2>' +
@@ -252,8 +229,6 @@
           linkCard('Practical labs', 'All eleven labs, Weeks 2 to 12.', url('labs/index.html')) +
           linkCard('Datasets', 'Sources, licences and limitations.', url('datasets.html')) +
           linkCard('Foundation models', 'What they are and where they stop.', url('foundation-models.html')) +
-          linkCard('Assessment', 'Both project briefs and the outcome map.', url('assessment.html')) +
-          linkCard('Resources', 'Software, reading and your saved data.', url('resources.html')) +
         '</div>' +
       '</section>' +
 
@@ -291,12 +266,7 @@
         '<td><a href="' + url('weeks/week' + nn + '.html') + '" target="_top">' +
           U.esc(w.title) + '</a>' +
           '<div class="tiny muted">' + U.esc(w.short) + '</div></td>' +
-        '<td style="white-space:nowrap">' +
-          '<a class="btn btn-sm" target="_top" href="' +
-            window.SITE_CONFIG.slidePath(w.n, 'pptx') + '" download>PPTX</a> ' +
-          '<a class="btn btn-sm" target="_top" href="' +
-            window.SITE_CONFIG.slidePath(w.n, 'pdf') + '" download>PDF</a>' +
-        '</td>' +
+        '<td class="small muted" style="white-space:nowrap">On Canvas</td>' +
         '<td>' + (lab
           ? '<a href="' + url('labs/index.html') + '#' + w.lab +
             '" target="_top">' + U.esc(lab.title) + '</a>'
@@ -312,7 +282,8 @@
 
         '<div class="table-scroll" style="margin-top:var(--s6)"><table>' +
           '<caption>The twelve teaching weeks. Week 1 is a lecture only and ' +
-          'has no practical.</caption>' +
+          'has no practical. Lecture slides are posted on Canvas, not this ' +
+          'site.</caption>' +
           '<thead><tr><th scope="col">Week</th><th scope="col">Lecture</th>' +
           '<th scope="col">Slides</th><th scope="col">Lab</th></tr></thead>' +
           '<tbody>' + rows + '</tbody></table></div>' +
@@ -321,8 +292,7 @@
         '<div class="grid grid-3">' +
           [['Start here', 'start-here.html'], ['Course roadmap', 'roadmap.html'],
            ['All labs', 'labs/index.html'], ['Datasets', 'datasets.html'],
-           ['Foundation models', 'foundation-models.html'],
-           ['Assessment', 'assessment.html'], ['Resources', 'resources.html']]
+           ['Foundation models', 'foundation-models.html']]
           .map(function (p) {
             return '<a class="card" href="' + url(p[1]) + '" target="_top">' +
               '<strong>' + U.esc(p[0]) + '</strong></a>';
@@ -843,370 +813,5 @@
     if (window.Chart) window.Chart.mountAll();
   };
 
-  /* ==================================================================== */
-  /* Assessment                                                           */
-  /* ==================================================================== */
 
-  window.renderAssessment = function () {
-    /* Learning-outcome coverage, computed from the course data. */
-    var loRows = C.learningOutcomes.map(function (lo) {
-      var weeks = C.weeks.filter(function (w) {
-        return w.los.indexOf(lo.id) >= 0;
-      });
-      var labs = weeks.filter(function (w) { return w.lab; })
-        .map(function (w) { return window.LABS[w.lab]; })
-        .filter(function (l) { return l.los.indexOf(lo.id) >= 0; });
-      var vizzes = weeks.map(function (w) {
-        return window.vizTitle(w.viz);
-      });
-      var assess = [];
-      if (['LO1', 'LO2', 'LO3', 'LO5'].indexOf(lo.id) >= 0) assess.push('Project 1');
-      if (['LO1', 'LO2', 'LO4', 'LO5'].indexOf(lo.id) >= 0) assess.push('Project 2');
-
-      return '<tr>' +
-        '<th scope="row"><span class="pill pill-lo">' + lo.id + '</span><br>' +
-          '<span class="small">' + U.esc(lo.text) + '</span></th>' +
-        '<td>' + weeks.map(function (w) {
-          return '<a href="' + url('weeks/week' + U.pad(w.n) + '.html') +
-            '">' + w.n + '</a>';
-        }).join(', ') + '</td>' +
-        '<td class="small">' + vizzes.slice(0, 4).join('; ') +
-          (vizzes.length > 4 ? ' and ' + (vizzes.length - 4) + ' more' : '') + '</td>' +
-        '<td class="small">' + (labs.length
-          ? labs.map(function (l) { return 'Lab ' + l.week; }).join(', ')
-          : '—') + '</td>' +
-        '<td>' + assess.join(', ') + '</td>' +
-        '</tr>';
-    }).join('');
-
-    document.getElementById('main').innerHTML =
-      '<div class="page-hero"><div class="wrap">' +
-        '<span class="eyebrow">Assessment</span>' +
-        '<h1>Two projects, 50% each</h1>' +
-        '<p class="lede">The assessment structure is unchanged from the approved ' +
-        'module descriptor: one supervised project and one unsupervised project, ' +
-        'no written examination.</p>' +
-      '</div></div>' +
-      '<div class="wrap">' +
-
-      '<section><h2>Structure</h2>' +
-        '<div class="table-scroll"><table>' +
-          '<caption>Assessment breakdown, as approved.</caption>' +
-          '<thead><tr><th scope="col">Component</th><th scope="col">Weight</th>' +
-          '<th scope="col">Timing</th><th scope="col">Outcomes assessed</th>' +
-          '</tr></thead><tbody>' +
-          '<tr><th scope="row">Project 1: supervised biological machine learning</th>' +
-            '<td>50%</td><td>Submitted in the first half of the semester</td>' +
-            '<td>' + U.loPills(['LO1', 'LO2', 'LO3', 'LO5']) + '</td></tr>' +
-          '<tr><th scope="row">Project 2: unsupervised biological machine learning</th>' +
-            '<td>50%</td><td>Submitted at the end of the semester</td>' +
-            '<td>' + U.loPills(['LO1', 'LO2', 'LO4', 'LO5']) + '</td></tr>' +
-          '</tbody></table></div>' +
-        '<p class="small muted">Reassessment is by resubmitted coursework only. ' +
-        'There is no repeat written examination.</p>' +
-      '</section>' +
-
-      '<section id="project1"><h2>Project 1: supervised biological machine learning</h2>' +
-        '<div class="card">' +
-          '<p class="lede" style="font-size:1rem">Define a biological ' +
-          'classification or regression problem, build a defensible workflow ' +
-          'for it, and report what you found and what you cannot conclude.</p>' +
-          '<h4>What you must do</h4><ol>' +
-            '<li>Define the biological problem and state precisely what the ' +
-            'target variable is and how it was measured.</li>' +
-            '<li>Prepare the data, documenting and justifying every ' +
-            'preprocessing decision.</li>' +
-            '<li>Establish a baseline before fitting anything sophisticated, and ' +
-            'report it alongside every subsequent result.</li>' +
-            '<li>Select and justify at least three model families.</li>' +
-            '<li>Train and tune them with a protocol that keeps every fitted ' +
-            'step inside the cross-validation fold.</li>' +
-            '<li>Evaluate with metrics appropriate to the class balance, and ' +
-            'report uncertainty, not just point estimates.</li>' +
-            '<li>Interpret the results biologically, and separate what the model ' +
-            'predicts from what you can claim about mechanism.</li>' +
-            '<li>Discuss limitations, including who is and is not in your data.</li>' +
-          '</ol>' +
-          '<h4>Optional extension</h4>' +
-          '<p>You may compare a classical pipeline against foundation-model ' +
-          'embeddings, if a suitable pretrained model exists for your data type. ' +
-          'Marks are for the quality of the comparison and the honesty of the ' +
-          'conclusion, not for using a foundation model. A well-argued ' +
-          '"I established that a foundation model was not appropriate here, and ' +
-          'here is the evidence" is a strong answer.</p>' +
-          '<p class="mb0"><a class="btn btn-sm" href="' +
-            url('weeks/week03.html#interactive') + '">Revisit the leakage ' +
-            'simulator before you start</a></p>' +
-        '</div>' +
-      '</section>' +
-
-      '<section id="project2"><h2>Project 2: unsupervised biological machine learning</h2>' +
-        '<div class="card">' +
-          '<p class="lede" style="font-size:1rem">Find structure in a biological ' +
-          'dataset, and then do the harder work of establishing whether it is ' +
-          'real.</p>' +
-          '<h4>What you must do</h4><ol>' +
-            '<li>Preprocess the data, documenting every decision and its effect.</li>' +
-            '<li>Apply dimensionality reduction and interpret the result, ' +
-            'including how much variance you discarded.</li>' +
-            '<li>Apply at least two clustering algorithms with different ' +
-            'assumptions, and justify the parameters.</li>' +
-            '<li>Validate the clusters: stability under resampling, agreement ' +
-            'between algorithms, and correspondence with anything measured ' +
-            'independently.</li>' +
-            '<li>Check explicitly for technical structure. If a batch, site or ' +
-            'date variable exists, test whether your clusters track it.</li>' +
-            '<li>Interpret the clusters biologically, and state what would have ' +
-            'to be true for them to be a real finding.</li>' +
-            '<li>Discuss limitations honestly, including the possibility that ' +
-            'the structure you found is an artefact.</li>' +
-          '</ol>' +
-          '<p><strong>Foundation-model representations are permitted and not ' +
-          'required.</strong> If you use them, the validation burden is the ' +
-          'same, and the anisotropy of embedding spaces gives you an extra ' +
-          'methodological question to address.</p>' +
-          '<p class="mb0"><a class="btn btn-sm" href="' +
-            url('weeks/week09.html#interactive') + '">Revisit the batch-effect ' +
-            'demonstration before you start</a></p>' +
-        '</div>' +
-      '</section>' +
-
-      '<section id="mapping"><h2>Learning-outcome map</h2>' +
-        '<p>Every approved outcome, and where in the redesigned module it is ' +
-        'taught, practised and assessed.</p>' +
-        '<div class="table-scroll"><table>' +
-          '<caption>Coverage of LO1 to LO5 across weeks, interactives, labs and ' +
-          'assessment. Generated from the course data, so it cannot drift out of ' +
-          'date.</caption>' +
-          '<thead><tr><th scope="col">Outcome</th><th scope="col">Weeks</th>' +
-          '<th scope="col">Interactive activities</th><th scope="col">Labs</th>' +
-          '<th scope="col">Assessment</th></tr></thead><tbody>' + loRows +
-          '</tbody></table></div>' +
-      '</section>' +
-
-      '<section><h2>Using generative AI</h2>' +
-        U.callout('warn', 'Disclosure is required, not optional',
-          '<p>You may use generative AI tools to support your learning: ' +
-          'debugging, clarifying concepts, improving the clarity of your ' +
-          'writing. Any such use must be fully disclosed.</p>' +
-          '<p>Submit a version of your written deliverable with track changes ' +
-          'enabled, showing text that was generated, rewritten or edited with ' +
-          'AI assistance, and include an AI Assistance Statement naming the ' +
-          'tools used, the purpose, and the extent of the contribution.</p>' +
-          '<p class="mb0">Failure to disclose, or to provide the track-changed ' +
-          'version, is treated as an academic integrity breach under MTU\'s ' +
-          'Plagiarism and Academic Misconduct Policy.</p>') +
-        '<p>There is a practical reason for this beyond integrity. The thing ' +
-        'this module is trying to teach you is judgement about whether a result ' +
-        'is trustworthy. A tool that produces confident, fluent, ' +
-        'plausible-sounding analysis is precisely the thing that judgement has ' +
-        'to be applied to. Making your use of it explicit is part of the ' +
-        'exercise, not a tax on it.</p>' +
-      '</section>' +
-
-      '</div>';
-  };
-
-  /* ==================================================================== */
-  /* Resources                                                            */
-  /* ==================================================================== */
-
-  window.renderResources = function () {
-    var R = window.REFERENCES;
-    var groups = {
-      'Methodology and critique': ['jones2019', 'greener2022', 'kapoor2023',
-        'ambroise2002', 'tabeBordbar2018', 'strubell2019'],
-      'Foundation models': ['alphafold2', 'alphafold3', 'nucleotideTransformer',
-        'dnabert2', 'hyenadna', 'esm2', 'prottrans', 'lora'],
-      'Datasets': ['wdbc', 'wbcOriginal', 'nhanes', 'openfda', 'tcga', 'gdc',
-        'afdb', 'afdbOriginal', 'afdb2025'],
-      'Background and tools': ['geron', 'sklearn', 'yang2020', 'kyteDoolittle']
-    };
-
-    var refHtml = Object.keys(groups).map(function (g) {
-      return '<h3>' + U.esc(g) + '</h3><ol class="refs">' +
-        groups[g].map(function (k) {
-          var r = R[k];
-          if (!r) return '';
-          return '<li><span class="ref-cite">' + U.esc(r.cite) + '</span>' +
-            (r.doi ? ' DOI: <a href="https://doi.org/' + U.esc(r.doi) +
-              '" target="_blank" rel="noopener">' + U.esc(r.doi) + '</a>.' : '') +
-            (r.url ? ' <a href="' + U.esc(r.url) + '" target="_blank" ' +
-              'rel="noopener">Link</a>.' : '') +
-            '<div class="ref-note">Citation details verified ' +
-              U.esc(r.checked) + '.</div></li>';
-        }).join('') + '</ol>';
-    }).join('');
-
-    document.getElementById('main').innerHTML =
-      '<div class="page-hero"><div class="wrap">' +
-        '<span class="eyebrow">Resources</span>' +
-        '<h1>Tools, reading and references</h1>' +
-        '<p class="lede">Everything cited on this site, plus the software you ' +
-        'need and where to get help with it.</p>' +
-      '</div></div>' +
-      '<div class="wrap">' +
-
-      '<section id="lectures"><h2>Lecture materials</h2>' +
-        '<p>Every deck as PowerPoint and as PDF. The same files are posted on ' +
-        'Canvas before each lecture. Decks are regenerated from ' +
-        '<code>slides/build_slides.py</code>, so they stay consistent with ' +
-        'this website.</p>' +
-        '<div class="table-scroll"><table>' +
-          '<caption>The twelve lecture decks. Week 1 has no practical.</caption>' +
-          '<thead><tr><th scope="col">Week</th><th scope="col">Lecture</th>' +
-          '<th scope="col">Slides</th><th scope="col">Lab</th></tr></thead>' +
-          '<tbody>' + C.weeks.map(function (w) {
-            var lab = w.lab ? window.LABS[w.lab] : null;
-            return '<tr><th scope="row">' + w.n + '</th>' +
-              '<td><a href="' + url('weeks/week' + U.pad(w.n) + '.html') + '">' +
-                U.esc(w.title) + '</a></td>' +
-              '<td style="white-space:nowrap">' +
-                '<a class="btn btn-sm" href="' +
-                  url(window.SITE_CONFIG.slidePath(w.n, 'pptx')) +
-                  '" download>PPTX</a> ' +
-                '<a class="btn btn-sm" href="' +
-                  url(window.SITE_CONFIG.slidePath(w.n, 'pdf')) +
-                  '" download>PDF</a></td>' +
-              '<td>' + (lab
-                ? '<a href="' + url('labs/index.html') + '#' + w.lab + '">' +
-                  'Lab ' + w.n + '</a>'
-                : '<span class="muted">none</span>') + '</td></tr>';
-          }).join('') + '</tbody></table></div>' +
-      '</section>' +
-
-      '<section id="videos"><h2>Videos</h2>' +
-        '<p>Two short videos, both in Week 1. Videos support the teaching here ' +
-        'rather than replacing it, and no assessment information appears only ' +
-        'in a video.</p>' +
-        '<div class="table-scroll"><table>' +
-          '<caption>Every video used in the module, with its source.</caption>' +
-          '<thead><tr><th scope="col">Video</th><th scope="col">Source</th>' +
-          '<th scope="col">Length</th><th scope="col">Where</th></tr></thead>' +
-          '<tbody>' + Object.keys(window.SITE_CONFIG.youtube).map(function (k) {
-            var v = window.SITE_CONFIG.youtube[k];
-            return '<tr><th scope="row">' +
-              (v.id ? '<a href="https://www.youtube.com/watch?v=' + v.id +
-                      '" target="_blank" rel="noopener">' + U.esc(v.title) +
-                      '</a>'
-                    : U.esc(v.title) +
-                      ' <span class="pill pill-sim">awaiting upload</span>') +
-              '</th><td>' + U.esc(v.creator) + '</td><td>' +
-              U.esc(v.duration) + '</td><td><a href="' +
-              url('weeks/week01.html') + '#videos">Week 1</a></td></tr>';
-          }).join('') + '</tbody></table></div>' +
-        '<p class="small muted">Full provenance, including how each source was ' +
-        'established and what was dropped, is in ' +
-        '<code>docs/VIDEO_SOURCES.md</code>.</p>' +
-      '</section>' +
-
-      '<section id="software"><h2>Software</h2>' +
-        '<div class="grid grid-2">' +
-          '<div class="card"><h4 style="margin-top:0">Python and the scientific stack</h4>' +
-            '<p class="small">Everything in the labs runs on Python 3 with ' +
-            'NumPy, pandas, scikit-learn, Matplotlib and seaborn. Nothing needs ' +
-            'a GPU.</p>' +
-            '<pre style="font-size:0.76rem">pip install numpy pandas scikit-learn \\\n' +
-            '            matplotlib seaborn jupyter</pre>' +
-            '<p class="small mb0"><a href="https://scikit-learn.org/stable/" ' +
-            'target="_blank" rel="noopener">scikit-learn documentation</a> ' +
-            '&middot; <a href="https://scikit-learn.org/stable/modules/compose.html" ' +
-            'target="_blank" rel="noopener">Pipelines</a></p></div>' +
-          '<div class="card"><h4 style="margin-top:0">Hugging Face</h4>' +
-            '<p class="small">Where the pretrained biological models live. The ' +
-            'transformers library loads them; peft implements LoRA and adapters.</p>' +
-            '<pre style="font-size:0.76rem">pip install torch transformers peft</pre>' +
-            '<p class="small mb0"><a href="https://huggingface.co/facebook/esm2_t6_8M_UR50D" ' +
-            'target="_blank" rel="noopener">ESM-2 8M</a> &middot; ' +
-            '<a href="https://huggingface.co/InstaDeepAI/nucleotide-transformer-2.5b-multi-species" ' +
-            'target="_blank" rel="noopener">Nucleotide Transformer</a> &middot; ' +
-            '<a href="https://github.com/MAGICS-LAB/DNABERT_2" target="_blank" ' +
-            'rel="noopener">DNABERT-2</a></p></div>' +
-          '<div class="card"><h4 style="margin-top:0">This site\'s own scripts</h4>' +
-            '<p class="small">Every number quoted as measured on this site is ' +
-            'produced by a script in <code>data/scripts/</code>. They are short ' +
-            'and readable, and running them reproduces the figures.</p>' +
-            '<pre style="font-size:0.76rem">python3 data/scripts/01_build_wdbc.py\n' +
-            'python3 data/scripts/02_build_benchmarks.py\n' +
-            'python3 data/scripts/03_build_sequences.py\n' +
-            'python3 data/scripts/04_real_esm2_embeddings.py  # optional\n' +
-            'python3 data/scripts/05_build_recalls.py</pre>' +
-            '<p class="small mb0">Script 04 replaces the simulated embeddings ' +
-            'with real ESM-2 output and updates the banners on this site ' +
-            'automatically.</p></div>' +
-          '<div class="card"><h4 style="margin-top:0">Data access</h4>' +
-            '<p class="small mb0">' +
-            '<a href="https://archive.ics.uci.edu/" target="_blank" rel="noopener">UCI ML Repository</a><br>' +
-            '<a href="https://wwwn.cdc.gov/nchs/nhanes/" target="_blank" rel="noopener">CDC NHANES</a><br>' +
-            '<a href="https://open.fda.gov/apis/" target="_blank" rel="noopener">openFDA API</a><br>' +
-            '<a href="https://portal.gdc.cancer.gov/" target="_blank" rel="noopener">NCI Genomic Data Commons</a><br>' +
-            '<a href="https://alphafold.ebi.ac.uk/" target="_blank" rel="noopener">AlphaFold DB</a><br>' +
-            '<a href="https://www.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">NCBI</a> &middot; ' +
-            '<a href="https://www.ebi.ac.uk/" target="_blank" rel="noopener">EMBL-EBI</a></p></div>' +
-        '</div>' +
-      '</section>' +
-
-      '<section id="references"><h2>References</h2>' +
-        '<p>Every claim on this site that needed a source has one here. Where a ' +
-        'figure could not be verified from a primary source it was left out ' +
-        'rather than estimated.</p>' + refHtml +
-      '</section>' +
-
-      '<section id="privacy"><h2>Privacy and your saved responses</h2>' +
-        U.callout('key', 'What this site stores',
-          '<p>Your weekly check-in answers, which weeks you have opened, and ' +
-          'your self-check results are stored in this browser\'s local storage ' +
-          'under keys beginning <code>comp9085.</code>. That is all.</p>' +
-          '<p>Nothing is transmitted anywhere. There is no server, no account, ' +
-          'no cookie, no analytics and no third-party script beyond the D3 ' +
-          'charting library, which is served from this same site rather than ' +
-          'from a content delivery network. Your lecturer cannot see your ' +
-          'responses, and neither can anyone else.</p>' +
-          '<p class="mb0">Clearing your browser data removes everything. You can ' +
-          'also do it here.</p>') +
-        '<div class="flex" style="margin-bottom:var(--s5)">' +
-          '<button type="button" class="btn" id="export-data">Export my saved responses</button>' +
-          '<button type="button" class="btn" id="clear-data">Clear everything saved on this site</button>' +
-          '<span class="small muted" id="privacy-status" role="status" aria-live="polite"></span>' +
-        '</div>' +
-        '<div id="export-out"></div>' +
-      '</section>' +
-
-      '<section id="help"><h2>Getting help</h2>' +
-        '<div class="grid grid-2">' +
-          '<div class="card"><h4 style="margin-top:0">In the module</h4>' +
-            '<p class="small mb0">Dr Haithem Afli, Department of Computer ' +
-            'Science, Munster Technological University.<br>' +
-            '<a href="mailto:haithem.afli@mtu.ie">haithem.afli@mtu.ie</a><br><br>' +
-            'The weekly check-in on each week page asks what should be explained ' +
-            'again. It is worth filling in: it is the fastest route to getting ' +
-            'something revisited in the next lecture.</p></div>' +
-          '<div class="card"><h4 style="margin-top:0">If you are stuck on the code</h4>' +
-            '<p class="small mb0">The scikit-learn user guide is unusually good ' +
-            'and is the right first stop. For conceptual questions, Greener et ' +
-            'al. (2022), <em>A guide to machine learning for biologists</em>, ' +
-            'is the single most useful thing on the reading list.</p></div>' +
-        '</div>' +
-      '</section>' +
-
-      '</div>';
-
-    document.getElementById('clear-data').addEventListener('click', function () {
-      var n = window.Store.clearAll();
-      document.getElementById('privacy-status').textContent =
-        'Cleared ' + n + ' stored item' + (n === 1 ? '' : 's') + '.';
-      document.getElementById('export-out').innerHTML = '';
-      window.Progress.refresh();
-    });
-
-    document.getElementById('export-data').addEventListener('click', function () {
-      var dump = window.Store.dump();
-      document.getElementById('export-out').innerHTML =
-        '<p class="small muted">Everything this site has stored about you, as ' +
-        'JSON. Copy it if you want to keep a record.</p>' +
-        '<pre style="max-height:340px">' +
-        U.esc(JSON.stringify(dump, null, 2)) + '</pre>';
-      document.getElementById('privacy-status').textContent = 'Exported below.';
-    });
-  };
 })();

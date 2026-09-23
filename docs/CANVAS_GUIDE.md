@@ -58,11 +58,8 @@ Canvas holds the structure and the grades; the website holds the teaching.
 | Student entry point | `<base>/start-here.html` |
 | Whole-module roadmap | `<base>/roadmap.html` |
 | All labs | `<base>/labs/index.html` |
-| Assessment and marking | `<base>/assessment.html` |
 | Datasets | `<base>/datasets.html` |
 | Foundation models | `<base>/foundation-models.html` |
-| Resources, reading, tools | `<base>/resources.html` |
-| Slide downloads (PPTX + PDF) | `<base>/resources.html#lectures` |
 
 ---
 
@@ -70,10 +67,12 @@ Canvas holds the structure and the grades; the website holds the teaching.
 
 `canvas.html` exists for this. It is the same content with the site header,
 footer and navigation removed, so it does not look like a website nested inside
-a website. It is a single table of the twelve weeks, with the lecture, both
-slide downloads and the lab for each, plus links to the other pages. Every link
-inside it uses `target="_top"`, so clicking one navigates the whole browser
-window rather than trapping the student in a scrolling frame.
+a website. It is a single table of the twelve weeks, with the lecture and the
+lab for each; the Slides column reads "On Canvas" for every week, because the
+site does not host or link to the slide files (see "Slides in Canvas" below).
+The table also links to the other pages. Every link inside it uses
+`target="_top"`, so clicking one navigates the whole browser window rather
+than trapping the student in a scrolling frame.
 
 In Canvas: **Pages → + Page → HTML editor** (the `</>` button), then paste:
 
@@ -140,25 +139,28 @@ Option 1 avoids all of this. Prefer it.
 
 ## Slides in Canvas
 
-Every week's deck is built in both formats:
+**Lecture slides are Canvas-only. The public website does not host, link to,
+or otherwise expose them** - this repository deploys directly as the public
+GitHub Pages site, so anything committed to it is publicly fetchable at its
+repo path whether or not any page links to it. Keeping the built decks out of
+git (`.gitignore`) is the actual control, not the absence of a download
+button.
+
+Every week's deck is still built locally, in both formats, by
+`slides/build_slides.py`:
 
 ```
 slides/weekNN/COMP9085_WeekNN.pptx
 slides/weekNN/COMP9085_WeekNN.pdf
 ```
 
-Both are linked at the top of each week page, on `resources.html#lectures` and
-on `canvas.html`. Two reasonable approaches:
+To get slides in front of students, upload them **directly to Canvas**:
 
-- **Link to them on the site** (with Option 1 or 2). One copy, always current.
-- **Upload the PDFs to Canvas Files** as well, if your students expect to find
-  slides inside Canvas. Upload the PDF, not the PPTX: it previews inline in
-  Canvas, it cannot be accidentally edited, and it renders identically
-  everywhere. Keep the PPTX on the site for anyone who wants the editable
-  source.
-
-If you upload PDFs to Canvas, re-upload them after rebuilding the slides.
-`docs/MAINTENANCE.md` covers the rebuild.
+1. Build the deck locally (`docs/MAINTENANCE.md`).
+2. **Canvas -> Files -> Upload**, or attach to the relevant Module/Page item.
+   Upload the PDF for an inline, uneditable preview; add the PPTX too if
+   students should have the editable source.
+3. Re-upload after any rebuild.
 
 ---
 
@@ -171,16 +173,17 @@ The website never handles marks. Specifically:
   read it. Do not use it as evidence of engagement, and tell students that it is
   private so they answer honestly.
 - The **self-check questions** are formative and unrecorded.
-- Project briefs, rubrics and the LO map are described on `assessment.html`, but
-  **submission, deadlines, extensions, plagiarism checking and grade return all
-  stay in Canvas**, which is where the institutional record belongs.
+- Project briefs, rubrics and the LO map are Canvas-only, per the module's
+  public/private boundary: **submission, deadlines, extensions, plagiarism
+  checking, grade return, and the assessment brief itself all stay in
+  Canvas**, which is where the institutional record belongs.
 
 Set up in Canvas:
 
-| Canvas assignment | Weight | Website reference |
-|---|---|---|
-| Project 1 | 50% | `<base>/assessment.html#project1` |
-| Project 2 | 50% | `<base>/assessment.html#project2` |
+| Canvas assignment | Weight |
+|---|---|
+| Project 1 | 50% |
+| Project 2 | 50% |
 
 This matches the approved module descriptor, which was not changed.
 
