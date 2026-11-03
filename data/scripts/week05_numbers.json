@@ -1,0 +1,792 @@
+{
+ "generatedBy": "data/scripts/10_build_week05_data.py",
+ "sklearnVersion": "1.9.1",
+ "seed": 42,
+ "labels": {
+  "real": "Real openFDA food-recall data (frozen snapshot), used for classroom evaluation. The label is FDA's administrative hazard classification.",
+  "sim": "Illustrative simulation — not a biological dataset."
+ },
+ "provenance": {
+  "source": "openFDA food enforcement bulk export (U.S. Food and Drug Administration)",
+  "download_url": "https://download.open.fda.gov/food/enforcement/food-enforcement-0001-of-0001.json.zip",
+  "api_documentation": "https://open.fda.gov/apis/food/enforcement/",
+  "licence": "Public domain (CC0 1.0); see https://open.fda.gov/license/",
+  "openfda_disclaimer": "Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.",
+  "openfda_last_updated": "2026-09-28",
+  "zip_sha256": "c011f158b2dd7c2f5f22298413278a0e0de8a86fbb11b3e7b89bca4ea08c85b3",
+  "product_records_in_export": 29463,
+  "product_records_kept": 29462,
+  "dropped": "records not yet classified, or with an empty reason_for_recall",
+  "event_level_rows": 9490,
+  "recall_events": 7890,
+  "report_date_range": [
+   "2012-06-20",
+   "2026-09-23"
+  ],
+  "unit_of_observation": "an event-reason-classification record: one row per distinct (event_id, reason_for_recall, classification)",
+  "text_preparation": "whitespace collapsed and stripped; nothing else changed",
+  "target": "is_class_I = 1 for Class I, 0 for Class II or Class III"
+ },
+ "dataset": {
+  "rows": 9490,
+  "events": 7890,
+  "productRecords": 29462,
+  "classCounts": {
+   "Class II": 4882,
+   "Class I": 3836,
+   "Class III": 772
+  },
+  "positiveRate": 0.4042,
+  "wordsPerTextMedian": 13,
+  "eventReasonPairs": 9394,
+  "pairsWithMultipleClassifications": 95,
+  "eventsWithConflictingLabels": 73
+ },
+ "split": {
+  "method": "StratifiedGroupKFold(n_splits=4, shuffle=True, random_state=42), first fold; groups = event_id",
+  "train": 7117,
+  "test": 2373,
+  "testPositiveRate": 0.4041,
+  "sharedEvents": 0,
+  "testTextIdenticalToATrainText": 0.14
+ },
+ "vectorizer": {
+  "type": "CountVectorizer() defaults: lowercase, token_pattern (?u)\\b\\w\\w+\\b",
+  "vocabularyTrain": 6772
+ },
+ "main": {
+  "label": "Word counts + MultinomialNB(alpha=1.0)",
+  "accuracy": 0.7914,
+  "precision": 0.7226,
+  "recall": 0.7852,
+  "f1": 0.7526,
+  "rocAuc": 0.8598,
+  "averagePrecision": 0.7919,
+  "brier": 0.1657,
+  "fractionExtreme": 0.6338,
+  "tp": 753,
+  "fp": 289,
+  "fn": 206,
+  "tn": 1125,
+  "priors": {
+   "notClassI": 0.5958,
+   "classI": 0.4042
+  }
+ },
+ "words": {
+  "classI": [
+   {
+    "word": "snoqualmie",
+    "logRatio": 4.215,
+    "trainCount": 46
+   },
+   {
+    "word": "sunland",
+    "logRatio": 4.215,
+    "trainCount": 46
+   },
+   {
+    "word": "husky",
+    "logRatio": 4.171,
+    "trainCount": 44
+   },
+   {
+    "word": "daniella",
+    "logRatio": 3.543,
+    "trainCount": 23
+   },
+   {
+    "word": "mann",
+    "logRatio": 3.198,
+    "trainCount": 16
+   },
+   {
+    "word": "salinas",
+    "logRatio": 3.004,
+    "trainCount": 13
+   },
+   {
+    "word": "mangoes",
+    "logRatio": 2.967,
+    "trainCount": 27
+   },
+   {
+    "word": "cucumbers",
+    "logRatio": 2.93,
+    "trainCount": 26
+   },
+   {
+    "word": "sprouts",
+    "logRatio": 2.85,
+    "trainCount": 37
+   },
+   {
+    "word": "combined",
+    "logRatio": 2.85,
+    "trainCount": 11
+   },
+   {
+    "word": "http",
+    "logRatio": 2.85,
+    "trainCount": 11
+   },
+   {
+    "word": "htm",
+    "logRatio": 2.85,
+    "trainCount": 11
+   },
+   {
+    "word": "cowchipcookies",
+    "logRatio": 2.85,
+    "trainCount": 11
+   },
+   {
+    "word": "o157",
+    "logRatio": 2.716,
+    "trainCount": 21
+   },
+   {
+    "word": "kernels",
+    "logRatio": 2.667,
+    "trainCount": 20
+   }
+  ],
+  "notClassI": [
+   {
+    "word": "fragments",
+    "logRatio": -4.406,
+    "trainCount": 117
+   },
+   {
+    "word": "metal",
+    "logRatio": -4.28,
+    "trainCount": 208
+   },
+   {
+    "word": "object",
+    "logRatio": -3.898,
+    "trainCount": 70
+   },
+   {
+    "word": "whereby",
+    "logRatio": -3.661,
+    "trainCount": 55
+   },
+   {
+    "word": "foreign",
+    "logRatio": -3.427,
+    "trainCount": 270
+   },
+   {
+    "word": "glass",
+    "logRatio": -3.373,
+    "trainCount": 84
+   },
+   {
+    "word": "spoilage",
+    "logRatio": -3.373,
+    "trainCount": 41
+   },
+   {
+    "word": "choklad",
+    "logRatio": -3.219,
+    "trainCount": 35
+   },
+   {
+    "word": "chloramphenicol",
+    "logRatio": -3.219,
+    "trainCount": 35
+   },
+   {
+    "word": "become",
+    "logRatio": -3.162,
+    "trainCount": 33
+   },
+   {
+    "word": "mold",
+    "logRatio": -3.037,
+    "trainCount": 60
+   },
+   {
+    "word": "objects",
+    "logRatio": -3.003,
+    "trainCount": 28
+   },
+   {
+    "word": "amount",
+    "logRatio": -2.968,
+    "trainCount": 27
+   },
+   {
+    "word": "yeast",
+    "logRatio": -2.968,
+    "trainCount": 27
+   },
+   {
+    "word": "injurious",
+    "logRatio": -2.968,
+    "trainCount": 27
+   }
+  ],
+  "byEvents": {
+   "minEvents": 20,
+   "classI": [
+    {
+     "word": "sunland",
+     "logRatio": 4.215,
+     "events": 34
+    },
+    {
+     "word": "cucumbers",
+     "logRatio": 2.93,
+     "events": 25
+    },
+    {
+     "word": "sprouts",
+     "logRatio": 2.85,
+     "events": 22
+    },
+    {
+     "word": "outbreak",
+     "logRatio": 2.38,
+     "events": 29
+    },
+    {
+     "word": "salmonella",
+     "logRatio": 1.932,
+     "events": 694
+    },
+    {
+     "word": "york",
+     "logRatio": 1.869,
+     "events": 40
+    },
+    {
+     "word": "monocytogenes",
+     "logRatio": 1.813,
+     "events": 656
+    },
+    {
+     "word": "hepatitis",
+     "logRatio": 1.751,
+     "events": 22
+    },
+    {
+     "word": "sunflower",
+     "logRatio": 1.726,
+     "events": 35
+    },
+    {
+     "word": "markets",
+     "logRatio": 1.726,
+     "events": 45
+    },
+    {
+     "word": "listeria",
+     "logRatio": 1.72,
+     "events": 668
+    },
+    {
+     "word": "onions",
+     "logRatio": 1.554,
+     "events": 34
+    },
+    {
+     "word": "sampling",
+     "logRatio": 1.435,
+     "events": 86
+    },
+    {
+     "word": "new",
+     "logRatio": 1.316,
+     "events": 53
+    },
+    {
+     "word": "sampled",
+     "logRatio": 1.281,
+     "events": 29
+    }
+   ],
+   "notClassI": [
+    {
+     "word": "fragments",
+     "logRatio": -4.406,
+     "events": 109
+    },
+    {
+     "word": "metal",
+     "logRatio": -4.28,
+     "events": 185
+    },
+    {
+     "word": "object",
+     "logRatio": -3.898,
+     "events": 69
+    },
+    {
+     "word": "whereby",
+     "logRatio": -3.661,
+     "events": 27
+    },
+    {
+     "word": "foreign",
+     "logRatio": -3.427,
+     "events": 264
+    },
+    {
+     "word": "glass",
+     "logRatio": -3.373,
+     "events": 77
+    },
+    {
+     "word": "spoilage",
+     "logRatio": -3.373,
+     "events": 38
+    },
+    {
+     "word": "chloramphenicol",
+     "logRatio": -3.219,
+     "events": 30
+    },
+    {
+     "word": "become",
+     "logRatio": -3.162,
+     "events": 28
+    },
+    {
+     "word": "mold",
+     "logRatio": -3.037,
+     "events": 59
+    },
+    {
+     "word": "objects",
+     "logRatio": -3.003,
+     "events": 28
+    },
+    {
+     "word": "amount",
+     "logRatio": -2.968,
+     "events": 25
+    },
+    {
+     "word": "yeast",
+     "logRatio": -2.968,
+     "events": 25
+    },
+    {
+     "word": "injurious",
+     "logRatio": -2.968,
+     "events": 24
+    },
+    {
+     "word": "rendered",
+     "logRatio": -2.931,
+     "events": 23
+    }
+   ]
+  }
+ },
+ "errors": {
+  "falsePositives": [
+   {
+    "text": "Northstar Produce Inc. is recalling 98 cases of Granny Smith apples because a test performed on a sample of the apples indicated the presence of Listeria monocytogenes, Salmonella, and / or Enterohemorrhagic E. coli.",
+    "classification": "Class II",
+    "p": 1.0
+   },
+   {
+    "text": "Garden-Fresh Foods is recalling various cut vegetables, ready-to-eat salads, slaw, spread and dip products sold under various brands and code dates manufactured prior to November 06, 2013 because they may be contaminated with Listeria monocytogenes.",
+    "classification": "Class II",
+    "p": 1.0
+   },
+   {
+    "text": "Samples of Santa Rosa De Lima Cuajada en Terron (fresh curd cheese) were found positive for Listeria Monocytogenes. Based on these findings, the firm recalled all brands, lots, date codes, and container sizes of the cheese products that were manufactured and/or repackaged in their facility. Out of an abundance of caution, the firm expanded the recall to include all brands, lots, date codes, and c",
+    "classification": "Class II",
+    "p": 1.0
+   },
+   {
+    "text": "Amazon Go Vegan Hummus Veggie product is recalled due to potential contamination by Listeria monocytogenes.",
+    "classification": "Class II",
+    "p": 1.0
+   },
+   {
+    "text": "Potential for contamination of Listeria monocytogenes. Environmental sample collected by FDA yielded positive results for one Zone 1 (cutting board) and one Zone 3 (floor drain).",
+    "classification": "Class II",
+    "p": 1.0
+   },
+   {
+    "text": "Amazon Go Tzatziki Dip with Veggies is recalled due to potential contamination by Listeria monocytogenes.",
+    "classification": "Class II",
+    "p": 1.0
+   }
+  ],
+  "falseNegatives": [
+   {
+    "text": "The ingredients statement declared wheat, soybean oil, eggs, soy flour, soybean oil, and WHEY. The ingredients statement does not declare Milk as a source of whey and the Contains statement does not declare Milk.",
+    "classification": "Class I",
+    "p": 0.0
+   },
+   {
+    "text": "The ingredients statement declared wheat, soybean oil, eggs, soy lecithin, and WHEY. The ingredients statement does not declare Milk as a source of whey and the Contains statement does not declare Milk.",
+    "classification": "Class I",
+    "p": 0.0
+   },
+   {
+    "text": "Internal product label review discovered that wheat is not declared as an ingredient or allergen in Cranberry Walnut salad. Flatbread chips which contain wheat are visible through clear plastic container.",
+    "classification": "Class I",
+    "p": 0.0
+   },
+   {
+    "text": "Product bottle has potential to become pressurized over time. When consumer opens a bottle, the cap, capsules, and product powder could be forcefully expelled, and customers may sustain injuries to their hands and eyes.",
+    "classification": "Class I",
+    "p": 0.0
+   },
+   {
+    "text": "Undeclared allergen (soy) due to mislabeling. Product is labeled as Brown Sugar Molasses Baked Beans, but contains Beef and BBQ Baked Beans. The Beef and BBQ Baked Beans contain soy, which is not declared on the label.",
+    "classification": "Class I",
+    "p": 0.0
+   },
+   {
+    "text": "Source of whey powder ingredient is not identified as milk and the allergen statement does not include milk. People who have an allergy or severe sensitivity to milk run the risk of serious or life-threatening allergic reaction if they consume these products.",
+    "classification": "Class I",
+    "p": 0.0
+   }
+  ]
+ },
+ "reliability": [
+  {
+   "lo": 0.0,
+   "hi": 0.1,
+   "n": 945,
+   "meanPredicted": 0.0132,
+   "fractionPositive": 0.0847
+  },
+  {
+   "lo": 0.1,
+   "hi": 0.2,
+   "n": 98,
+   "meanPredicted": 0.1473,
+   "fractionPositive": 0.2143
+  },
+  {
+   "lo": 0.2,
+   "hi": 0.3,
+   "n": 95,
+   "meanPredicted": 0.2505,
+   "fractionPositive": 0.3474
+  },
+  {
+   "lo": 0.3,
+   "hi": 0.4,
+   "n": 102,
+   "meanPredicted": 0.3501,
+   "fractionPositive": 0.3235
+  },
+  {
+   "lo": 0.4,
+   "hi": 0.5,
+   "n": 91,
+   "meanPredicted": 0.4462,
+   "fractionPositive": 0.4286
+  },
+  {
+   "lo": 0.5,
+   "hi": 0.6,
+   "n": 87,
+   "meanPredicted": 0.5375,
+   "fractionPositive": 0.5862
+  },
+  {
+   "lo": 0.6,
+   "hi": 0.7,
+   "n": 81,
+   "meanPredicted": 0.6407,
+   "fractionPositive": 0.4938
+  },
+  {
+   "lo": 0.7,
+   "hi": 0.8,
+   "n": 83,
+   "meanPredicted": 0.7447,
+   "fractionPositive": 0.5904
+  },
+  {
+   "lo": 0.8,
+   "hi": 0.9,
+   "n": 78,
+   "meanPredicted": 0.8532,
+   "fractionPositive": 0.6154
+  },
+  {
+   "lo": 0.9,
+   "hi": 1.0,
+   "n": 713,
+   "meanPredicted": 0.9875,
+   "fractionPositive": 0.7924
+  }
+ ],
+ "histogram": [
+  945,
+  98,
+  95,
+  102,
+  91,
+  87,
+  81,
+  83,
+  78,
+  713
+ ],
+ "variants": {
+  "count_mnb": {
+   "label": "Word counts + MultinomialNB",
+   "accuracy": 0.7914,
+   "precision": 0.7226,
+   "recall": 0.7852,
+   "f1": 0.7526,
+   "rocAuc": 0.8598,
+   "averagePrecision": 0.7919,
+   "brier": 0.1657,
+   "fractionExtreme": 0.6338,
+   "tp": 753,
+   "fp": 289,
+   "fn": 206,
+   "tn": 1125
+  },
+  "tfidf_mnb": {
+   "label": "TF-IDF + MultinomialNB",
+   "accuracy": 0.7863,
+   "precision": 0.771,
+   "recall": 0.6705,
+   "f1": 0.7172,
+   "rocAuc": 0.8685,
+   "averagePrecision": 0.7977,
+   "brier": 0.1457,
+   "fractionExtreme": 0.0721,
+   "tp": 643,
+   "fp": 191,
+   "fn": 316,
+   "tn": 1223
+  },
+  "binary_bnb": {
+   "label": "Word presence + BernoulliNB",
+   "accuracy": 0.7792,
+   "precision": 0.7321,
+   "recall": 0.7153,
+   "f1": 0.7236,
+   "rocAuc": 0.8601,
+   "averagePrecision": 0.7896,
+   "brier": 0.1693,
+   "fractionExtreme": 0.646,
+   "tp": 686,
+   "fp": 251,
+   "fn": 273,
+   "tn": 1163
+  },
+  "majority": {
+   "label": "Majority-class baseline (always not Class I)",
+   "accuracy": 0.5959,
+   "precision": null,
+   "recall": 0.0,
+   "f1": 0.0,
+   "rocAuc": 0.5,
+   "averagePrecision": 0.4041,
+   "brier": null,
+   "fractionExtreme": null
+  }
+ },
+ "leakage": {
+  "vectorizer": {
+   "count": {
+    "vocabularyAll": 7965,
+    "vocabularyTrain": 6772,
+    "testOnlyWords": 1193,
+    "leaky": {
+     "accuracy": 0.7885,
+     "precision": 0.7162,
+     "recall": 0.7894,
+     "f1": 0.751,
+     "rocAuc": 0.8582,
+     "averagePrecision": 0.789,
+     "brier": 0.1684,
+     "fractionExtreme": 0.6325,
+     "tp": 757,
+     "fp": 300,
+     "fn": 202,
+     "tn": 1114
+    },
+    "correct": {
+     "accuracy": 0.7914,
+     "precision": 0.7226,
+     "recall": 0.7852,
+     "f1": 0.7526,
+     "rocAuc": 0.8598,
+     "averagePrecision": 0.7919,
+     "brier": 0.1657,
+     "fractionExtreme": 0.6338,
+     "tp": 753,
+     "fp": 289,
+     "fn": 206,
+     "tn": 1125
+    }
+   },
+   "tfidf": {
+    "vocabularyAll": 7965,
+    "vocabularyTrain": 6772,
+    "testOnlyWords": 1193,
+    "leaky": {
+     "accuracy": 0.7868,
+     "precision": 0.7706,
+     "recall": 0.6726,
+     "f1": 0.7183,
+     "rocAuc": 0.8646,
+     "averagePrecision": 0.7938,
+     "brier": 0.1481,
+     "fractionExtreme": 0.0649,
+     "tp": 645,
+     "fp": 192,
+     "fn": 314,
+     "tn": 1222
+    },
+    "correct": {
+     "accuracy": 0.7863,
+     "precision": 0.771,
+     "recall": 0.6705,
+     "f1": 0.7172,
+     "rocAuc": 0.8685,
+     "averagePrecision": 0.7977,
+     "brier": 0.1457,
+     "fractionExtreme": 0.0721,
+     "tp": 643,
+     "fp": 191,
+     "fn": 316,
+     "tn": 1223
+    }
+   }
+  },
+  "recordSplit": {
+   "rows": 29462,
+   "identicalTextInTrain": 0.788,
+   "accuracy": 0.8508,
+   "precision": 0.8511,
+   "recall": 0.801,
+   "f1": 0.8253,
+   "rocAuc": 0.9144,
+   "averagePrecision": 0.8928,
+   "brier": 0.1307,
+   "fractionExtreme": 0.7693,
+   "tp": 2596,
+   "fp": 454,
+   "fn": 645,
+   "tn": 3671
+  }
+ },
+ "workedExample": {
+  "label": "Illustrative simulation — not a biological dataset.",
+  "vocab": [
+   "listeria",
+   "undeclared",
+   "label",
+   "packaging"
+  ],
+  "counts": {
+   "Class I": {
+    "listeria": 3,
+    "undeclared": 3,
+    "label": 1,
+    "packaging": 1
+   },
+   "Class II/III": {
+    "listeria": 0,
+    "undeclared": 1,
+    "label": 4,
+    "packaging": 5
+   }
+  },
+  "prior": {
+   "Class I": 0.4,
+   "Class II/III": 0.6
+  },
+  "likelihood": {
+   "Class I": {
+    "listeria": 0.3333,
+    "undeclared": 0.3333,
+    "label": 0.1667,
+    "packaging": 0.1667
+   },
+   "Class II/III": {
+    "listeria": 0.0714,
+    "undeclared": 0.1429,
+    "label": 0.3571,
+    "packaging": 0.4286
+   }
+  },
+  "likelihoodFraction": {
+   "Class I": {
+    "listeria": "4/12",
+    "undeclared": "4/12",
+    "label": "2/12",
+    "packaging": "2/12"
+   },
+   "Class II/III": {
+    "listeria": "1/14",
+    "undeclared": "2/14",
+    "label": "5/14",
+    "packaging": "6/14"
+   }
+  },
+  "doc1": {
+   "words": [
+    "undeclared",
+    "label"
+   ],
+   "score": {
+    "Class I": 0.02222,
+    "Class II/III": 0.03061
+   },
+   "posterior": {
+    "Class I": 0.421,
+    "Class II/III": 0.579
+   }
+  },
+  "doc2": {
+   "words": [
+    "undeclared",
+    "label",
+    "listeria"
+   ],
+   "score": {
+    "Class I": 0.00741,
+    "Class II/III": 0.00219
+   },
+   "posterior": {
+    "Class I": 0.772,
+    "Class II/III": 0.228
+   }
+  }
+ },
+ "lmComparison": {
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+  "parameters": 22713216,
+  "embeddingDimension": 384,
+  "weightsMB": 90.9,
+  "classifier": "LogisticRegression(C=1.0, max_iter=2000) on L2-normalised embeddings",
+  "split": "identical to Week 5 (StratifiedGroupKFold, 4 folds, seed 42, first fold, groups = event_id)",
+  "accuracy": 0.7939,
+  "precision": 0.7443,
+  "recall": 0.7466,
+  "f1": 0.7454,
+  "rocAuc": 0.8636,
+  "averagePrecision": 0.7744,
+  "brier": 0.1474,
+  "fractionExtreme": 0.107,
+  "seconds": {
+   "loadModel": 0.6,
+   "embedAllTexts": 8.4,
+   "fitClassifier": 0.02,
+   "naiveBayesFitAndPredict": 0.06
+  },
+  "hardware": "CPU only (laptop), single run; timings are indicative, not benchmarks",
+  "label": "Frozen pretrained sentence encoder (sentence-transformers/all-MiniLM-L6-v2) + logistic regression; computed once by data/scripts/11_build_week05_lm_comparison.py on the same split"
+ }
+}

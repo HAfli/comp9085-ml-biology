@@ -177,3 +177,9 @@
   }
   .cite { vertical-align: baseline; }
 }
+
+/* Long dataset-domain pills (e.g. the multi-omic one on datasets.html) wrapped
+   past a 390px viewport; let them wrap inside the column instead. */
+@media (max-width: 480px) {
+  .pill { white-space: normal; max-width: 100%; }
+}

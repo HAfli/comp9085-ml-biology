@@ -104,51 +104,75 @@ window.LABS = {
   },
 
   lab04: {
-    week: 4, title: 'From confusion matrix to clinical consequence',
+    week: 4, title: 'From confusion matrix to calibrated decision',
     dataset: 'wdbc', duration: '2 hours',
-    goal: 'Move a decision threshold and watch the clinical meaning of the model change.',
+    goal: 'Compute what a positive result means, move the same model between populations and thresholds, and check whether its probabilities can be taken at face value.',
     tasks: [
-      'Fit a logistic regression and obtain predicted probabilities on a held-out set. Produce the confusion matrix at the default 0.5 threshold.',
-      'From that matrix compute sensitivity, specificity, PPV, NPV, precision, recall and F1 by hand, using numpy rather than sklearn, so that you can see where each comes from.',
-      'Sweep the threshold from 0.05 to 0.95 and plot sensitivity and specificity against it. Mark the point where they cross.',
-      'Plot the ROC curve and compute the AUC. Then plot the precision-recall curve. Explain which is more informative for a rare condition and why.',
-      'Using the Bayes calculator from the lecture, take your model\'s measured sensitivity and specificity and compute PPV at prevalences of 0.37 (the dataset), 0.10 and 0.005 (population screening).',
-      'Choose a threshold and defend it. State whose interests you weighted and what a false negative costs relative to a false positive in your chosen setting.'
+      'Fit a scaled logistic regression on a stratified 70/30 split, obtain predicted probabilities, classify at the default 0.5 threshold, and name every cell of the confusion matrix in terms of what it means for a patient.',
+      'From the four counts alone, compute sensitivity, specificity, PPV and NPV, printing each as numerator / denominator.',
+      'Write Bayes\' rule as a function and check it against the lecture example (1% prevalence, 95% sensitivity and specificity, PPV about 16%), then redo it as natural frequencies.',
+      'Apply your model\'s own sensitivity and specificity to hypothetical populations with prevalence 0.37, 0.10, 0.01 and 0.001, plot PPV and NPV against prevalence, and check one row against the Bayes calculator on this page.',
+      'Sweep the threshold on cross-validated predictions from the training pool only, and plot sensitivity and specificity against it.',
+      'Plot the ROC curve and the precision-recall curve, and explain which one changes with prevalence.',
+      'Choose a threshold for a stated purpose (sensitivity at least 0.97) from those predictions, apply it to the test set exactly once, and justify the cost of a false positive against a false negative in a setting you describe.',
+      'Plot reliability diagrams for logistic regression and Gaussian naive Bayes, decide whether each is well calibrated, and explain the difference between calibration and discrimination.',
+      'Extension: recalibrate naive Bayes with CalibratedClassifierCV and explain what changed and what could not.',
+      'For screening, confirmation and biomarker discovery, say which metric matters most and why.',
+      'Write an evaluation record that states the prevalence alongside every predictive value.'
     ],
     starter:
-      'from sklearn.linear_model import LogisticRegression\n' +
-      'from sklearn.metrics import confusion_matrix, roc_curve, auc\n\n' +
-      'p = model.predict_proba(X_te)[:, 1]\n' +
-      'tn, fp, fn, tp = confusion_matrix(y_te, p > 0.5).ravel()\n' +
-      'sensitivity = tp / (tp + fn)\n' +
-      'specificity = tn / (tn + fp)\n' +
-      'ppv = tp / (tp + fp)',
-    deliverable: 'The threshold plot, the PPV table at three prevalences, and a paragraph defending your chosen threshold.',
-    los: ['LO2', 'LO5']
+      'from sklearn.metrics import confusion_matrix\n\n' +
+      'p = model.predict_proba(X_test)[:, 1]\n' +
+      'tn, fp, fn, tp = confusion_matrix(y_test, p >= 0.5).ravel()\n' +
+      'sensitivity = tp / (tp + fn)   # of the truly malignant\n' +
+      'ppv = tp / (tp + fp)           # of those predicted malignant',
+    files: [
+      { label: 'Download the notebook (.ipynb)',
+        href: 'labs/week04/COMP9085_Week04_Lab.ipynb', download: true },
+      { label: 'Read it in the browser (.html)',
+        href: 'labs/week04/COMP9085_Week04_Lab.html' }
+    ],
+    deliverable: 'The executed notebook with every question answered, including the PPV table at four prevalences, the threshold you chose with its justification, the reliability diagram, and the evaluation record.',
+    los: ['LO2', 'LO3', 'LO5']
   },
 
   lab05: {
-    week: 5, title: 'Naive Bayes on food recall notices',
+    week: 5, title: 'Naive Bayes on real food-recall text: a complete pipeline',
     dataset: 'openfda', duration: '2 hours',
-    goal: 'Build a text classifier on real regulatory data and audit what it learned.',
+    goal: 'Build, evaluate and critique a naive Bayes text classifier on a frozen snapshot of real FDA recall reasons, keeping the whole pipeline away from the test set.',
     tasks: [
-      'Pull recall records from the openFDA food enforcement endpoint. Take reason_for_recall as the text and classification as the label. Report the class balance and note the date range you pulled.',
-      'Vectorise with CountVectorizer and fit MultinomialNB. Report accuracy, macro-F1 and the majority-class baseline.',
-      'Extract the twenty words with the highest log-probability ratio between Class I and Class II. Read them. Do they describe hazard, or do they describe FDA drafting conventions?',
-      'Compare alpha=0 (no smoothing), alpha=1 (Laplace) and alpha=0.01. Explain what happens at alpha=0 and why.',
-      'Compare MultinomialNB with BernoulliNB and with TfidfVectorizer. Report all four combinations in one table.',
-      'Split by year instead of at random: train on records before a cut-off year and test on records after it. Compare with the random split and explain the difference in terms of Week 3.'
+      'Load the frozen snapshot and decide what one row is: count rows, recall events and product records, report the class balance, and read five texts.',
+      'Split by recall event with StratifiedGroupKFold (seed 42), check that no event is on both sides, and compute the majority-class baseline.',
+      'Turn text into numbers: fit CountVectorizer on the training text only, inspect the vocabulary and one document-term row, and see what happens to a word the vectorizer never saw.',
+      'Build a Pipeline of CountVectorizer and MultinomialNB, fit it on the training rows, and report accuracy, precision, recall, F1, ROC AUC and the confusion matrix against the baseline.',
+      'Open the model: reproduce one predict_proba value by hand from the class priors and word log-probabilities, and list the words that push hardest towards Class I, with and without a frequency filter.',
+      'Error analysis: read the most confident false positives and false negatives and decide, for each, whether the text alone could have told you the class.',
+      'Leakage: compare the correct pipeline with a vectorizer fitted on all the text, and with a split made by product record instead of by event. Explain each result.',
+      'Probabilities and the record: plot the distribution of predict_proba and a reliability diagram, report the Brier score, and complete the reproducibility record.',
+      'Extension (optional): compare TF-IDF + MultinomialNB and presence + BernoulliNB, and choose alpha by grouped cross-validation on the training rows only.',
+      'Extension (optional): read the stored comparison with a pretrained sentence encoder, or run it yourself if the packages are installed, and weigh accuracy against cost and interpretability.'
     ],
     starter:
-      'import requests, pandas as pd\n' +
-      'r = requests.get("https://api.fda.gov/food/enforcement.json",\n' +
-      '                 params={"limit": 1000})\n' +
-      'df = pd.json_normalize(r.json()["results"])\n' +
-      'df = df[["reason_for_recall", "classification", "report_date"]].dropna()\n' +
-      'print(df.classification.value_counts())',
-    deliverable: 'The four-way comparison table, your top-twenty word list with a comment on each, and the random-versus-temporal split comparison.',
+      'from sklearn.pipeline import Pipeline\n' +
+      'from sklearn.feature_extraction.text import CountVectorizer\n' +
+      'from sklearn.naive_bayes import MultinomialNB\n\n' +
+      'model = Pipeline([("vectorizer", CountVectorizer()),\n' +
+      '                  ("classifier", MultinomialNB(alpha=1.0))])\n' +
+      'model.fit(X_train, y_train)          # the vectorizer learns from training text only\n' +
+      'p = model.predict_proba(X_test)[:, 1]',
+    files: [
+      { label: 'Download the notebook (.ipynb)',
+        href: 'labs/week05/COMP9085_Week05_Lab.ipynb', download: true },
+      { label: 'Read it in the browser (.html)',
+        href: 'labs/week05/COMP9085_Week05_Lab.html' },
+      { label: 'Download the data (.csv)',
+        href: 'labs/week05/data/openfda_food_recall_events.csv', download: true },
+      { label: 'Data provenance',
+        href: 'labs/week05/data/README.md' }
+    ],
+    deliverable: 'The executed notebook with every question answered, including the results table against the baseline, your error analysis, the leakage comparison, the reliability diagram and the completed reproducibility record.',
     los: ['LO2', 'LO3', 'LO5'],
-    note: 'If the API is unreachable from the lab network, a cached extract will be provided on Canvas. Record in your notebook which you used.'
+    note: 'Everything runs offline from the CSV next to the notebook: no API, no key, no download. Tasks 1 to 8 are the core lab; the two extensions are optional.'
   },
 
   lab06: {
@@ -202,27 +226,41 @@ window.LABS = {
   },
 
   lab08: {
-    week: 8, title: 'What counts as similar?',
-    dataset: 'wdbc', duration: '2 hours',
-    goal: 'Establish experimentally that the representation, not the classifier, determines nearest-neighbour quality.',
+    week: 8, title: 'k-nearest neighbours on real patients: what counts as similar?',
+    dataset: 'heartCleveland', duration: '2 hours',
+    goal: 'Build k-NN properly on real clinical data, and measure which decisions matter: k, the metric, the representation of categories, scaling and distance weighting.',
     tasks: [
-      'Fit k-NN on WDBC with and without StandardScaler, at k = 1, 3, 5, 9, 15, 31 and 51. Produce one plot with both curves.',
-      'Explain the gap between the curves by inspecting the feature ranges. Which feature dominates the unscaled distance, and by what factor?',
-      'Compare Euclidean, Manhattan and Chebyshev distance at the best k. Is the difference larger or smaller than the scaling effect?',
-      'Add 50 columns of pure Gaussian noise to the standardised data and refit. Quantify how much accuracy you lost, then repeat with 200 noise columns.',
-      'Repeat task 4 with a decision tree instead of k-NN. Explain why the two models degrade so differently.',
-      'On the protein set, hold k-NN fixed and vary only the representation, for both labels. Report accuracy, macro-F1 and the confusion matrix for each of the four combinations.',
-      'Answer in writing: does a better representation always produce better nearest neighbours? Use your own numbers as evidence.'
+      'Explore the 303 Cleveland patients: types, missing values, the ranges of the five continuous features, and which integer columns are really categories.',
+      'Make one stratified 75/25 split and estimate a majority-class baseline with 10-fold cross-validation.',
+      'Build k-NN inside a Pipeline (impute, standardise, one-hot) and explain one prediction from its five neighbours.',
+      'Plot training and cross-validated accuracy against k from 1 to 51; identify overfitting and compare with the √n rule.',
+      'Compare Euclidean and Manhattan distance, one-hot against raw category codes, and Hamming distance on the categorical features.',
+      'Compare no scaling, min-max and standardisation, and show which feature dominates the unscaled distance and why the scaler belongs inside the Pipeline.',
+      'Select k, metric and weighting with GridSearchCV on the training data; judge whether the top settings really differ.',
+      'Compare uniform and 1/d^p weighting, reproduce the lecture\'s 81.857, and handle the zero-distance case.',
+      'Evaluate the chosen model once on the test set: confusion matrix, balanced accuracy, and the class-imbalance problem of the severity label.',
+      'Reflect: irrelevant features, computational cost, when another model is preferable, and why neighbours in feature space are not biologically equivalent.'
     ],
     starter:
-      'from sklearn.neighbors import KNeighborsClassifier\n' +
-      'from sklearn.pipeline import make_pipeline\n' +
-      'from sklearn.preprocessing import StandardScaler\n\n' +
-      'for k in [1, 3, 5, 9, 15, 31, 51]:\n' +
-      '    scaled = make_pipeline(StandardScaler(), KNeighborsClassifier(k))\n' +
-      '    raw = KNeighborsClassifier(k)\n' +
-      '    # cross-validate both and record',
-    deliverable: 'The scaling plot, the noise-degradation comparison for k-NN and tree, and your written answer to task 7.',
+      'knn = Pipeline([\n' +
+      '    ("prep", ColumnTransformer([\n' +
+      '        ("num", make_pipeline(SimpleImputer(strategy="median"), StandardScaler()), NUMERIC),\n' +
+      '        ("cat", make_pipeline(SimpleImputer(strategy="most_frequent"),\n' +
+      '                              OneHotEncoder(handle_unknown="ignore")), CATEGORICAL)])),\n' +
+      '    ("knn", KNeighborsClassifier(n_neighbors=5))])\n' +
+      'cross_val_score(knn, X_train, y_train, cv=CV).mean()',
+    files: [
+      { label: 'Download the notebook (.ipynb)',
+        href: 'labs/week08/COMP9085_Week08_Lab.ipynb', download: true },
+      { label: 'Read it in the browser (.html)',
+        href: 'labs/week08/COMP9085_Week08_Lab.html' },
+      { label: 'Download the data (.csv)',
+        href: 'labs/week08/data/heart_disease_cleveland.csv', download: true },
+      { label: 'Data dictionary and provenance',
+        href: 'labs/week08/data/README.md' }
+    ],
+    deliverable: 'The executed notebook with every question answered from your own numbers: the k curve, the metric, representation and scaling comparisons, the cross-validated choice, the single test evaluation and your reflection.',
+    note: 'Keep the data folder next to the notebook. No network or GPU is needed. Extensions A to C (k-NN regression, k-NN from scratch, a heterogeneous distance) are optional.',
     los: ['LO2', 'LO3', 'LO5']
   },
 

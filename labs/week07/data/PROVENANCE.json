@@ -1,0 +1,59 @@
+{
+ "dataset": "Human UniProtKB/Swiss-Prot proteins, one per UniRef50 cluster, with ESM-2 embeddings",
+ "source": {
+  "publisher": "UniProt Consortium",
+  "database": "UniProtKB/Swiss-Prot (reviewed)",
+  "release": "2026_03",
+  "release_date": "02-September-2026",
+  "query": "(reviewed:true) AND (organism_id:9606) AND (fragment:false)",
+  "fields": "accession,id,protein_name,gene_primary,length,sequence,keywordid,ft_signal,ft_transmem,annotation_score",
+  "url": "https://rest.uniprot.org/uniprotkb/stream?query=(reviewed:true)%20AND%20(organism_id:9606)%20AND%20(fragment:false)&fields=accession,id,protein_name,gene_primary,length,sequence,keywordid,ft_signal,ft_transmem,annotation_score&format=tsv",
+  "downloaded": "2026-11-01",
+  "uniref50_mapping": "https://rest.uniprot.org/idmapping (UniProtKB_AC-ID -> UniRef50)",
+  "licence": "CC BY 4.0 (https://www.uniprot.org/help/license)",
+  "raw_sha256": {
+   "human_swissprot.tsv": "441c605dacd85220fde521295f525f1b0aedd40b287585d2cb8bfbcc057cd7e5",
+   "uniref50_mapping.tsv": "55fe5b47229711b9d4515d526c40504e2e266277faff0c24a0f84ecd7d3413e7"
+  }
+ },
+ "selection": {
+  "length": [
+   50,
+   1000
+  ],
+  "alphabet": "ACDEFGHIKLMNPQRSTVWY",
+  "one_per": "UniRef50 cluster",
+  "n_sample": 2000,
+  "sample_seed": 9085,
+  "flow": {
+   "swissprot_human_nonfragment": 20430,
+   "mapped_to_uniref50": 19748,
+   "length_50_1000": 17324,
+   "standard_residues_only": 17299,
+   "one_per_uniref50_cluster": 16139
+  }
+ },
+ "labels": {
+  "is_transmembrane": "UniProt keyword KW-0812 (Transmembrane)",
+  "has_signal_peptide": "UniProt keyword KW-0732 (Signal)",
+  "evidence": "strongest ECO class on the TRANSMEM / SIGNAL features: experimental (ECO:0000269, ECO:0007744) > by similarity (ECO:0000250) > curator inference (ECO:0000305) > sequence analysis (ECO:0000255)"
+ },
+ "embedding": {
+  "model": "facebook/esm2_t6_8M_UR50D",
+  "revision": "c731040fcd8d73dceaa04b0a8e6329b345b0f5df",
+  "licence": "MIT",
+  "parameters": "about 8 million (6 layers)",
+  "dimension": 320,
+  "pooling": "mean of the final hidden layer over residue positions (excluding <cls>, <eos> and padding)",
+  "shuffled": "the same model on shuffled_sequence: each protein's residues permuted with numpy default_rng(9085) in row order",
+  "rounding": "5 decimal places",
+  "torch": "2.15.0",
+  "transformers": "5.22.1",
+  "seconds_on_cpu": 81
+ },
+ "files": {
+  "swissprot_human_2000.csv": "b1cfd339339e9b48c7f68958f774aa6f357441973f3768d4cf26f1d51875191f",
+  "esm2_t6_8M_embeddings.csv.gz": "4ecd8f754a93a3ea044ec340f80c796fc83f6fe3e09a033a4ffa3d0d6c5e5a83",
+  "esm2_t6_8M_embeddings_shuffled.csv.gz": "1568c87b65d2e67e5f555ef0cd0bd7338105ff287a8fc12f05b60910d1c73b9d"
+ }
+}

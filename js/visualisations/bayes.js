@@ -13,6 +13,8 @@
     var altBody = host.querySelector('[data-viz-alt]');
 
     var PRESETS = {
+      lecture: { prev: 1, sens: 95, spec: 95,
+        label: 'The lecture example: 1% prevalence, 95% sensitivity and specificity' },
       screening: { prev: 0.5, sens: 99, spec: 99,
         label: 'Population screening for a rare condition (1 in 200)' },
       wdbc: { prev: 37.3, sens: 96, spec: 96,
@@ -23,7 +25,16 @@
         label: 'A very rare condition with a near-perfect test' }
     };
 
-    var state = { prev: 0.5, sens: 99, spec: 99, n: 100000 };
+    var DEFAULT = { prev: 1, sens: 95, spec: 95, n: 1000 };
+    var state = Object.assign({}, DEFAULT);
+
+    /* Expected counts are not always whole people (1% of 1,000 is 10, and 95%
+       of 10 is 9.5). Show the half-person rather than rounding it away, so
+       the four cells always add up to the population on screen. */
+    function fmtCount(v) {
+      return Math.abs(v - Math.round(v)) < 1e-9 ? d3.format(',')(Math.round(v))
+                                                : d3.format(',.1f')(v);
+    }
 
     function compute() {
       var prev = state.prev / 100, sens = state.sens / 100, spec = state.spec / 100;
@@ -61,19 +72,20 @@
       var side = Math.min(panelW, panelH);
       var ox = (panelW - side) / 2;
 
-      /* Split the square vertically by disease status, then each column
-         horizontally by test result. */
-      var illW = Math.max(1.2, side * c.prev);
-      var wellW = side - illW;
+      /* Same orientation as the lecture and the confusion-matrix calculator:
+         rows are what is true (top band = has the condition), and within each
+         row the left part is what the test calls positive. */
+      var illH = Math.max(1.2, side * c.prev);
+      var wellH = side - illH;
 
       var boxes = [
-        { x: ox, y: 0, w: illW, h: side * c.sens, fill: 'var(--cat-2)',
+        { x: ox, y: 0, w: side * c.sens, h: illH, fill: 'var(--cat-2)',
           label: 'True positive', v: c.tp, key: 'tp' },
-        { x: ox, y: side * c.sens, w: illW, h: side * (1 - c.sens),
+        { x: ox + side * c.sens, y: 0, w: side * (1 - c.sens), h: illH,
           fill: '#c9b39a', label: 'False negative', v: c.fn, key: 'fn' },
-        { x: ox + illW, y: 0, w: wellW, h: side * (1 - c.spec), fill: '#8fa9c2',
+        { x: ox, y: illH, w: side * (1 - c.spec), h: wellH, fill: '#8fa9c2',
           label: 'False positive', v: c.fp, key: 'fp' },
-        { x: ox + illW, y: side * (1 - c.spec), w: wellW, h: side * c.spec,
+        { x: ox + side * (1 - c.spec), y: illH, w: side * c.spec, h: wellH,
           fill: 'var(--ground-3)', label: 'True negative', v: c.tn, key: 'tn' }
       ];
 
@@ -89,7 +101,7 @@
 
       window.Chart.tips(sel, function (d) {
         return '<strong>' + d.label + '</strong><br>' +
-          d3.format(',.0f')(d.v) + ' people<br>' +
+          fmtCount(d.v) + ' people<br>' +
           ((d.v / c.n) * 100).toFixed(3) + '% of everyone tested';
       });
 
@@ -102,13 +114,13 @@
         .attr('x', ox + side / 2).attr('y', side + 16)
         .attr('text-anchor', 'middle').style('font-size', '10.5px')
         .attr('fill', 'var(--ink-3)')
-        .text('left column = has the condition (' + d3.format(',.0f')(c.ill) + ')');
+        .text('top band = has the condition (' + fmtCount(c.ill) + ')');
       g1.append('text')
         .attr('x', ox + side / 2).attr('y', side + 30)
         .attr('text-anchor', 'middle').style('font-size', '10.5px')
         .attr('fill', 'var(--ink-3)')
-        .text('shaded top band = tested positive (' +
-              d3.format(',.0f')(c.posTotal) + ')');
+        .text('left part of each band = tested positive (' +
+              fmtCount(c.posTotal) + ')');
 
       /* ---- Panel 2: PPV and NPV against prevalence ---- */
       var g2 = f.g.append('g').attr('transform',
@@ -181,19 +193,19 @@
 
     function updateMetrics() {
       var c = compute();
+      window.UI.setMetric('by-tp', fmtCount(c.tp), 'ill, test positive');
+      window.UI.setMetric('by-fp', fmtCount(c.fp), 'healthy, test positive',
+        c.fp > c.tp ? 'bad' : null);
+      window.UI.setMetric('by-tn', fmtCount(c.tn), 'healthy, test negative');
+      window.UI.setMetric('by-fn', fmtCount(c.fn), 'ill, test negative');
       window.UI.setMetric('by-ppv', (c.ppv * 100).toFixed(1) + '%',
-        'of positives really are ill',
+        fmtCount(c.tp) + ' / ' + fmtCount(c.posTotal),
         c.ppv < 0.3 ? 'bad' : (c.ppv > 0.8 ? 'good' : null));
       window.UI.setMetric('by-npv', (c.npv * 100).toFixed(2) + '%',
-        'of negatives really are well',
+        fmtCount(c.tn) + ' / ' + fmtCount(c.negTotal),
         c.npv > 0.99 ? 'good' : null);
       window.UI.setMetric('by-acc', (c.accuracy * 100).toFixed(1) + '%',
         'overall accuracy');
-      window.UI.setMetric('by-fp', d3.format(',.0f')(c.fp),
-        'healthy people wrongly flagged',
-        c.fp > c.tp ? 'bad' : null);
-      window.UI.setMetric('by-fn', d3.format(',.0f')(c.fn),
-        'ill people wrongly cleared');
     }
 
     function updateExplain() {
@@ -230,7 +242,29 @@
         (c.accuracy * 100).toFixed(1) + '%, simply predicting "no disease" for ' +
         'everyone would score ' + ((1 - c.prev) * 100).toFixed(1) + '%.';
 
-      el.innerHTML = '<p class="mb0">' + msg + '</p>';
+      /* The calculation, made transparent, in natural frequencies and in the
+         lecture's orientation. */
+      var calc = '<div class="table-scroll"><table class="table-compact">' +
+        '<caption>Expected counts for ' + d3.format(',')(c.n) + ' people. Rows are ' +
+        'what is true; columns are what the test says.</caption><thead><tr><th></th>' +
+        '<th class="num" scope="col">Test positive</th><th class="num" scope="col">' +
+        'Test negative</th><th class="num" scope="col">Total</th></tr></thead><tbody>' +
+        '<tr><th scope="row">Has the condition</th><td class="num">TP ' + fmtCount(c.tp) +
+        '</td><td class="num">FN ' + fmtCount(c.fn) + '</td><td class="num">' +
+        fmtCount(c.ill) + '</td></tr><tr><th scope="row">Does not</th>' +
+        '<td class="num">FP ' + fmtCount(c.fp) + '</td><td class="num">TN ' +
+        fmtCount(c.tn) + '</td><td class="num">' + fmtCount(c.well) + '</td></tr>' +
+        '<tr><th scope="row">Total</th><td class="num">' + fmtCount(c.posTotal) +
+        '</td><td class="num">' + fmtCount(c.negTotal) + '</td><td class="num">' +
+        d3.format(',')(c.n) + '</td></tr></tbody></table></div>' +
+        '<p>PPV = TP / (TP + FP) = ' + fmtCount(c.tp) + ' / ' + fmtCount(c.posTotal) +
+        ' = <strong>' + (c.ppv * 100).toFixed(1) + '%</strong>. &nbsp; NPV = TN / (TN + FN) = ' +
+        fmtCount(c.tn) + ' / ' + fmtCount(c.negTotal) + ' = <strong>' +
+        (c.npv * 100).toFixed(2) + '%</strong>. &nbsp; The same with Bayes: ' +
+        (c.sens).toFixed(3) + ' \u00d7 ' + c.prev.toFixed(4) + ' / (' + c.sens.toFixed(3) +
+        ' \u00d7 ' + c.prev.toFixed(4) + ' + ' + (1 - c.spec).toFixed(3) + ' \u00d7 ' +
+        (1 - c.prev).toFixed(4) + ') = ' + (c.ppv * 100).toFixed(1) + '%.</p>';
+      el.innerHTML = calc + '<p class="mb0">' + msg + '</p>';
     }
 
     function updateAlt() {
@@ -250,11 +284,11 @@
         'number of people in it.</p>' +
         window.UI.altTable('Outcome counts for the current settings.',
           ['Outcome', 'People'],
-          [['True positive (ill, tested positive)', d3.format(',.0f')(c.tp)],
-           ['False positive (well, tested positive)', d3.format(',.0f')(c.fp)],
-           ['False negative (ill, tested negative)', d3.format(',.0f')(c.fn)],
-           ['True negative (well, tested negative)', d3.format(',.0f')(c.tn)],
-           ['Total testing positive', d3.format(',.0f')(c.posTotal)],
+          [['True positive (ill, tested positive)', fmtCount(c.tp)],
+           ['False positive (well, tested positive)', fmtCount(c.fp)],
+           ['False negative (ill, tested negative)', fmtCount(c.fn)],
+           ['True negative (well, tested negative)', fmtCount(c.tn)],
+           ['Total testing positive', fmtCount(c.posTotal)],
            ['Positive predictive value', (c.ppv * 100).toFixed(2) + '%'],
            ['Negative predictive value', (c.npv * 100).toFixed(2) + '%']]) +
         '<p>The second panel plots positive and negative predictive value against ' +
@@ -279,6 +313,11 @@
       });
     });
 
+    host.querySelector('#by-n').addEventListener('change', function () {
+      state.n = +this.value;
+      refresh();
+    });
+
     var presetEl = host.querySelector('#by-preset');
     presetEl.addEventListener('change', function () {
       var p = PRESETS[this.value];
@@ -296,8 +335,9 @@
     }
 
     host.querySelector('[data-viz-reset]').addEventListener('click', function () {
-      state = { prev: 0.5, sens: 99, spec: 99, n: 100000 };
-      presetEl.value = 'screening';
+      state = Object.assign({}, DEFAULT);
+      presetEl.value = 'lecture';
+      host.querySelector('#by-n').value = String(DEFAULT.n);
       syncControls(); refresh();
     });
 

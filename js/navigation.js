@@ -14,6 +14,7 @@
     { id: 'start',     label: 'Start here',        href: 'start-here.html' },
     { id: 'roadmap',   label: 'Roadmap',           href: 'roadmap.html' },
     { id: 'weeks',     label: 'Weeks',             href: 'weeks/index.html' },
+    { id: 'interactives', label: 'Interactives',   href: 'interactives.html' },
     { id: 'labs',      label: 'Labs',              href: 'labs/index.html' },
     { id: 'datasets',  label: 'Datasets',          href: 'datasets.html' },
     { id: 'fm',        label: 'Foundation models', href: 'foundation-models.html' }
@@ -102,6 +103,7 @@
           '<div>' +
             '<h4>Materials</h4>' +
             '<ul>' +
+              '<li><a href="' + url('interactives.html') + '">Interactive exercises, by week</a></li>' +
               '<li><a href="' + url('labs/index.html') + '">Practical labs</a></li>' +
               '<li><a href="' + url('datasets.html') + '">Dataset catalogue</a></li>' +
               '<li><a href="' + url('foundation-models.html') + '">Foundation models</a></li>' +

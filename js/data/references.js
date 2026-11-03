@@ -136,6 +136,27 @@ window.REFERENCES = {
     url: 'https://www.nature.com/articles/s41580-019-0176-5',
     checked: '2026-09'
   },
+  janosi1988: {
+    tag: 'Janosi et al. 1988',
+    cite: 'Janosi, A., Steinbrunn, W., Pfisterer, M. & Detrano, R. (1988). Heart Disease [Dataset]. UCI Machine Learning Repository.',
+    doi: '10.24432/C52P4X',
+    url: 'https://archive.ics.uci.edu/dataset/45/heart+disease',
+    checked: '2026-11'
+  },
+  detrano1989: {
+    tag: 'Detrano et al. 1989',
+    cite: 'Detrano, R., Janosi, A., Steinbrunn, W., Pfisterer, M., Schmid, J.-J., Sandhu, S., Guppy, K. H., Lee, S. & Froelicher, V. (1989). International application of a new probability algorithm for the diagnosis of coronary artery disease. American Journal of Cardiology 64(5):304-310.',
+    doi: '10.1016/0002-9149(89)90524-9',
+    url: 'https://doi.org/10.1016/0002-9149(89)90524-9',
+    checked: '2026-11'
+  },
+  coverhart1967: {
+    tag: 'Cover and Hart 1967',
+    cite: 'Cover, T. & Hart, P. (1967). Nearest neighbor pattern classification. IEEE Transactions on Information Theory 13(1):21-27.',
+    doi: '10.1109/TIT.1967.1053964',
+    url: 'https://doi.org/10.1109/TIT.1967.1053964',
+    checked: '2026-11'
+  },
   greener2022: {
     tag: 'Greener et al. 2022',
     cite: 'Greener, J. G., Kandathil, S. M., Moffat, L. & Jones, D. T. (2022). A guide to machine learning for biologists. Nature Reviews Molecular Cell Biology 23:40-55.',
@@ -196,5 +217,136 @@ window.REFERENCES = {
     doi: '10.48550/arXiv.1906.02243',
     url: 'https://arxiv.org/abs/1906.02243',
     checked: '2026-09'
+  },
+  gigerenzer1995: {
+    tag: 'Gigerenzer & Hoffrage 1995',
+    cite: 'Gigerenzer, G. & Hoffrage, U. (1995). How to improve Bayesian reasoning without instruction: frequency formats. Psychological Review 102(4):684-704.',
+    doi: '10.1037/0033-295X.102.4.684',
+    url: 'https://doi.org/10.1037/0033-295X.102.4.684',
+    checked: '2026-09'
+  },
+  fawcett2006: {
+    tag: 'Fawcett 2006',
+    cite: 'Fawcett, T. (2006). An introduction to ROC analysis. Pattern Recognition Letters 27:861-874.',
+    doi: '10.1016/j.patrec.2005.10.010',
+    url: 'https://doi.org/10.1016/j.patrec.2005.10.010',
+    checked: '2026-09'
+  },
+  saito2015: {
+    tag: 'Saito & Rehmsmeier 2015',
+    cite: 'Saito, T. & Rehmsmeier, M. (2015). The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. PLOS ONE 10:e0118432.',
+    doi: '10.1371/journal.pone.0118432',
+    url: 'https://doi.org/10.1371/journal.pone.0118432',
+    checked: '2026-09'
+  },
+  niculescu2005: {
+    tag: 'Niculescu-Mizil & Caruana 2005',
+    cite: 'Niculescu-Mizil, A. & Caruana, R. (2005). Predicting good probabilities with supervised learning. Proceedings of the 22nd International Conference on Machine Learning (ICML), 625-632.',
+    doi: '10.1145/1102351.1102430',
+    url: 'https://doi.org/10.1145/1102351.1102430',
+    checked: '2026-09'
+  },
+  guo2017: {
+    tag: 'Guo et al. 2017',
+    cite: 'Guo, C., Pleiss, G., Sun, Y. & Weinberger, K. Q. (2017). On calibration of modern neural networks. Proceedings of the 34th International Conference on Machine Learning, PMLR 70:1321-1330.',
+    url: 'https://proceedings.mlr.press/v70/guo17a.html',
+    checked: '2026-09'
+  },
+  street1993: {
+    tag: 'Street et al. 1993',
+    cite: 'Street, W. N., Wolberg, W. H. & Mangasarian, O. L. (1993). Nuclear feature extraction for breast tumor diagnosis. Proc. SPIE 1905, Biomedical Image Processing and Biomedical Visualization, 861-870.',
+    doi: '10.1117/12.148698',
+    url: 'https://doi.org/10.1117/12.148698',
+    checked: '2026-09'
+  },
+  altman1994sens: {
+    tag: 'Altman & Bland 1994a',
+    cite: 'Altman, D. G. & Bland, J. M. (1994). Diagnostic tests 1: Sensitivity and specificity. BMJ 308:1552.',
+    doi: '10.1136/bmj.308.6943.1552',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/8019315/',
+    checked: '2026-09'
+  },
+  altman1994pv: {
+    tag: 'Altman & Bland 1994b',
+    cite: 'Altman, D. G. & Bland, J. M. (1994). Diagnostic tests 2: Predictive values. BMJ 309:102.',
+    doi: '10.1136/bmj.309.6947.102',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/8038641/',
+    checked: '2026-09'
+  },
+  trevethan2017: {
+    tag: 'Trevethan 2017',
+    cite: 'Trevethan, R. (2017). Sensitivity, Specificity, and Predictive Values: Foundations, Pliabilities, and Pitfalls in Research and Practice. Frontiers in Public Health 5:307.',
+    doi: '10.3389/fpubh.2017.00307',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/29209603/',
+    checked: '2026-09'
+  },
+  vanCalster2019: {
+    tag: 'Van Calster et al. 2019',
+    cite: 'Van Calster, B., McLernon, D. J., van Smeden, M., Wynants, L. & Steyerberg, E. W. (2019). Calibration: the Achilles heel of predictive analytics. BMC Medicine 17:230.',
+    doi: '10.1186/s12916-019-1466-7',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/31842878/',
+    checked: '2026-09'
+  },
+  sklearnCalibration: {
+    tag: 'scikit-learn: Probability calibration',
+    cite: 'scikit-learn developers. User Guide, section 1.16: Probability calibration (calibration_curve, CalibrationDisplay, CalibratedClassifierCV).',
+    url: 'https://scikit-learn.org/stable/modules/calibration.html',
+    checked: '2026-09'
+  },
+  openfdaDownloads: {
+    tag: 'openFDA downloads',
+    cite: 'U.S. Food and Drug Administration. openFDA bulk downloads: food enforcement export (the Week 5 snapshot uses the export with last_updated 2026-09-28).',
+    url: 'https://open.fda.gov/data/downloads/',
+    checked: '2026-10'
+  },
+  fdaRecallDefinitions: {
+    tag: 'FDA recall classes',
+    cite: 'U.S. Food and Drug Administration. Recalls Background and Definitions (Class I, II and III).',
+    url: 'https://www.fda.gov/safety/industry-guidance-recalls/recalls-background-and-definitions',
+    checked: '2026-10'
+  },
+  manningIR2008: {
+    tag: 'Manning et al. 2008, ch. 13',
+    cite: 'Manning, C. D., Raghavan, P. & Schütze, H. (2008). Introduction to Information Retrieval, chapter 13: Text classification and Naive Bayes. Cambridge University Press. Free online edition.',
+    url: 'https://nlp.stanford.edu/IR-book/html/htmledition/text-classification-and-naive-bayes-1.html',
+    checked: '2026-10'
+  },
+  jurafskySLP: {
+    tag: 'Jurafsky & Martin, SLP3',
+    cite: 'Jurafsky, D. & Martin, J. H. Speech and Language Processing (3rd edition draft), chapter "Naive Bayes, Text Classification, and Sentiment". Free online draft.',
+    url: 'https://web.stanford.edu/~jurafsky/slp3/',
+    checked: '2026-10'
+  },
+  domingos1997: {
+    tag: 'Domingos & Pazzani 1997',
+    cite: 'Domingos, P. & Pazzani, M. (1997). On the optimality of the simple Bayesian classifier under zero-one loss. Machine Learning 29, 103-130.',
+    doi: '10.1023/A:1007413511361',
+    url: 'https://doi.org/10.1023/A:1007413511361',
+    checked: '2026-10'
+  },
+  reimers2019: {
+    tag: 'Reimers & Gurevych 2019',
+    cite: 'Reimers, N. & Gurevych, I. (2019). Sentence-BERT: Sentence embeddings using Siamese BERT-networks. Proceedings of EMNLP-IJCNLP 2019, 3980-3990.',
+    doi: '10.18653/v1/D19-1410',
+    url: 'https://doi.org/10.18653/v1/D19-1410',
+    checked: '2026-10'
+  },
+  minilm: {
+    tag: 'all-MiniLM-L6-v2',
+    cite: 'sentence-transformers/all-MiniLM-L6-v2: model card on the Hugging Face Hub (Apache-2.0). Used in Week 5 at revision 1110a243fdf4706b3f48f1d95db1a4f5529b4d41.',
+    url: 'https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2',
+    checked: '2026-10'
+  },
+  sklearnNB: {
+    tag: 'scikit-learn: Naive Bayes',
+    cite: 'scikit-learn developers. User Guide: Naive Bayes (MultinomialNB, BernoulliNB, ComplementNB, GaussianNB).',
+    url: 'https://scikit-learn.org/stable/modules/naive_bayes.html',
+    checked: '2026-10'
+  },
+  sklearnText: {
+    tag: 'scikit-learn: Text feature extraction',
+    cite: 'scikit-learn developers. User Guide: Feature extraction, text feature extraction (CountVectorizer, TfidfVectorizer).',
+    url: 'https://scikit-learn.org/stable/modules/feature_extraction.html#text-feature-extraction',
+    checked: '2026-10'
   }
 };

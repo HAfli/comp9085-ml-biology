@@ -503,6 +503,17 @@ window.COURSE = {
         { term: 'Reproducibility', body: 'Fixed random seeds, recorded library versions, a script rather than a notebook run out of order, and the protocol written down before the results are seen.' }
       ],
       viz: 'leakage',
+      /* The six "Try this interactively" activities of the Week 3 lecture, in
+         lecture order (slides 17, 32, 40, 48, 53, 71). Numbers from
+         data/scripts/17_build_week03_interactives.py (js/data/week03.js). */
+      vizList: ['data-splitter', 'cv-explorer', 'leakage', 'pipeline-builder',
+                'hyperparameter', 'wdbc-e2e'],
+      interactiveIntro:
+        'Six interactives, in the order the lecture uses them: the data splitter (lecture ' +
+        'slide 17), cross-validation (slide 32), leakage (slide 40), the pipeline builder ' +
+        '(slide 48), hyperparameter tuning (slide 53) and the end-to-end WDBC experiment ' +
+        '(slide 71). Every one has a Reset button. All but the data splitter use the real ' +
+        'WDBC data, and their numbers are the lecture\'s.',
       worked: {
         title: 'How much does leakage actually cost you?',
         body:
@@ -573,183 +584,702 @@ window.COURSE = {
     /* ------------------------------------------------------------------ 4 */
     {
       n: 4,
-      title: 'Probability, Bayes and medical decision making',
+      title: 'Bayes in healthcare: from prediction to probability',
       strand: 'classical',
-      short: 'Why a 99 per cent accurate test can still be wrong most of the time it fires.',
-      los: ['LO2', 'LO5'],
+      short: 'A prediction is not automatically a diagnosis. What a positive result means depends on the test, the threshold and the population.',
+      los: ['LO2', 'LO3', 'LO5'],
       biology:
-        'Every diagnostic test has two error rates and operates in a population with some ' +
-        'prevalence. Clinicians, patients and, frequently, machine-learning practitioners ' +
-        'confuse the probability of a positive test given disease with the probability of ' +
-        'disease given a positive test. These are different numbers, sometimes by an order ' +
-        'of magnitude, and Bayes\' rule is what converts between them.',
+        'Week 3 asked whether we can trust the experiment. Week 4 asks the next question: ' +
+        'suppose we do, what does the prediction actually mean? Every diagnostic test, ' +
+        'biomarker assay or classifier has two error rates and is used in a population ' +
+        'with some prevalence. Clinicians, patients and, frequently, machine-learning ' +
+        'practitioners confuse the probability of a positive result given disease with ' +
+        'the probability of disease given a positive result. These are different numbers, ' +
+        'sometimes by an order of magnitude, and Bayes\' rule is what converts between ' +
+        'them [ref:altman1994pv]. All the numerical examples on this page are hypothetical ' +
+        'classroom numbers or labelled simulations; none describes the performance of a ' +
+        'real clinical test.',
       objectives: [
-        'Apply Bayes\' rule to convert between sensitivity and positive predictive value.',
-        'Explain the effect of prevalence on PPV and NPV while sensitivity and specificity are held fixed.',
-        'Read a confusion matrix and derive every standard metric from it.',
-        'Choose an operating threshold according to the relative cost of the two error types.',
-        'Explain why screening an unselected population is a different problem from testing a symptomatic one.'
+        'Construct a binary confusion matrix and calculate sensitivity, specificity, PPV and NPV, stating the denominator of each.',
+        'Explain why accuracy alone cannot tell you what a positive result means.',
+        'Distinguish "how good is the test?" (disease status → result) from "given the result, what should I believe?" (result → disease status).',
+        'Use Bayes\' theorem, and natural frequencies, to compute the probability of disease after a positive or negative result.',
+        'Explain why PPV and NPV depend on prevalence while sensitivity and specificity do not.',
+        'Explain how moving a decision threshold trades false negatives against false positives.',
+        'Distinguish discrimination from calibration, and read a reliability diagram.',
+        'Treat a model\'s probability as a claim to be checked, not as automatically trustworthy.',
+        'Choose and defend the metric that fits a stated biological or clinical question.',
+        'Explain how Bayes\' theorem becomes a classifier (naive Bayes, Week 5).'
+      ],
+      sections: [
+        { id: 'from-prediction', nav: '1. From prediction to decision',
+          title: '1. From prediction to decision',
+          html:
+            '<div class="grid grid-3">' +
+              '<div class="card"><span class="eyebrow">Week 3</span><h4 style="margin-top:0">Can I trust the experiment?</h4><p class="small mb0">data → correct split → baseline → cross-validation → no leakage → final test once. A trustworthy result is a protocol, not just a score.</p></div>' +
+              '<div class="card"><span class="eyebrow">Week 4</span><h4 style="margin-top:0">Can I interpret the prediction?</h4><p class="small mb0">Given a prediction, what does it actually mean for a person, in a population, at a threshold?</p></div>' +
+              '<div class="card"><span class="eyebrow">Week 5</span><h4 style="margin-top:0">Can I turn Bayesian reasoning into a classifier?</h4><p class="small mb0">Naive Bayes on real food-safety text.</p></div>' +
+            '</div>' +
+            '<p style="margin-top:var(--s5)"><strong>This week\'s chain:</strong></p>' +
+            '<div class="pill-row" aria-label="features, model, probability, threshold, prediction, decision">' +
+              '<span class="pill">features</span> → <span class="pill">model</span> → <span class="pill">probability</span> → <span class="pill">threshold</span> → <span class="pill">prediction</span> → <span class="pill">decision</span></div>',
+          body:
+            'A model outputs a probability, such as P(malignant | measurements) = 0.73. ' +
+            'Someone chooses a threshold that turns it into a prediction, and a person or ' +
+            'a team makes a decision with everything else they know. Between the model ' +
+            'output and the decision sit the test\'s error rates, the population it is ' +
+            'used in, the threshold, and whether the probabilities mean what they say. ' +
+            'Each of those is a section below.',
+          keypoint: 'A prediction is not automatically a diagnosis, and a model output is not a decision.' },
+
+        { id: 'puzzle', nav: '2. The diagnostic puzzle',
+          title: '2. The diagnostic puzzle',
+          html:
+            '<div class="callout callout-sci"><p class="mb0"><strong>Think before you open ' +
+            'the answer.</strong> A diagnostic test is 95% accurate. You test positive. ' +
+            'How likely is it that you have the condition?</p></div>' +
+            '<details class="card"><summary style="cursor:pointer;font-weight:620">Reveal: ' +
+            'why this cannot be answered yet</summary><p style="margin-top:var(--s4)">' +
+            'Accuracy alone is not enough. A positive result depends on two error rates ' +
+            'and on how many of the people tested have the condition (the prevalence).</p>' +
+            '<p>Fix the hypothetical classroom numbers: prevalence 1%, sensitivity 95%, ' +
+            'specificity 95%, 1,000 people. Then 10 have the condition and 9.5 of them test ' +
+            'positive (TP; an expected count). 990 do not, and 49.5 of them test positive ' +
+            '(FP). So 59 people test positive and only 9.5 of them are ill:</p>' +
+            '<p><strong>PPV = TP / (TP + FP) = 9.5 / 59 = 16.1%</strong>, even though the ' +
+            'test is exactly 95% accurate ((9.5 + 940.5) / 1,000).</p>' +
+            '<p class="mb0">A second puzzle from the lecture: a 99% sensitive, 99% specific ' +
+            'test where only 1 in 1,000 people have the condition. Of 100,000 people, 99 ' +
+            'true positives and 999 false positives: PPV = 99 / 1,098 = 9.0%.</p></details>' },
+
+        { id: 'confusion', nav: '3. The confusion matrix',
+          title: '3. The confusion matrix',
+          body:
+            'Four counts describe every binary test or classifier. Throughout Week 4, on ' +
+            'this page, in the lecture and in the lab, the rows are what is true and the ' +
+            'columns are what the test says. (scikit-learn\'s confusion_matrix prints ' +
+            '[[TN, FP], [FN, TP]] because it orders the classes 0 then 1; the meaning of ' +
+            'each cell is the same.)',
+          html:
+            '<div class="table-scroll"><table class="table-compact"><caption>The confusion ' +
+            'matrix. Rows = what is true; columns = what the test says.</caption><thead><tr>' +
+            '<th></th><th scope="col">Test positive</th><th scope="col">Test negative</th>' +
+            '</tr></thead><tbody><tr><th scope="row">Has the condition</th><td><strong>TP' +
+            '</strong>: ill, flagged</td><td><strong>FN</strong>: ill, missed</td></tr><tr>' +
+            '<th scope="row">Does not have it</th><td><strong>FP</strong>: healthy, false ' +
+            'alarm</td><td><strong>TN</strong>: healthy, cleared</td></tr></tbody></table></div>' +
+            '<p class="small muted">Which error matters more depends on the setting: the ' +
+            'consequences of a missed case and of a false alarm are a clinical and ' +
+            'practical judgement, not a statistical one.</p>' },
+
+        { id: 'sens-spec', nav: '4. Sensitivity and specificity',
+          title: '4. Sensitivity and specificity: how good is the test?',
+          body:
+            'Sensitivity = TP / (TP + FN): of the people who really have the condition, how ' +
+            'many did the test find? Specificity = TN / (TN + FP): of the people who do not, ' +
+            'how many did it clear? Both divide within one row of the matrix, so they ' +
+            'describe how the test behaves given the true status. Prevalence does not enter ' +
+            'their formulas, but they can still differ between populations when the case ' +
+            'mix differs. 1 − specificity is the false positive rate, FP / (TN + FP), which ' +
+            'is not the same as 1 − PPV. Use the calculator below and watch the ' +
+            'highlighted denominator.',
+          viz: ['cm-calc'] },
+
+        { id: 'ppv-npv', nav: '5. PPV and NPV',
+          title: '5. PPV and NPV: the reversal',
+          html:
+            '<div class="grid grid-2">' +
+              '<div class="card"><h4 style="margin-top:0">Test performance</h4><p class="small">Known: disease status. Asked: the test result.</p><p style="font-size:1.25rem;font-weight:700" class="mb0">P(test positive | disease)</p><p class="small mb0">Sensitivity and specificity.</p></div>' +
+              '<div class="card"><h4 style="margin-top:0">Evidence interpretation</h4><p class="small">Known: the test result. Asked: disease status.</p><p style="font-size:1.25rem;font-weight:700" class="mb0">P(disease | test positive)</p><p class="small mb0">PPV and NPV: depend on the test AND the population.</p></div>' +
+            '</div>',
+          body:
+            'Sensitivity and specificity ask what happens given disease status. PPV and NPV ' +
+            'ask what the result means given the test result. PPV = TP / (TP + FP): of the ' +
+            'people the test flagged, how many really have the condition? NPV = TN / (TN + ' +
+            'FN): of the people it cleared, how many are really clear? They divide within a ' +
+            'column, which mixes people from both rows, so the relative size of the rows, ' +
+            'the prevalence, matters.',
+          keypoint: 'P(test positive | disease) is not P(disease | test positive).' },
+
+        { id: 'bayes-prevalence', nav: '6. Bayes calculator',
+          title: '6. Bayes, by counting people',
+          body:
+            'Bayes\' theorem is the bridge between the two directions. For a positive ' +
+            'result, the prior is the prevalence, the likelihood is the sensitivity, the ' +
+            'false-positive probability is one minus the specificity, and the posterior is ' +
+            'the PPV: PPV = Se·p / [Se·p + (1 − Sp)(1 − p)]. For a negative result, NPV = ' +
+            'Sp(1 − p) / [Sp(1 − p) + (1 − Se)p]. The calculator below shows the same ' +
+            'calculation as expected counts of people (natural frequencies). Start from the ' +
+            'lecture example: prevalence 1%, sensitivity 95%, specificity 95%, PPV 16.1%.\n\n' +
+            'Bayes updates beliefs; it does not repair biased sampling, leakage or poor ' +
+            'measurement. If sensitivity was estimated badly, the PPV inherits the error.',
+          viz: ['bayes'] },
+
+        { id: 'prevalence-section', nav: '7. Prevalence explorer',
+          title: '7. The population changes the meaning',
+          body:
+            'Keep the test fixed and change who is tested. With a hypothetical 99% ' +
+            'sensitive, 99% specific test and 100,000 people: at 0.1% prevalence, 99 true ' +
+            'positives and 999 false positives (PPV 9.0%); at 1%, 990 and 990 (50.0%); at ' +
+            '10%, 9,900 and 900 (91.7%); at 37.3%, the WDBC cohort\'s malignant fraction, ' +
+            '36,927 and 627, so 37,554 positives (98.3%). This is not a defect of the model: ' +
+            'it is what the same test characteristics mean in each population.',
+          viz: ['prevalence'],
+          keypoint: 'The same test can mean something very different in different populations.' },
+
+        { id: 'thresholds', nav: '8. Threshold explorer',
+          title: '8. From probability to decision: the threshold',
+          body:
+            'A classifier such as logistic regression outputs a probability, for example ' +
+            'P(malignant | measurements) = 0.73. A decision still needs an operating ' +
+            'threshold t, with "positive" meaning a probability of at least t: at t = 0.5, ' +
+            '0.73 becomes positive; at t = 0.8 it becomes negative. The chain is ' +
+            'probability, threshold, classification, confusion matrix, metrics.\n\n' +
+            'Lowering the threshold generally increases the number of positive ' +
+            'predictions (more true positives and more false positives); raising it ' +
+            'generally decreases them. The model is unchanged; only the decision rule ' +
+            'moved. No threshold is best in general: which error matters more depends on ' +
+            'the application, the population and what happens next. Choose it on ' +
+            'out-of-fold (OOF) development predictions, freeze it, and only then use the ' +
+            'final test set, once.',
+          viz: ['threshold'],
+          keypoint: 'For a fixed model, one error can only be reduced by accepting more of the other.' },
+
+        { id: 'calibration-section', nav: '9. Calibration explorer',
+          title: '9. Calibration: is 0.8 really 80%?',
+          body:
+            'A probability is a claim that can be checked. A model is well calibrated in a ' +
+            'population when its predicted probabilities match observed frequencies: among ' +
+            'the many cases it scores near 0.8, about 80% turn out positive ' +
+            '[ref:sklearnCalibration]. Calibration is assessed over groups of predictions; ' +
+            'a prediction of 0.8 does not guarantee that a particular individual has ' +
+            'exactly an 80% probability of the outcome.\n\n' +
+            'A reliability diagram plots the mean predicted probability in each bin (x) ' +
+            'against the observed fraction positive in that bin (y). In the illustrative ' +
+            'curves below, points on the diagonal are well calibrated; a curve flatter than ' +
+            'the diagonal indicates over-confidence (predictions pushed towards 0 and 1), ' +
+            'and a steeper one indicates under-confidence (predictions pulled towards the ' +
+            'middle).\n\n' +
+            'Calibration is not discrimination. Discrimination, summarised by AUC, asks ' +
+            'whether the model ranks positive cases above negative ones. Models A, B and C ' +
+            'below rank the cases identically, with the same accuracy and AUC, and still ' +
+            'attach different probabilities to them. A model that predicts the prevalence ' +
+            'for everyone is calibrated overall and useless for discrimination ' +
+            '[ref:vanCalster2019].',
+          viz: ['calibration'],
+          keypoint: 'A probability is a claim that can be checked, over groups of cases.' },
+
+        { id: 'fm-connection', nav: '10. Foundation models',
+          title: '10. Foundation models: confidence is not calibration',
+          body:
+            'Large modern models, including foundation models, can produce very ' +
+            'confident probability-like scores. A confident-looking output is not evidence ' +
+            'that the probability is calibrated: accurate modern neural networks can be ' +
+            'poorly calibrated [ref:guo2017]. Everything on this page that treats a model ' +
+            'output as a probability, from choosing a threshold to computing a predictive ' +
+            'value, depends on it meaning what it says, so check calibration on held-out ' +
+            'data from the population of use. Foundation models are covered properly from ' +
+            'Week 7, and Week 12 returns to calibration, uncertainty and trust.',
+          keypoint: 'Confidence is not calibration.' },
+
+        { id: 'wdbc', nav: '11. Real data: WDBC',
+          title: '11. Real data: WDBC, two models',
+          body:
+            'The lab fits two models to the same WDBC split: logistic regression and ' +
+            'Gaussian naive Bayes (next week\'s classifier). On the final test set their ' +
+            'accuracy is 97.1% and 93.6%, and their AUC is almost identical (0.998 and ' +
+            '0.996): similar discrimination. Their probabilities are not alike. Naive ' +
+            'Bayes puts 98% of its predictions below 0.05 or above 0.95, and its Brier ' +
+            'score is about three times worse (0.056 against 0.019). The Brier score is ' +
+            'the mean squared difference between the predicted probability and the ' +
+            'outcome (0 or 1); lower is better. This is real data used for classroom ' +
+            'evaluation, not evidence of clinical performance.',
+          viz: ['wdbc-models'],
+          keypoint: 'A model can classify well and still produce probabilities that deserve scrutiny.' },
+
+        { id: 'lab-companion', nav: '12. Using this page with the lab',
+          title: '12. Using this page with the lab',
+          html:
+            '<div class="grid grid-3">' +
+              '<div class="card"><span class="eyebrow">Before the lab</span><p class="small mb0">Explore the Bayes calculator and the prevalence explorer. Predict before you move a slider.</p></div>' +
+              '<div class="card"><span class="eyebrow">During the lab</span><p class="small mb0">Implement the same reasoning in Python on real WDBC data. The notebook is linked in the lab section below.</p></div>' +
+              '<div class="card"><span class="eyebrow">After the lab</span><p class="small mb0">Compare your threshold and calibration results with the threshold and calibration explorers.</p></div>' +
+            '</div>' +
+            '<div class="table-scroll" style="margin-top:var(--s5)"><table class="table-compact"><caption>Which interactive goes with which lab task.</caption><thead><tr><th scope="col">Lab tasks</th><th scope="col">Section and interactive on this page</th></tr></thead><tbody>' +
+              '<tr><th scope="row">Task 1</th><td><a href="#confusion">3. Confusion matrix</a></td></tr>' +
+              '<tr><th scope="row">Tasks 2–4</th><td><a href="#viz-cm-calc">Confusion-matrix calculator</a>, <a href="#viz-bayes">Bayes calculator</a>, <a href="#viz-prevalence">prevalence explorer</a></td></tr>' +
+              '<tr><th scope="row">Tasks 5–7</th><td><a href="#viz-threshold">Decision threshold explorer</a></td></tr>' +
+              '<tr><th scope="row">Tasks 8–9</th><td><a href="#viz-calibration">Calibration explorer</a>, <a href="#viz-wdbc-models">WDBC models</a></td></tr>' +
+              '<tr><th scope="row">Task 10</th><td><a href="#thresholds">8. Which error matters more depends on the question</a></td></tr>' +
+              '<tr><th scope="row">Task 11</th><td>The evaluation record: protocol, prevalence and calibration (<a href="#from-prediction">1</a>, <a href="#prevalence-section">7</a>, <a href="#calibration-section">9</a>)</td></tr>' +
+            '</tbody></table></div>' +
+            '<p class="small muted">The page is a companion to the lab, not a replacement for it. The core lab is Tasks 1–8 and 10–11; Task 9 is an optional extension.</p>' }
+      ],
+      interactiveIntro:
+        'Every interactive this week sits next to the idea it illustrates. They share ' +
+        'their numbers with the lecture and the lab.',
+      interactiveIndex: [
+        { id: 'cm-calc', label: 'Confusion-matrix calculator', note: 'section 4; lab Tasks 1–2; lecture slide 75' },
+        { id: 'bayes', label: 'Diagnostic test (Bayes) calculator', note: 'section 6; lab Tasks 3–4; lecture slide 41' },
+        { id: 'prevalence', label: 'Prevalence explorer', note: 'section 7; lab Task 4; lecture slide 42' },
+        { id: 'threshold', label: 'Decision threshold explorer', note: 'section 8; lab Tasks 5–7; lecture slide 49' },
+        { id: 'calibration', label: 'Calibration explorer', note: 'section 9; lab Tasks 8–9; lecture slide 60' },
+        { id: 'wdbc-models', label: 'WDBC: two models, real data', note: 'section 11; lab Task 8; lecture slide 75' }
       ],
       concepts: [
-        { term: 'Conditional probability', body: 'P(A|B) is the probability of A given that B has occurred. P(positive test | disease) and P(disease | positive test) are not the same quantity.' },
-        { term: 'Bayes\' rule', body: 'P(A|B) = P(B|A)P(A) / P(B). It reweights the likelihood by the prior. In diagnosis the prior is the prevalence.' },
-        { term: 'Sensitivity', body: 'P(test positive | disease present). The true positive rate, also called recall.' },
-        { term: 'Specificity', body: 'P(test negative | disease absent). The true negative rate.' },
-        { term: 'Prevalence', body: 'The proportion of the tested population that has the condition. It is a property of the population, not of the test, and it drives PPV.' },
-        { term: 'Positive predictive value', body: 'P(disease | test positive). This is what the patient in front of you actually wants to know, and it collapses as prevalence falls.' },
-        { term: 'Negative predictive value', body: 'P(no disease | test negative). Usually high when prevalence is low, which is why a negative result is often more informative in screening.' },
-        { term: 'The base-rate fallacy', body: 'Judging a positive result by the test\'s accuracy while ignoring how rare the condition is. It is the single most consequential probabilistic error in clinical machine learning.' }
+        { term: 'Confusion matrix', body: 'Four counts: true positives, false positives, false negatives and true negatives. Every metric this week is a ratio of two of them; the skill is knowing which denominator you are dividing by.' },
+        { term: 'Sensitivity', body: 'TP / (TP + FN) = P(test positive | disease present). Of the people who really have the condition, the fraction the test finds. Also called recall or the true positive rate.' },
+        { term: 'Specificity', body: 'TN / (TN + FP) = P(test negative | disease absent). Of the people who do not have the condition, the fraction the test correctly clears. 1 − specificity is the false positive rate.' },
+        { term: 'Positive predictive value', body: 'TP / (TP + FP) = P(disease | test positive). Of the people who test positive, the fraction who really have the condition. This is what the person holding a positive result wants to know.' },
+        { term: 'Negative predictive value', body: 'TN / (TN + FN) = P(no disease | test negative). Of the people who test negative, the fraction who really are clear.' },
+        { term: 'Prevalence (base rate)', body: 'The proportion of the tested population that has the condition. A property of the population, not the test, and the prior in Bayes\' rule. Screening an unselected population and testing a symptomatic clinic are different problems for this reason.' },
+        { term: 'Bayes\' rule', body: 'P(D | +) = P(+ | D) P(D) / [P(+ | D) P(D) + P(+ | not D) P(not D)]. It reweights the test\'s behaviour by the prevalence. It updates beliefs; it does not repair biased sampling, leakage or poor measurement.' },
+        { term: 'Decision threshold', body: 'A classifier outputs P(Y = 1 | X); a decision needs a cut-off. Lowering it raises sensitivity and lowers specificity. The model is unchanged; only the decision rule moves.' },
+        { term: 'Calibration', body: 'Whether predicted probabilities match observed frequencies: among cases predicted near 0.8, about 80 per cent should be positive [ref:sklearnCalibration]. Read from a reliability diagram.' },
+        { term: 'AUC', body: 'The area under the ROC curve: the probability that a randomly chosen positive case is scored above a randomly chosen negative one. It summarises discrimination across all thresholds; it does not choose a threshold and says nothing about calibration.' },
+        { term: 'Brier score', body: 'The mean squared difference between the predicted probability and the outcome (0 or 1). Lower is better. Unlike accuracy or AUC, it rewards probabilities that match observed frequencies.' },
+        { term: 'Out-of-fold (OOF) predictions', body: 'Cross-validated predictions on the development (training) pool: each case is scored by a model that did not see it. Thresholds and calibration checks are developed on these, never on the final test set.' },
+        { term: 'Final test set', body: 'Data held back until every modelling decision, including the threshold, is frozen, then used once to report performance (Week 3).' },
+        { term: 'Discrimination versus calibration', body: 'Discrimination (for example AUC) asks whether the model ranks positives above negatives. Calibration asks whether its probabilities can be taken at face value. A model can do one well and the other badly [ref:vanCalster2019].' }
       ],
       viz: 'bayes',
+      viz2: 'prevalence',
+      viz3: 'threshold',
+      viz4: 'calibration',
       worked: {
-        title: 'A very good test in a low-prevalence population',
+        title: 'A 95 per cent accurate test in a 1 per cent population',
         body:
-          'Take a test with 99 per cent sensitivity and 99 per cent specificity, applied to a ' +
-          'condition with a prevalence of 1 in 1,000. Imagine 100,000 people.\n\n' +
-          '100 of them have the condition, and the test correctly identifies 99 of those. ' +
-          '99,900 do not have it, and the test wrongly flags 1 per cent of them, which is ' +
-          '999 people. So 1,098 people test positive, and only 99 of them are ill.\n\n' +
-          'The positive predictive value is 99/1098, which is about 9 per cent. A test that ' +
-          'is right 99 per cent of the time produces a positive result that is wrong more ' +
-          'than nine times out of ten. Nothing is broken; this is what those numbers mean.\n\n' +
-          'Now raise the prevalence to 10 per cent, as it might be in a symptomatic clinic ' +
-          'rather than an unselected screening population. Of 100,000 people, 10,000 are ill ' +
-          'and 9,900 are correctly flagged; 90,000 are well and 900 are wrongly flagged. PPV ' +
-          'rises to 9900/10800, about 92 per cent. The test did not change. The population did.',
-        keypoint: 'Sensitivity and specificity belong to the test. Predictive value belongs to the test and the population together.'
+          'Hypothetical classroom example. A test has 95 per cent sensitivity and 95 per cent ' +
+          'specificity, and 1 per cent of the people tested have the condition. Imagine ' +
+          '1,000 people.\n\n' +
+          '10 of them have the condition, and the test finds 95 per cent of those: 9.5 ' +
+          'people on average (the half-person is an expected count; with 10,000 people it ' +
+          'is 95 of 100). 990 do not have the condition, and the test wrongly flags 5 per ' +
+          'cent of them: 49.5 people. So 59 people test positive, and only 9.5 of them are ' +
+          'ill.\n\n' +
+          'The positive predictive value is 9.5 / 59, about 16 per cent. The test\'s ' +
+          'accuracy is exactly 95 per cent, and a positive result is still wrong about five ' +
+          'times in six. Nothing is broken: false positives are drawn from the 990, true ' +
+          'positives from the 10. The negative predictive value, 940.5 / 941, is 99.95 per ' +
+          'cent, which is why a negative result is so reassuring in this setting.\n\n' +
+          'Now use the same test in a population where 20 per cent have the condition, as ' +
+          'it might be among referred, symptomatic patients. PPV rises to about 83 per cent. ' +
+          'The test did not change. The population did.',
+        keypoint: 'Sensitivity and specificity describe the test. Predictive values describe the test and the population together.'
       },
       fm: {
-        title: 'Calibration is where this reappears',
+        inline: true,
+        title: 'Foundation models: confidence is not calibration',
         body:
-          'Modern models, including fine-tuned foundation models, frequently produce ' +
-          'confident-looking probabilities that are not calibrated: a set of predictions at ' +
-          '"0.9" does not contain 90 per cent positives. Everything in this week depends on ' +
-          'the input probabilities meaning what they claim. Week 12 returns to calibration ' +
-          'curves and why a well-discriminating model can still be badly calibrated.',
+          'Large modern networks, including fine-tuned foundation models, can rank cases ' +
+          'well and still produce over-confident probabilities: a group of predictions at ' +
+          '"0.9" that contains far fewer than 90 per cent positives. Everything in this week ' +
+          'that treats a model output as a probability, from choosing a threshold to ' +
+          'computing a predictive value, depends on that probability meaning what it says. ' +
+          'Check calibration on held-out data from the population you will use the model ' +
+          'in, not only discrimination. Week 12 returns to calibration under dataset shift.',
         models: []
       },
       scientist:
-        'A screening model is reported as "94 per cent accurate" on a cohort where 6 per cent ' +
-        'of participants have the condition. Before reading any further, what accuracy would ' +
-        'a model that always predicts "no disease" achieve on that cohort, and what does that ' +
-        'tell you about the reported figure?',
+        'A biomarker classifier is reported as "95 per cent sensitive and 95 per cent ' +
+        'specific" in a case-control study with equal numbers of patients and healthy ' +
+        'controls. A hospital now proposes to use it to screen a general population in which ' +
+        'about 1 in 200 people have the condition. What will the PPV be, what information ' +
+        'are you missing, and what would you ask for before agreeing?',
       quiz: [
-        { q: 'Prevalence falls from 10 per cent to 1 per cent while sensitivity and specificity are unchanged. What happens to PPV?',
-          options: ['It rises', 'It falls substantially', 'It is unchanged', 'It depends on sample size'],
+        { q: 'Prevalence falls from 20 per cent to 1 per cent while sensitivity and specificity stay at 95 per cent. What happens to PPV?',
+          options: ['It rises', 'It falls substantially, from about 83 per cent to about 16 per cent', 'It is unchanged, because the test is unchanged', 'It depends only on the sample size'],
           answer: 1,
-          why: 'False positives are drawn from the much larger healthy group, so as prevalence falls they increasingly outnumber true positives. Use the calculator on this page to watch it happen.' },
-        { q: 'A model has recall 0.95 and precision 0.30 for a rare disease. What is the practical consequence?',
-          options: ['It misses most cases', 'It catches almost all cases, but around 70 per cent of its alarms are false', 'It is well calibrated', 'It is unusable'],
+          why: 'False positives come from the healthy group, which becomes far larger relative to the diseased group as prevalence falls. Use the first calculator on this page to watch it happen.' },
+        { q: 'You lower a classifier\'s threshold from 0.5 to 0.3. Which is the most likely result?',
+          options: ['Sensitivity rises and specificity falls', 'Both rise', 'Both fall', 'Neither changes, because the model is the same'],
+          answer: 0,
+          why: 'More cases are called positive, so more true cases are caught and more healthy people are flagged. The threshold explorer shows the trade.' },
+        { q: 'Two models have the same AUC and the same accuracy. Among cases Model B scores near 0.8, only about 60 per cent are positive. What does that tell you?',
+          options: ['Model B is worse at ranking patients', 'Model B is over-confident: its probabilities are not calibrated, even though its ranking is as good as the other model\'s', 'Model B has leakage', 'Nothing, since accuracy is the same'],
           answer: 1,
-          why: 'High recall with low precision is the classic screening profile. Whether it is acceptable depends entirely on the cost of a false alarm relative to a missed case, which is a clinical judgement, not a modelling one.' },
-        { q: 'Which quantity is a property of the population being tested rather than of the test itself?',
-          options: ['Sensitivity', 'Specificity', 'Prevalence', 'The decision threshold'],
-          answer: 2,
-          why: 'Sensitivity and specificity are conditional on true disease status and are, in principle, transportable. Prevalence is a feature of who you decided to test, and it is what makes a test behave differently in screening and in clinic.' }
+          why: 'AUC measures discrimination, which is about ordering. Calibration is about whether the numbers mean what they say. The calibration explorer shows both at once.' }
       ],
       lab: 'lab04',
       datasets: ['wdbc'],
       reading: [
-        { ref: 'greener2022', note: 'Section on evaluation metrics.' },
-        { ref: 'jones2019', note: 'On over-claiming from performance figures.' }
+        { ref: 'altman1994sens', note: 'One page. The clearest short statement of sensitivity and specificity.' },
+        { ref: 'altman1994pv', note: 'One page. Why predictive values depend on prevalence.' },
+        { ref: 'trevethan2017', note: 'Common misunderstandings of all four metrics, with screening examples.' },
+        { ref: 'vanCalster2019', note: 'Why calibration matters for clinical prediction models.' },
+        { ref: 'gigerenzer1995', note: 'Why natural frequencies (counts of people) make Bayesian reasoning easier.' },
+        { ref: 'sklearnCalibration', note: 'calibration_curve, CalibrationDisplay and CalibratedClassifierCV, used in the lab.' },
+        { ref: 'niculescu2005', note: 'Which classifiers produce well or badly calibrated probabilities, including naive Bayes.' },
+        { ref: 'guo2017', note: 'Modern neural networks can be accurate and poorly calibrated.' },
+        { ref: 'saito2015', note: 'Why the precision-recall curve can be more informative than ROC under imbalance (lab Task 6).' },
+        { ref: 'wdbc', note: 'The dataset used in the lab; classroom evaluation, not clinical performance.' }
       ],
       provenance: {
-        kept: 'Conditional probability, the product rule, Bayes\' rule and the worked probability examples from the 2025/26 Week 4 deck.',
-        changed: 'The prison-uniform example (P(CellBlockA | BlueU)) is replaced by diagnostic testing, which uses the identical arithmetic in a setting the students will meet professionally. Sensitivity, specificity, PPV, NPV and the base-rate fallacy are added.'
+        kept: 'Conditional probability, the product rule and Bayes\' rule from the 2025/26 Bayesian classification deck (Week4_ML_MTU.pptx), where they introduced naive Bayes.',
+        changed: 'The prison-uniform example (P(CellBlockA | BlueU)) is replaced by diagnostic testing, which uses the identical arithmetic in a setting students will meet professionally. Sensitivity, specificity, PPV, NPV, the base-rate effect, decision thresholds and calibration are added. Naive Bayes itself moves to Week 5, where Bayesian reasoning becomes a classifier.'
       }
     },
 
     /* ------------------------------------------------------------------ 5 */
     {
       n: 5,
-      title: 'Naive Bayes for biomedical and food-safety text',
+      title: 'Naive Bayes for food-safety text: a complete pipeline',
       strand: 'classical',
-      short: 'A strong, fast, wrong-but-useful model, on real recall notices.',
+      short: 'Naive Bayes is a simple model, but it is a complete machine-learning pipeline: text, vectorizer, model, evaluation and trust, on real FDA recall reasons.',
       los: ['LO2', 'LO3', 'LO5'],
       biology:
-        'The FDA publishes every food recall it classifies, with a free-text reason for the ' +
-        'recall and a hazard classification: Class I where there is a reasonable probability ' +
-        'of serious adverse health consequences, Class II where consequences are temporary or ' +
-        'medically reversible, Class III where use is unlikely to cause adverse consequences. ' +
-        'The data is public domain under CC0 and covers 2004 to the present [ref:openfda]. ' +
-        'Predicting hazard class from the free-text reason is a genuine, useful, tractable ' +
-        'text classification problem in food safety.',
+        'When a food is recalled in the United States, the FDA records a short free-text ' +
+        'reason ("Product may be contaminated with Listeria monocytogenes", "Undeclared ' +
+        'egg") and a hazard classification. Class I means a reasonable probability that the ' +
+        'product will cause serious adverse health consequences or death; Class II, ' +
+        'temporary or medically reversible consequences, or a remote probability of ' +
+        'serious ones; Class III, not likely to cause adverse health consequences ' +
+        '[ref:fdaRecallDefinitions]. The records are public domain [ref:openfda].\n\n' +
+        'This week asks whether the reason text predicts a Class I classification. The data ' +
+        'is a frozen, checksummed snapshot of the openFDA bulk export ' +
+        '[ref:openfdaDownloads], so every number on this page, in the lecture and in the lab ' +
+        'is the same and can be reproduced. It is real data used for classroom evaluation. ' +
+        'The label is an administrative decision, not a measured health outcome, and ' +
+        'nothing here is a food-safety tool.',
       objectives: [
-        'Derive the naive Bayes classifier from Bayes\' rule and the conditional independence assumption.',
-        'Explain precisely which assumption is "naive" and why the classifier works anyway.',
-        'Apply Laplace smoothing and explain the zero-frequency problem it solves.',
-        'Work in log space and explain the numerical problem that motivates it.',
-        'Compare multinomial and Bernoulli event models and choose between them.'
+        'Explain how naive Bayes turns Bayes\' rule into a classifier, and state exactly which assumption is "naive".',
+        'Calculate a naive Bayes posterior by hand with Laplace smoothing, and explain why implementations work with sums of logs.',
+        'Turn text into a document-term matrix (counts, presence or TF-IDF) and explain why the vectorizer is part of the model pipeline.',
+        'Build and evaluate a naive Bayes text classifier on real data against a baseline, with a split that respects the unit of observation and a pipeline that never learns from the test set.',
+        'Explain why predict_proba output is not automatically a calibrated probability, and compare naive Bayes with a pretrained language-model representation on performance, cost and interpretability.'
+      ],
+      sections: [
+        { id: 'from-bayes', nav: '1. From Bayes to classification',
+          title: '1. From Bayes to classification',
+          html:
+            '<div class="grid grid-3">' +
+              '<div class="card"><span class="eyebrow">Week 4</span><h4 style="margin-top:0">Can I interpret the prediction?</h4><p class="small mb0">Prior, likelihood, posterior; thresholds; calibration. Bayes as reasoning about one test result.</p></div>' +
+              '<div class="card"><span class="eyebrow">Week 5</span><h4 style="margin-top:0">Can I turn Bayes into a classifier?</h4><p class="small mb0">Naive Bayes on real recall text, built and evaluated as a complete pipeline.</p></div>' +
+              '<div class="card"><span class="eyebrow">Week 6</span><h4 style="margin-top:0">Can I trust the data I give it?</h4><p class="small mb0">Preparing real survey data (NHANES) without breaking it.</p></div>' +
+            '</div>' +
+            '<p style="margin-top:var(--s5)"><strong>This week\'s pipeline:</strong></p>' +
+            '<div class="pill-row" aria-label="text, tokens, vectorizer, features, model, probability, threshold, prediction, evaluation">' +
+              '<span class="pill">text</span> → <span class="pill">tokens</span> → <span class="pill">vectorizer</span> → <span class="pill">features</span> → <span class="pill">model</span> → <span class="pill">probability</span> → <span class="pill">threshold</span> → <span class="pill">prediction</span> → <span class="pill">evaluation</span></div>',
+          body:
+            'Week 4 used Bayes\' rule to interpret one result: the prior was the prevalence, ' +
+            'the likelihood was the test\'s behaviour, and the posterior was what a positive ' +
+            'result means. A classifier does the same thing with different labels. The prior ' +
+            'is the share of Class I texts in the training data; the evidence is the words ' +
+            'of a reason text; the posterior is P(Class I | text). Explorer A below is the ' +
+            'Week 4 calculator with those labels.\n\n' +
+            'Naive Bayes is a simple model, but it is a complete machine-learning pipeline. ' +
+            'Most of this week is about the parts around the model: how text becomes numbers, ' +
+            'what one row of data is, how the split is made, and whether the output can be ' +
+            'trusted.',
+          viz: ['nb-bayes'],
+          keypoint: 'The model is only one part of the experiment.' },
+
+        { id: 'naive-idea', nav: '2. The naive idea, by hand',
+          title: '2. The naive idea, worked by hand',
+          body:
+            'A text has many words, so the evidence is a combination: P(text | class) = ' +
+            'P(w1, w2, ..., wn | class). Estimating that joint probability directly is ' +
+            'impossible, because almost every text is unique. Naive Bayes assumes that, ' +
+            'within a class, words occur independently of one another, so the joint ' +
+            'probability becomes a product: P(class | text) ∝ P(class) × P(w1 | class) × ... ' +
+            '× P(wn | class). That is the naive assumption, and for text it is plainly false: ' +
+            '"Listeria" and "monocytogenes" travel together.\n\n' +
+            'Each P(word | class) is estimated by counting: how often the word occurs in ' +
+            'that class\'s training texts, divided by the total number of words in them. Two ' +
+            'practical problems follow. A word never seen with a class gives a probability ' +
+            'of zero, and one zero vetoes the whole product; Laplace smoothing adds one (alpha ' +
+            '= 1) to every count so this cannot happen. And a product of hundreds of small ' +
+            'probabilities underflows to zero in floating point, so every implementation sums ' +
+            'logs instead. The four-word example below is the one worked on the lecture ' +
+            'slides: "undeclared label" gives Class I a posterior of 0.421, and adding ' +
+            '"listeria" raises it to 0.772.',
+          viz: ['nb-evidence'],
+          keypoint: 'Naive Bayes multiplies evidence as if words were independent. They are not, and the ranking of classes often survives anyway.' },
+
+        { id: 'text-data', nav: '3. Text becomes data',
+          title: '3. Text becomes data',
+          body:
+            'A model cannot read. A vectorizer first splits each text into tokens ' +
+            '(scikit-learn\'s default: lowercase, then every run of two or more letters or ' +
+            'digits), builds a vocabulary from the texts it is fitted on, and turns every ' +
+            'text into a row of numbers, one column per vocabulary word [ref:sklearnText]. ' +
+            'The result is a document-term matrix: very wide and mostly zeros. On the Week 5 ' +
+            'training texts the vocabulary has 6,772 words, and a typical text uses about a ' +
+            'dozen of them.\n\n' +
+            'The numbers can be word counts (CountVectorizer, the main model this week), ' +
+            'presence or absence (for BernoulliNB), or TF-IDF weights, which down-weight ' +
+            'words that appear in many texts. Whatever the choice, the representation ' +
+            'decides what the model can see. Word order is gone, so "listeria detected, ' +
+            'salmonella not" and "salmonella detected, listeria not" become the same row; ' +
+            '"no" is just another column; and a word the vectorizer did not see when it was ' +
+            'fitted is silently ignored. The vocabulary and the IDF weights are learned from ' +
+            'data, which makes the vectorizer part of the model.',
+          viz: ['text-repr'],
+          keypoint: 'The vectorizer is part of the model pipeline.' },
+
+        { id: 'real-data', nav: '4. The data: one row is what?',
+          title: '4. The real problem: what is one row?',
+          body:
+            'The openFDA export has one record per recalled product: 29,462 classified ' +
+            'records. One recall event often covers many products with the same reason text; ' +
+            'the largest single event in this snapshot has 409. Counting each product as a ' +
+            'separate example would count one decision hundreds of times. So one row here ' +
+            'represents an event–reason–classification record: 9,490 rows from 7,890 events. ' +
+            'Most event–reason pairs have one classification, but 95 of the 9,394 pairs carry ' +
+            'more than one FDA classification, and in 73 of them the classifications disagree on ' +
+            'the target itself (Class I against Class II or III). ' +
+            'The target is is_class_I: 3,836 rows (40.4%) are Class I, and 5,654 are Class ' +
+            'II (4,882) or Class III (772).\n\n' +
+            'The split keeps whole events together: StratifiedGroupKFold with four folds, ' +
+            'seed 42, first fold, groups = event_id. That gives 7,117 training texts and ' +
+            '2,373 test texts with the same 40.4% Class I share, and no event on both sides. ' +
+            'Even so, 14% of the test texts match some training text word for word, because ' +
+            'firms reuse standard wording across separate recalls. That is genuine repetition ' +
+            'in the data, and it is part of what a model of this text will meet in use.\n\n' +
+            'Two limits to keep in view. The label is FDA\'s judgement of the whole situation, ' +
+            'and the reason text describes only part of it. And the 73 event–reason pairs whose ' +
+            'classifications disagree on the target are real label conflicts in the FDA records. ' +
+            'They are kept, not removed: the same text in the same event received different ' +
+            'labels, so no model can get every row right. The text alone does not necessarily ' +
+            'determine the label. Because the split groups whole events, the rows of a ' +
+            'conflicting pair always fall on the same side.',
+          html:
+            '<div class="table-scroll"><table class="table-compact"><caption>The frozen Week 5 ' +
+            'snapshot (openFDA export last_updated 2026-09-28).</caption><tbody>' +
+            '<tr><th scope="row">Product records (classified)</th><td class="num">29,462</td></tr>' +
+            '<tr><th scope="row">Recall events</th><td class="num">7,890</td></tr>' +
+            '<tr><th scope="row">Rows: event–reason–classification records</th><td class="num">9,490</td></tr>' +
+            '<tr><th scope="row">Event–reason pairs (with more than one FDA class / conflicting on Class I)</th><td class="num">9,394 (95 / 73)</td></tr>' +
+            '<tr><th scope="row">Class I / II / III</th><td class="num">3,836 / 4,882 / 772</td></tr>' +
+            '<tr><th scope="row">Training / test rows (split by event)</th><td class="num">7,117 / 2,373</td></tr>' +
+            '<tr><th scope="row">Median words per text</th><td class="num">13</td></tr>' +
+            '</tbody></table></div>' +
+            '<p class="small muted">Full provenance, including the checksum of the export: ' +
+            '<a href="../labs/week05/data/README.md">labs/week05/data/README.md</a>.</p>',
+          keypoint: 'Decide what one row is before deciding how to split.' },
+
+        { id: 'build', nav: '5. Build the classifier',
+          title: '5. Build the classifier',
+          html:
+            '<pre>model = Pipeline([("vectorizer", CountVectorizer()),\n' +
+            '                  ("classifier", MultinomialNB(alpha=1.0))])\n' +
+            'model.fit(X_train, y_train)\n' +
+            'p = model.predict_proba(X_test)[:, 1]     # P(Class I | text)\n' +
+            'y_pred = (p >= 0.5).astype(int)</pre>',
+          body:
+            'The whole model is two steps in a scikit-learn Pipeline [ref:sklearnNB]. Fitting ' +
+            'the pipeline fits the vectorizer and the classifier on the training rows only; ' +
+            'predicting transforms the test text with the training vocabulary. On the 2,373 ' +
+            'test texts it reaches 79.1% accuracy, against 59.6% for always answering "not ' +
+            'Class I". For Class I, precision is 0.723 and recall 0.785 (F1 0.753); ROC AUC is ' +
+            '0.860. In counts: 753 of the 959 Class I texts found, 206 missed, and 289 false alarms ' +
+            'among 1,414 Class II/III texts.\n\n' +
+            'The explorer below fits exactly this model in your browser and reproduces these ' +
+            'numbers at alpha = 1. Use the probe to score any text, word by word.',
+          viz: ['naive-bayes'] },
+
+        { id: 'trust', nav: '6. Can we trust the result?',
+          title: '6. Can we trust the result?',
+          body:
+            'A score is a summary; the errors and the learned words are the evidence. Rank ' +
+            'the vocabulary by how strongly each word favours Class I and the top of the ' +
+            'list, among words seen at least ten times, is snoqualmie, sunland, husky, ' +
+            'daniella, mann, salinas: firm and place names from a few large outbreak ' +
+            'recalls. The model has learned who wrote the notice as well as why. Keep only ' +
+            'words used in at least 20 different training events and the list is mostly ' +
+            'hazards (one firm name, sunland, still leads): cucumbers, sprouts, outbreak, ' +
+            'salmonella, monocytogenes, hepatitis, listeria. ' +
+            'At the other end are foreign-body and quality words: fragments, metal, glass, ' +
+            'spoilage, mold.\n\n' +
+            'The errors tell the same story. Every one of the six most confident false ' +
+            'positives names Listeria, yet FDA classified each as Class II. Five of the six ' +
+            'most confident false negatives are allergen-labelling texts (undeclared milk, ' +
+            'wheat or soy) that FDA classified as Class I. Neither group is obviously a model failure: the same ' +
+            'words lead to different classes, and the text alone does not settle it. Use the ' +
+            'Words and Errors views of the explorer above.',
+          keypoint: 'A good score does not tell you what the model learned. Read the words and the errors.' },
+
+        { id: 'leakage-section', nav: '7. The whole pipeline and the test set',
+          title: '7. The whole pipeline must not learn from the test set',
+          body:
+            'The test set is not just data that the classifier does not train on. It is data ' +
+            'that the entire modelling pipeline must not learn from. Two tempting mistakes:\n\n' +
+            'Fitting the vectorizer on all the text before splitting lets the test texts ' +
+            'shape the vocabulary (1,193 words appear only in test texts) and, with TF-IDF, ' +
+            'every IDF weight. Here the score barely moves: 78.8% against 79.1%. That does not ' +
+            'make it correct. As in Week 3, leakage is not reliably visible in the score; it is ' +
+            'prevented by construction, by fitting the vectorizer inside the Pipeline.\n\n' +
+            'Splitting by product record instead of by event is worse. Products from one ' +
+            'recall land on both sides, 79% of test texts appear word for word in training, ' +
+            'and accuracy rises to 85.1% (ROC AUC 0.914). The model has not improved; the ' +
+            'test has become easier [ref:kapoor2023].',
+          viz: ['nb-leakage'],
+          keypoint: 'The test set is data that the entire modelling pipeline must not learn from.' },
+
+        { id: 'why-works', nav: '8. Why can a naive model work?',
+          title: '8. Why can a naive model work?',
+          body:
+            'Classification needs only the right ordering of the classes, not accurate ' +
+            'probabilities. Naive Bayes can pick the right class even when its independence ' +
+            'assumption distorts the scores, and it can be optimal for that decision under ' +
+            'conditions well beyond true independence [ref:domingos1997]. It is fast, needs ' +
+            'little data per parameter, copes with tens of thousands of sparse features, and ' +
+            'every prediction can be traced to the words that made it ' +
+            '[ref:manningIR2008].\n\n' +
+            'The probabilities are another matter. Correlated words are counted as ' +
+            'independent evidence, so scores are pushed towards 0 and 1: 63% of the test ' +
+            'predictions are below 0.05 or above 0.95, and the reliability diagram (the ' +
+            'Probabilities view above) shows the over-confidence. The Brier score is 0.166. ' +
+            'TF-IDF weights shrink the counts, and the same classifier then puts only 7% of ' +
+            'its predictions at the extremes (Brier 0.146). So is predict_proba a calibrated ' +
+            'probability? Not automatically. As in Week 4, a probability is a claim to be ' +
+            'checked over groups of predictions [ref:niculescu2005].',
+          keypoint: 'Naive Bayes is often right about the class and over-confident about the probability.' },
+
+        { id: 'to-lms', nav: '9. From naive Bayes to language models',
+          title: '9. From naive Bayes to language models',
+          body:
+            'A bag of words throws away order, negation and synonymy. A pretrained ' +
+            'sentence encoder maps a whole text to a fixed-length vector (an embedding) ' +
+            'learned from a large general corpus, so texts with similar meaning land close ' +
+            'together even when they share few words [ref:reimers2019]. Week 7 covers ' +
+            'embeddings properly.\n\n' +
+            'Same split, same metrics, same baseline: a frozen general-English encoder ' +
+            '(all-MiniLM-L6-v2 [ref:minilm], 22.7 million parameters, run on a laptop CPU) ' +
+            'with logistic regression on top reaches 79.4% accuracy, F1 0.745 and ROC AUC ' +
+            '0.864, against 79.1%, 0.753 and 0.860 for naive Bayes on word counts. The accuracy ' +
+            'difference is small relative to the approximate sampling interval shown in explorer E ' +
+            '(about ±1.6 points). F1 and AUC are also numerically close, but this single test split ' +
+            'is not enough to establish a meaningful difference. The encoder has better ' +
+            'probability performance on this test set: a lower Brier score (0.147 against 0.166) ' +
+            'and far fewer extreme predictions. Whether either model is well calibrated requires a ' +
+            'reliability analysis, as in Week 4. The encoder also needs a 91 MB model ' +
+            'download, deep-learning libraries and more compute, and one prediction cannot be ' +
+            'explained word by word. On short, formulaic texts with strong keywords, the ' +
+            'simple model holds its own. That is a finding about this task, not a verdict on ' +
+            'either model. The comparison is run once by the module team and stored; the lab ' +
+            'does not depend on it.',
+          viz: ['nb-compare'],
+          keypoint: 'Evaluation survives model changes: the same split, the same metrics, the same baseline and the same questions.' },
+
+        { id: 'week6-bridge', nav: '10. Bridge to Week 6',
+          title: '10. Bridge to Week 6: can we trust the data?',
+          body:
+            'Before we can trust a model, can we trust the data we give it? This week\'s ' +
+            'problems were mostly data problems: duplicated records, the choice of unit, ' +
+            'labels that disagree, wording that names the firm, encoding artefacts, and a ' +
+            'label that is a decision rather than a measurement. Week 6 takes these questions ' +
+            'to a real health survey (NHANES): merging files, missing values and why they are ' +
+            'missing, outliers, encoding, and keeping every preparation step inside the ' +
+            'pipeline so that it, too, never learns from the test set.',
+          keypoint: 'Before we can trust a model, can we trust the data we give it?' },
+
+        { id: 'lab-companion', nav: '11. Using this page with the lab',
+          title: '11. Using this page with the lab',
+          html:
+            '<div class="table-scroll"><table class="table-compact"><caption>Which section and interactive go with which lab task.</caption><thead><tr><th scope="col">Lab task</th><th scope="col">On this page</th></tr></thead><tbody>' +
+              '<tr><th scope="row">1. What is one row?</th><td><a href="#real-data">4. The data</a></td></tr>' +
+              '<tr><th scope="row">2. Split by event, baseline</th><td><a href="#real-data">4</a>, <a href="#viz-nb-leakage">explorer D</a></td></tr>' +
+              '<tr><th scope="row">3. Text to numbers</th><td><a href="#viz-text-repr">explorer C</a></td></tr>' +
+              '<tr><th scope="row">4. Build and evaluate</th><td><a href="#viz-naive-bayes">the classifier explorer</a></td></tr>' +
+              '<tr><th scope="row">5. Open the model</th><td><a href="#viz-nb-evidence">explorer B</a> and the probe in <a href="#viz-naive-bayes">the classifier explorer</a></td></tr>' +
+              '<tr><th scope="row">6. Error analysis</th><td><a href="#trust">6</a>, Errors view</td></tr>' +
+              '<tr><th scope="row">7. Leakage</th><td><a href="#viz-nb-leakage">explorer D</a></td></tr>' +
+              '<tr><th scope="row">8. Probabilities and the record</th><td><a href="#why-works">8</a>, Probabilities view</td></tr>' +
+              '<tr><th scope="row">Extensions (optional)</th><td><a href="#viz-nb-compare">explorer E</a></td></tr>' +
+            '</tbody></table></div>' +
+            '<p class="small muted">The page is a companion to the lab, not a replacement for it. Tasks 1–8 are the core lab; the extensions are optional.</p>' }
+      ],
+      interactiveIntro:
+        'Every interactive this week sits next to the idea it illustrates. A and B use ' +
+        'illustrative counts that can be checked on paper; C uses real recall texts; the ' +
+        'classifier explorer, D and E use the frozen openFDA snapshot and share their ' +
+        'numbers with the lecture and the lab.',
+      interactiveIndex: [
+        { id: 'nb-bayes', label: 'A. From Bayes to a classifier', note: 'section 1' },
+        { id: 'nb-evidence', label: 'B. Naive Bayes evidence explorer', note: 'section 2; lab Task 5; lecture slide 20' },
+        { id: 'text-repr', label: 'C. Text representation explorer', note: 'section 3; lab Task 3; lecture slide 28' },
+        { id: 'naive-bayes', label: 'The Week 5 classifier, trained in your browser', note: 'sections 5, 6 and 8; lab Tasks 4–6 and 8; lecture slide 36' },
+        { id: 'nb-leakage', label: 'D. Leakage explorer', note: 'section 7; lab Tasks 2 and 7; lecture slide 44' },
+        { id: 'nb-compare', label: 'E. Model comparison', note: 'section 9; lab extensions' }
       ],
       concepts: [
-        { term: 'The naive assumption', body: 'Features are assumed conditionally independent given the class. For text this is plainly false, since words co-occur. The classifier is nonetheless often accurate, because the argmax over classes can be right even when the probabilities themselves are badly wrong.' },
-        { term: 'Maximum a posteriori classification', body: 'Choose the class maximising P(class) times the product of P(feature|class). The denominator P(features) is the same for every class and can be ignored for ranking.' },
-        { term: 'Prior probability', body: 'The class base rate estimated from the training data. On imbalanced recall data this matters a great deal.' },
-        { term: 'Likelihood', body: 'P(word|class), estimated by counting. Inspecting the highest-ratio words is the cheapest interpretability you will ever get.' },
-        { term: 'Laplace smoothing', body: 'Add one to every count. Without it, a single unseen word forces the whole posterior to zero regardless of all other evidence.' },
-        { term: 'Log probabilities', body: 'Multiplying hundreds of small probabilities underflows to zero in floating point. Summing logs is exactly equivalent and numerically stable.' },
-        { term: 'Multinomial versus Bernoulli', body: 'Multinomial counts word occurrences; Bernoulli records only presence or absence. Multinomial usually wins on longer documents.' }
+        { term: 'Naive (conditional independence) assumption', body: 'Within a class, each word is assumed to occur independently of the others, so P(text | class) is a product of per-word probabilities. False for text; often good enough for ranking classes.' },
+        { term: 'Prior', body: 'P(class), estimated as the share of training rows in each class: 40.4% Class I this week. The Week 4 prevalence in a new role.' },
+        { term: 'Likelihood P(word | class)', body: 'How often the word occurs in that class\'s training texts, divided by all the words in them (after smoothing). Comparing it across classes is the model\'s built-in explanation.' },
+        { term: 'Laplace smoothing', body: 'Add alpha (usually 1) to every word count. Without it, a word never seen with a class gives P = 0 and vetoes that class whatever else the text says.' },
+        { term: 'Log space', body: 'Multiplying many small probabilities underflows to zero in floating point. Summing their logs gives the same ranking and stays an ordinary number.' },
+        { term: 'Bag of words', body: 'A text represented only by which words it contains and how often. Order, negation and context are lost.' },
+        { term: 'Vectorizer and vocabulary', body: 'The step that turns text into a document-term matrix. It learns a vocabulary (and, for TF-IDF, IDF weights) from the data it is fitted on, so it is part of the model and must be fitted on training data only. Words outside its vocabulary are ignored.' },
+        { term: 'Multinomial versus Bernoulli naive Bayes', body: 'MultinomialNB models word counts; BernoulliNB models presence and absence, including the absence of words. On these short texts BernoulliNB scores slightly lower (accuracy 77.9% against 79.1%).' },
+        { term: 'Pipeline', body: 'A scikit-learn object that chains the vectorizer and the classifier, so fit() fits both on training data and predict() applies both to new data. The simplest guarantee that nothing learns from the test set.' },
+        { term: 'Unit of observation and grouped split', body: 'What one row is, and what must stay together when the data is split. Here one row is an event–reason–classification record; most event–reason pairs have a single FDA classification, but 95 have more than one (73 conflicting on Class I). The split keeps whole recall events on one side (StratifiedGroupKFold with groups = event_id).' },
+        { term: 'predict_proba', body: 'The model\'s score for each class, scaled to sum to 1. For naive Bayes it is not automatically a calibrated probability; check it with a reliability diagram and the Brier score (Week 4).' },
+        { term: 'Sentence embedding', body: 'A fixed-length vector for a whole text from a pretrained encoder. It captures more than word identity, at the price of size, compute and direct interpretability. Week 7 develops the idea.' }
       ],
       viz: 'naive-bayes',
       worked: {
-        title: 'Classifying one recall notice',
+        title: 'Classifying one short text by hand',
         body:
-          'Suppose the training data gives P(Class I) = 0.45 and P(Class II) = 0.55, and a ' +
-          'new notice reads "undeclared milk allergen not listed on label".\n\n' +
-          'From the counts, P("allergen" | Class I) = 0.081 and P("allergen" | Class II) = ' +
-          '0.006; P("undeclared" | Class I) = 0.074 and P("undeclared" | Class II) = 0.009. ' +
-          'The word "label" is roughly equally likely in both and contributes almost nothing.\n\n' +
-          'Working in logs, the Class I score is log(0.45) + log(0.081) + log(0.074) + ... and ' +
-          'the Class II score is log(0.55) + log(0.006) + log(0.009) + ... Even though Class II ' +
-          'has the higher prior, the two allergen-related terms are worth more than three ' +
-          'orders of magnitude between them, and Class I wins decisively.\n\n' +
-          'That is also the interpretability story: you can point at the two words that ' +
-          'decided the case. What you cannot do is claim the model understands allergen risk. ' +
-          'It has learned which words co-occur with which classification decisions, which is ' +
-          'a different and much shallower thing.',
-        keypoint: 'Naive Bayes is transparent about which features moved the decision, and silent about whether that reflects anything real.'
+          'Illustrative simulation — not a biological dataset. Two classes, four words, and ' +
+          'hand-made training counts. Class I texts contain listeria 3 times, undeclared 3, ' +
+          'label 1 and packaging 1 (8 words); Class II/III texts contain them 0, 1, 4 and 5 ' +
+          'times (10 words). The priors are 0.4 and 0.6.\n\n' +
+          'With Laplace smoothing (add 1 to each count, so the denominators become 8 + 4 = 12 ' +
+          'and 10 + 4 = 14): P(undeclared | I) = 4/12, P(label | I) = 2/12, ' +
+          'P(undeclared | II/III) = 2/14, P(label | II/III) = 5/14.\n\n' +
+          'For the text "undeclared label": Class I scores 0.4 × 4/12 × 2/12 = 0.0222 and ' +
+          'Class II/III scores 0.6 × 2/14 × 5/14 = 0.0306. Normalising, P(Class I | text) = ' +
+          '0.0222 / (0.0222 + 0.0306) = 0.421, so the prediction is Class II/III. In logs ' +
+          'the scores are −3.81 and −3.49, the same ordering.\n\n' +
+          'Add "listeria": Class I gains a factor 4/12 and Class II/III a factor 1/14, and the ' +
+          'posterior rises to 0.772. Without smoothing, P(listeria | II/III) would be 0/10, ' +
+          'and any text containing "listeria" would be Class I with probability 1, whatever ' +
+          'else it said.',
+        keypoint: 'Naive Bayes is transparent about which words moved the decision, and silent about whether that reflects anything real.'
       },
       fm: {
-        title: 'The first honest comparison',
-        body:
-          'Text classification is exactly where a pretrained language model should help, ' +
-          'because a bag of words throws away order, negation and synonymy. "No undeclared ' +
-          'allergens found" and "undeclared allergens found" are nearly identical to naive ' +
-          'Bayes. A clinical or general-purpose language model handles this properly.\n\n' +
-          'But run the comparison before assuming the answer. With tens of thousands of ' +
-          'labelled notices and a strong vocabulary signal, naive Bayes is competitive, ' +
-          'trains in under a second, needs no GPU, and can be audited word by word. If a ' +
-          'transformer buys two points of F1 for a thousand times the compute and no ' +
-          'interpretability, that is a decision to make deliberately, not by default.',
+        inline: true,
+        title: 'From naive Bayes to language models',
+        body: 'See section 9.',
         models: []
       },
       scientist:
-        'The classifier learns that the word "listeria" strongly predicts Class I. Is it ' +
-        'learning about pathogen risk, or about how FDA staff write notices? Design a test ' +
-        'that would distinguish the two, and say what you would expect to see in each case.',
+        'Every one of the six most confident false positives names Listeria, yet FDA ' +
+        'classified each as Class II. Is the model learning about pathogen risk, or about ' +
+        'how notices are worded and who writes them? Design a check that would tell the two ' +
+        'apart (for example, hold out whole firms, or remove firm and place names) and say ' +
+        'what you would expect to see in each case.',
       quiz: [
-        { q: 'A word in a new document never appeared in the training data for class C. Without smoothing, what happens to P(C | document)?',
-          options: ['It is slightly reduced', 'It becomes exactly zero regardless of all other evidence', 'It is unchanged', 'The word is ignored'],
+        { q: 'You fit the CountVectorizer on all 9,490 texts, then split and fit naive Bayes on the training rows. Accuracy is almost unchanged. Is the experiment sound?',
+          options: ['Yes, because the classifier never saw the test labels', 'No: the vectorizer learned its vocabulary from the test texts, so the pipeline learned from the test set, whether or not the score shows it', 'Yes, because the score did not change', 'No, because CountVectorizer should never be used with naive Bayes'],
           answer: 1,
-          why: 'One zero factor annihilates the entire product. Laplace smoothing adds one to every count so that no unseen term can veto the classification.' },
-        { q: 'Why does naive Bayes often classify well even though its independence assumption is clearly false for text?',
-          options: ['The assumption is nearly true for long documents', 'Classification needs only the correct argmax, and the ranking of classes can survive substantial errors in the individual probability estimates', 'Smoothing corrects the dependence', 'It does not classify well'],
+          why: 'The test set is data that the entire modelling pipeline must not learn from. Leakage is prevented by construction (fit the vectorizer inside a Pipeline), not detected from the score. Explorer D shows both pipelines.' },
+        { q: 'Splitting the 29,462 product records at random gives 85.1% accuracy; splitting by recall event gives 79.1%. Why?',
+          options: ['The record split has more training data, so the model is better', 'Products from the same recall share one text, so a record split puts identical texts on both sides and the test becomes easier', 'Random splits are always more accurate', 'The event split is unlucky'],
           answer: 1,
-          why: 'The estimated posteriors are typically badly miscalibrated, often near 0 or 1. The decision, which depends only on which class scores highest, is far more robust than the probabilities are.' },
-        { q: 'What is the practical reason for summing log probabilities rather than multiplying probabilities?',
-          options: ['Logs are faster to compute', 'Products of many small probabilities underflow to zero in floating-point arithmetic', 'It changes which class wins', 'It applies the smoothing'],
+          why: 'With the record split, 79% of test texts appear word for word in training. The model is the same; the test measures memory, not generalisation to a new recall.' },
+        { q: 'Naive Bayes gives a text predict_proba = 0.99 for Class I. What can you conclude?',
+          options: ['There is a 99% chance the recall is Class I', 'The model ranks this text strongly towards Class I, but its probabilities are over-confident, so 0.99 is a score to be checked with a reliability diagram, not a calibrated probability', 'The text must contain the word listeria', 'The model is 99% accurate'],
           answer: 1,
-          why: 'A 300-word document multiplies 300 numbers below 0.1. That underflows a double long before the end. Logs turn the product into a sum and preserve the ordering exactly.' }
+          why: 'Treating correlated words as independent evidence pushes scores towards 0 and 1: 63% of this week\'s test predictions are below 0.05 or above 0.95. As in Week 4, check calibration over groups of predictions.' }
       ],
       lab: 'lab05',
       datasets: ['openfda'],
       reading: [
-        { ref: 'openfda', note: 'The API documentation and the field definitions. Note the disclaimer about not using the data for public alerting.' },
-        { ref: 'geron', note: 'Chapter 3 on classification metrics.' }
+        { ref: 'manningIR2008', note: 'Chapter 13: the clearest derivation of multinomial and Bernoulli naive Bayes for text, free online.' },
+        { ref: 'jurafskySLP', note: 'The naive Bayes and text-classification chapter, with worked examples and evaluation.' },
+        { ref: 'domingos1997', note: 'Why naive Bayes can classify well even when its independence assumption is false.' },
+        { ref: 'sklearnNB', note: 'MultinomialNB, BernoulliNB and ComplementNB, used in the lab.' },
+        { ref: 'sklearnText', note: 'CountVectorizer and TfidfVectorizer: tokenisation, vocabulary and the document-term matrix.' },
+        { ref: 'niculescu2005', note: 'Which classifiers give well or badly calibrated probabilities, including naive Bayes.' },
+        { ref: 'kapoor2023', note: 'The leakage taxonomy from Week 3; this week\'s two leaks are in it.' },
+        { ref: 'reimers2019', note: 'Sentence embeddings, the idea behind the encoder in the comparison; background for Week 7.' },
+        { ref: 'openfda', note: 'The data source, field definitions and the openFDA disclaimer.' }
       ],
       provenance: {
-        kept: 'The full naive Bayes derivation, the conditional-independence discussion, Laplace smoothing, log-space computation, the multinomial and Bernoulli document models, and the strengths and weaknesses summary from the 2025/26 Week 5-6 deck. This is detailed, correct material and is retained.',
-        changed: 'The "Joe / weight / height" employee example and the play-tennis weather dataset are replaced by openFDA food-recall text. The Twitter sentiment example is replaced by the same. Note that Week4_ML_MTU_part1.pptx is a strict subset of Week4_ML_MTU.pptx, and Week5_ML_MTU.pdf and Week6_ML_MTU.pdf are duplicates; the redesign carries one version.'
+        kept: 'The naive Bayes derivation, the conditional-independence discussion, Laplace smoothing, log-space computation, the multinomial and Bernoulli models, and the strengths and weaknesses summary from the 2025/26 Week 5-6 deck.',
+        changed: 'The "Joe / weight / height" employee example, the play-tennis data and the Twitter sentiment example are replaced by real openFDA food-recall text. The previous version of this page used an illustrative, template-generated corpus and planned a lab that queried the live API; both are replaced by a frozen, checksummed snapshot at the level of the recall event. The pipeline view, the vectorizer as part of the model, leakage through the vectorizer and the unit of observation, calibration of predict_proba, and a stored comparison with a pretrained sentence encoder are new. Note that Week4_ML_MTU_part1.pptx is a strict subset of Week4_ML_MTU.pptx, and Week5_ML_MTU.pdf and Week6_ML_MTU.pdf are duplicates; the redesign carries one version.'
       }
     },
 
@@ -788,6 +1318,10 @@ window.COURSE = {
         { term: 'Survey weights', body: 'NHANES oversamples some subgroups by design. Unweighted analysis describes the sample, not the population. This is a data-preparation decision with scientific consequences.' }
       ],
       viz: 'data-quality',
+      interactiveIntro:
+        'The lecture uses this explorer live (lecture slide 24): set 15 per cent missing, ' +
+        'compare "At random" with "Not at random", then try median imputation with and ' +
+        'without a missingness indicator.',
       worked: {
         title: 'The order of operations, and why it is not arbitrary',
         body:
@@ -861,6 +1395,8 @@ window.COURSE = {
       strand: 'representation',
       short: 'The hinge of the module: from features you chose to features a model learned.',
       pivot: true,
+      scheduleNote: 'Teaching order 2026/27: this week is taught in the session after Week 8 (k-NN), ' +
+        'which was brought forward. The material is unchanged.',
       los: ['LO1', 'LO2', 'LO4'],
       biology:
         'Biological data is routinely wider than it is tall. A transcriptome has 20,000 ' +
@@ -889,6 +1425,11 @@ window.COURSE = {
       ],
       viz: 'pca',
       viz2: 'embeddings',
+      interactiveIntro:
+        'The lecture uses both of these: the PCA visualiser (lecture slide 13) and the ' +
+        'embedding explorer (slide 38). The embedding explorer runs on a simulated teaching ' +
+        'set, labelled as such; the lecture and the lab test the same idea on 2,000 real ' +
+        'human proteins with real ESM-2 embeddings.',
       worked: {
         title: 'The pipeline, stated concretely',
         body:
@@ -958,95 +1499,261 @@ window.COURSE = {
     /* ------------------------------------------------------------------ 8 */
     {
       n: 8,
-      title: 'k-NN and biological similarity',
+      title: 'Instance-based learning: k-NN and biological similarity',
       strand: 'foundation',
-      short: 'What "similar" means, and why the representation decides it.',
+      short: 'Predict from the most similar stored cases, and decide carefully what "similar" means.',
       los: ['LO2', 'LO3', 'LO5'],
+      scheduleNote: 'Teaching order 2026/27: Week 8 is taught before Week 7. Week 7 (dimensionality ' +
+        'reduction and protein embeddings) moves to the following session, unchanged. Nothing on this ' +
+        'page or in the Week 8 lab assumes Week 7.',
       biology:
-        'A great deal of biology is reasoning by similarity. BLAST finds homologues by ' +
-        'sequence similarity; a clinician reasons from comparable past cases; a nutritionist ' +
-        'groups foods by composition. The k-nearest-neighbour classifier makes that reasoning ' +
-        'explicit, and in doing so exposes the question everything in this module turns on: ' +
-        'similar in what space?',
+        'A great deal of biology is reasoning by similarity. BLAST finds homologues by sequence ' +
+        'similarity; a clinician reasons from comparable past cases; a single-cell atlas labels a new ' +
+        'cell by the reference cells it most resembles. The k-nearest-neighbour method makes that ' +
+        'reasoning explicit: store the labelled cases, and predict a new one from the k most similar. ' +
+        'It is simple enough to compute by hand, and in doing so it exposes the question this module ' +
+        'keeps returning to: similar in what space, measured how? This week the real data are 303 ' +
+        'patients from the Cleveland Clinic heart-disease study [ref:detrano1989], whose records mix ' +
+        'measurements in very different units (cholesterol in mg/dl, ST depression in mm) with ' +
+        'categories coded as numbers (chest-pain type 1 to 4). Every pitfall of distance-based ' +
+        'learning appears in it. All the patients are real; nothing on this page is a clinical tool.',
       objectives: [
-        'Implement k-NN classification and regression, and explain the role of k.',
-        'Choose an appropriate distance metric, including for mixed-type biological data.',
-        'Explain why k-NN requires feature scaling and demonstrate the effect.',
-        'Explain how irrelevant features degrade nearest-neighbour search.',
-        'Compare hand-engineered and learned representations under an identical k-NN classifier and interpret the difference.'
+        'Explain instance-based (lazy) learning and contrast parametric with non-parametric models.',
+        'Apply 1-NN and k-NN by hand to classify by majority vote and to predict by averaging.',
+        'Compute Euclidean, Manhattan and Hamming distances, and build heterogeneous and domain-specific distances for mixed biological records.',
+        'Explain why k-NN needs feature scaling, demonstrate the effect, and fit the scaler on training data only, inside a Pipeline.',
+        'Explain how irrelevant and redundant features distort distances, and use feature weights or selection to counter it.',
+        'Compute distance-weighted k-NN predictions, explain the weighting exponent and the zero-distance case.',
+        'Select k, the metric and the weighting by cross-validation, evaluate once on a held-out test set, and judge when k-NN is, and is not, the right model.'
+      ],
+      sections: [
+        { id: 'ibl', nav: '1. Learning by remembering',
+          title: '1. Learning by remembering',
+          html:
+            '<div class="grid grid-2">' +
+              '<div class="card"><span class="eyebrow">Eager (Weeks 2, 4, 5)</span><h4 style="margin-top:0">Build a model, then discard the data</h4><p class="small mb0">A decision tree, logistic regression or naive Bayes summarises the training set into a fixed set of parameters at training time. Prediction is then fast, and the model itself can be inspected.</p></div>' +
+              '<div class="card"><span class="eyebrow">Lazy (this week)</span><h4 style="margin-top:0">Keep the data, decide later</h4><p class="small mb0">k-NN stores every training case. Nothing is fitted; all the work happens when a query arrives: measure its distance to every stored case, take the k nearest, vote or average. Many local approximations instead of one global one.</p></div>' +
+            '</div>',
+          body:
+            'k-NN is non-parametric: it assumes no functional form, so its complexity grows with the data. ' +
+            'That flexibility is its strength and the source of every weakness on this page: it is only as ' +
+            'good as its distance, it is sensitive to noise and to irrelevant features, and every prediction ' +
+            'costs a pass over the training set.',
+          keypoint: 'The training data is the model. Everything therefore depends on how you measure similarity.' },
+
+        { id: 'nearest', nav: '2. Nearest neighbour and the k-NN vote',
+          title: '2. Nearest neighbour, and why one neighbour is not enough',
+          body:
+            '1-NN gives a query the label of the single closest stored case: f(x_q) := f(x_n). In the ' +
+            'lecture\'s film example, the unseen film (18 kicks, 90 kisses) is closest to "He\'s Not Really ' +
+            'into Dudes" (distance 18.87) and so is a romance. But if that one record were mislabelled, the ' +
+            'query would be mislabelled too. k-NN asks k neighbours and takes a majority vote, so a single ' +
+            'noisy record can be outvoted. In the exercise below, the lecture example gives Black at k = 1 ' +
+            'and k = 3 but Yellow at k = 5: k is a real decision, not a detail.',
+          viz: ['knn-vote'],
+          keypoint: 'Small k follows the data closely, including its noise; large k smooths, and at k = n it predicts the majority class everywhere.' },
+
+        { id: 'regression', nav: '3. k-NN regression',
+          title: '3. k-NN regression: averaging instead of voting',
+          body:
+            'For a numerical target, predict the mean of the k neighbours\' values. The slide example: the ' +
+            'three nearest cases have values 82, 78 and 83, so the prediction is (82 + 78 + 83) / 3 = 81. On ' +
+            'real patients, predicting maximum heart rate from age alone, k-NN regression reaches a ' +
+            'cross-validated mean absolute error of about 17.3 beats per minute, and a straight line does ' +
+            'slightly better (17.0): when the relationship is close to linear, a parametric model that knows ' +
+            'it is a line uses the data more efficiently. That is a result worth knowing, not a failure.',
+          viz: ['knn-regression'] },
+
+        { id: 'distance', nav: '4. Measuring distance',
+          title: '4. Measuring distance: Euclidean, Manhattan, Hamming and beyond',
+          html:
+            '<div class="table-scroll"><table class="table-compact"><caption>The distances used this week. ' +
+            'p and q are two records with n features.</caption><thead><tr><th scope="col">Distance</th>' +
+            '<th scope="col">Formula</th><th scope="col">Use it for</th></tr></thead><tbody>' +
+            '<tr><th scope="row">Euclidean</th><td>d(p, q) = √( Σᵢ (pᵢ − qᵢ)² )</td><td>Continuous features on comparable scales; the straight-line distance.</td></tr>' +
+            '<tr><th scope="row">Manhattan</th><td>d(p, q) = Σᵢ |pᵢ − qᵢ|</td><td>Continuous features; less dominated by one large difference.</td></tr>' +
+            '<tr><th scope="row">Weighted Euclidean</th><td>d(p, q) = √( Σᵢ wᵢ (pᵢ − qᵢ)² ), 0 ≤ wᵢ ≤ 1</td><td>When features matter unequally; wᵢ = 0 removes a feature.</td></tr>' +
+            '<tr><th scope="row">Hamming</th><td>d(p, q) = Σᵢ [pᵢ ≠ qᵢ]</td><td>Categorical features; aligned, equal-length sequences.</td></tr>' +
+            '<tr><th scope="row">Heterogeneous</th><td>Σ over continuous |pᵢ − qᵢ| / rangeᵢ + Σ over categorical [pᵢ ≠ qᵢ]</td><td>Mixed records, such as a patient\'s measurements and categories.</td></tr>' +
+            '</tbody></table></div>',
+          body:
+            'Two corrections to the 2025 slides are built into the calculator: in the four-feature table the ' +
+            'squared differences sum to 66, so the Euclidean distance is 8.12 (not 57 and 7.55); and in the ' +
+            'scaling example (5.5 − 7.5)² is 4, not 16. Categorical codes are not quantities: chest-pain type ' +
+            'is recorded as 1 to 4, but |4 − 1| = 3 means nothing. Compare such features by match or mismatch ' +
+            '(Hamming), or one-hot encode them, unless domain knowledge supplies a genuine order, as in the ' +
+            'lecture\'s foods ranked by calories.',
+          viz: ['distance-calc'],
+          keypoint: 'No metric is best in general. Choose one that respects what the features are, then let cross-validation compare the candidates.' },
+
+        { id: 'scaling', nav: '5. Feature scaling',
+          title: '5. Feature scaling decides who the neighbours are',
+          body:
+            'Distance adds differences across features, so a feature measured in large units dominates. In ' +
+            'the heart data, cholesterol alone supplies 77 per cent of the unscaled squared distance between ' +
+            'two patients and ST depression 0.03 per cent, although ST depression is one of the more ' +
+            'informative measurements. Standardising (subtract the mean, divide by the standard deviation) or ' +
+            'min-max normalising ((x − min) / (max − min)) gives every feature a comparable range. Measured ' +
+            'with 10-fold cross-validation on the training patients at k = 5: unscaled 63.4 per cent, min-max ' +
+            '83.2 per cent, standardised 83.7 per cent; the majority-class baseline is 54.2 per cent. The ' +
+            'scaler must learn its mean and SD from the training rows only, which is what putting it inside a ' +
+            'Pipeline guarantees in every fold.',
+          viz: ['knn-scaling'] },
+
+        { id: 'irrelevant', nav: '6. Irrelevant features',
+          title: '6. Irrelevant and redundant features',
+          body:
+            'k-NN uses every feature in every distance. A decision tree can simply never split on a useless ' +
+            'feature; k-NN has no such mechanism. Adding 50 columns of pure noise to the heart data lowers ' +
+            'cross-validated accuracy from 79.7 to 73.1 per cent, and 100 columns to 67.3 per cent. Redundant ' +
+            'features do a quieter version of the same damage: three near-copies of one measurement give it ' +
+            'three votes in the distance. The remedies are feature weights (a weighted distance), feature ' +
+            'selection (weight 0) or a better representation, each chosen by cross-validation on the ' +
+            'training data, because in real data you do not know in advance which features are noise.',
+          viz: ['knn-irrelevant'] },
+
+        { id: 'weighted', nav: '7. Distance-weighted k-NN',
+          title: '7. Distance-weighted k-NN',
+          body:
+            'With k = 7 a query can be outvoted by distant neighbours of a larger class. Distance weighting ' +
+            'gives each neighbour a vote of wᵢ = 1 / d(x_q, xᵢ)ⁿ. For classification, vote(c) = Σ wᵢ [yᵢ = c]; ' +
+            'for regression, f(x_q) = Σ wᵢ f(xᵢ) / Σ wᵢ. The lecture example with n = 2 gives ' +
+            '(82/4 + 83/16 + 78/36) / (1/4 + 1/16 + 1/36) = 81.857. The exponent n sets how fast influence ' +
+            'decays: n = 0 is the plain vote, and large n approaches 1-NN. If a stored case is at distance 0, ' +
+            'its weight would be infinite: scikit-learn then lets only the zero-distance neighbours vote, and ' +
+            'a hand-written implementation must handle the case explicitly.',
+          viz: ['knn-weighted'] },
+
+        { id: 'choosing', nav: '8. Choosing k honestly',
+          title: '8. Choosing k, the metric and the weighting by cross-validation',
+          body:
+            'The rule of thumb k ≈ √n gives about 15 for 227 training patients; odd k avoids two-class ties. ' +
+            'Neither replaces measurement. GridSearchCV over odd k from 1 to 51, Euclidean or Manhattan, and ' +
+            'uniform or distance weights, all inside the Pipeline, chose k = 33, Manhattan, distance-weighted, ' +
+            'at 84.6 per cent cross-validated accuracy (fold SD 7.7 points). Many other settings are within ' +
+            'that noise, so read the choice as "a broad k with either metric", not as a precise optimum. ' +
+            'Only then is the test set used, once: 90.8 per cent accuracy on 76 patients, 32 of 35 diseased ' +
+            'patients found and 37 of 41 healthy ones cleared. A test score this much above the CV estimate ' +
+            'is luck of a small test set, not a sign the model improved.',
+          viz: ['knn-cv'] },
+
+        { id: 'similarity', nav: '9. Similar is not equivalent',
+          title: '9. Similar in feature space is not biologically equivalent',
+          body:
+            'Two patients can be close because they share the measurements you happened to record, while ' +
+            'differing in everything you did not: genotype, medication, the reason they were referred. Two ' +
+            'proteins can be close in sequence and differ in function, or share a fold with almost no sequence ' +
+            'identity. A nearest neighbour is evidence of similarity in the space you chose, under the ' +
+            'scaling and weights you chose, nothing more. In high dimensions there is a further problem: ' +
+            'distances concentrate, so the nearest and the farthest neighbours become almost equally far ' +
+            'away. Week 7, next session, measures this directly and introduces learned representations in ' +
+            'which "near" can mean more. The optional exercise below previews that idea: hold k-NN fixed and ' +
+            'change only the representation.',
+          viz: ['knn'],
+          keypoint: 'A nearest neighbour answers "similar in this space?" Whether that space captures the biology is a separate question, and yours to justify.' },
+
+        { id: 'using', nav: '10. Using this page with the lab',
+          title: '10. Using this page with the lab',
+          html:
+            '<div class="table-scroll"><table class="table-compact"><thead><tr><th scope="col">Lab task</th>' +
+            '<th scope="col">Exercise on this page</th></tr></thead><tbody>' +
+            '<tr><th scope="row">3. Implement k-NN</th><td><a href="#viz-knn-vote">1. Nearest neighbour and the k-NN vote</a></td></tr>' +
+            '<tr><th scope="row">4. Investigate k</th><td><a href="#viz-knn-vote">1</a> (decision regions) and <a href="#viz-knn-cv">7. Choosing k</a></td></tr>' +
+            '<tr><th scope="row">5. Distance metrics</th><td><a href="#viz-distance-calc">3. Distance calculator</a></td></tr>' +
+            '<tr><th scope="row">6. Feature scaling</th><td><a href="#viz-knn-scaling">4. Feature scaling</a></td></tr>' +
+            '<tr><th scope="row">7. Model selection</th><td><a href="#viz-knn-cv">7. Choosing k by cross-validation</a></td></tr>' +
+            '<tr><th scope="row">8. Distance weighting</th><td><a href="#viz-knn-weighted">6. Distance-weighted voting</a></td></tr>' +
+            '<tr><th scope="row">10. Reflection</th><td><a href="#viz-knn-irrelevant">5. Irrelevant features</a></td></tr>' +
+            '<tr><th scope="row">Extension A. k-NN regression</th><td><a href="#viz-knn-regression">2. k-NN regression</a></td></tr>' +
+            '</tbody></table></div>' },
+      ],
+      interactiveIntro:
+        'Eight exercises, each inside the section it belongs to. Exercises 1 to 7 are the ones the lecture ' +
+        'sends you to ("Try this interactively"); exercise 8 is an optional preview of Week 7. The lecture ' +
+        'examples use the slides\' own numbers; everything else uses the real patients from the lab, with ' +
+        'the lab\'s split and protocol, so the numbers here and in your notebook agree.',
+      interactiveIndex: [
+        { id: 'knn-vote', label: '1. Nearest neighbour and the k-NN vote', note: 'section 2; lab Tasks 3–4; lecture slide 13' },
+        { id: 'knn-regression', label: '2. k-NN regression', note: 'section 3; lab Extension A; lecture slide 20' },
+        { id: 'distance-calc', label: '3. Distance calculator', note: 'section 4; lab Task 5; lecture slide 31' },
+        { id: 'knn-scaling', label: '4. Feature scaling', note: 'section 5; lab Task 6; lecture slide 36' },
+        { id: 'knn-irrelevant', label: '5. Irrelevant features and weights', note: 'section 6; lab Task 10; lecture slide 39' },
+        { id: 'knn-weighted', label: '6. Distance-weighted voting', note: 'section 7; lab Task 8; lecture slide 44' },
+        { id: 'knn-cv', label: '7. Choosing k by cross-validation', note: 'section 8; lab Tasks 4 and 7; lecture slide 46' },
+        { id: 'knn', label: '8. (Optional) Classifier versus representation', note: 'section 9; preview of Week 7; lecture slide 51 notes' }
       ],
       concepts: [
-        { term: 'Instance-based learning', body: 'No model is fitted at training time; the training data is the model. Cost is deferred to prediction, which makes k-NN a lazy learner.' },
-        { term: 'Choosing k', body: 'Small k gives a flexible, noise-sensitive boundary; large k smooths it and eventually predicts the majority class everywhere. On WDBC, cross-validated accuracy peaks around k = 3 to 9 and then declines.' },
-        { term: 'Euclidean distance', body: 'Straight-line distance. Sensible for continuous features on comparable scales.' },
-        { term: 'Manhattan distance', body: 'Sum of absolute differences. Often more robust in high dimensions and when features are not directly comparable.' },
-        { term: 'Hamming distance', body: 'Number of positions at which two sequences differ. The natural metric for equal-length categorical or sequence data.' },
-        { term: 'Heterogeneous distance', body: 'Real biological records mix continuous, ordinal and categorical fields, so the metric must be composed per-field and the components weighted deliberately.' },
-        { term: 'Scaling is not optional', body: 'Measured on WDBC: standardised k-NN at k = 5 reaches 96.3 per cent cross-validated accuracy, unstandardised 93.5 per cent. Nuclear area, in the hundreds, otherwise drowns out smoothness, around 0.1.' },
-        { term: 'Irrelevant features', body: 'Every uninformative dimension adds distance noise. This is why k-NN benefits so directly from a good representation, and why it is the fairest probe of representation quality.' }
+        { term: 'Instance-based (lazy) learning', body: 'No model is fitted at training time; the stored training cases are the model. Cost moves to prediction: every query is compared with every stored case.' },
+        { term: 'Parametric versus non-parametric', body: 'A parametric model (logistic regression) has a fixed number of parameters whatever the data size; k-NN assumes no functional form and its complexity grows with the data.' },
+        { term: 'Majority vote and averaging', body: 'Classification: the most common class among the k nearest. Regression: the mean of their values. With two classes, an odd k avoids ties under a plain vote.' },
+        { term: 'Choosing k', body: 'Small k: flexible, noise-sensitive (1-NN has 100% training accuracy by construction). Large k: smooth, and at k = n it predicts the majority class. Choose by cross-validation; √n is only a starting point.' },
+        { term: 'Euclidean, Manhattan, Hamming', body: 'Straight-line distance; sum of absolute differences; number of mismatched positions. Which is better is an empirical question for your data, settled by cross-validation.' },
+        { term: 'Heterogeneous and domain-specific distances', body: 'Mixed records need a distance built per feature type. Domain knowledge can supply an order (foods by calories) where Hamming sees only same or different.' },
+        { term: 'Feature scaling', body: 'Standardise or min-max normalise so no feature dominates because of its unit. Fit the scaler on training rows only, inside a Pipeline. On the heart data: 63.4% unscaled, 83.7% standardised (k = 5).' },
+        { term: 'Irrelevant features and weights', body: 'Every feature contributes to every distance. Weighted distances and feature selection counter this; the weights are hyperparameters, chosen on training data.' },
+        { term: 'Distance weighting', body: 'wᵢ = 1/dⁿ. Larger n trusts the nearest neighbours more. At d = 0 the weight is infinite: only exact matches vote.' },
+        { term: 'Cost', body: 'Naive prediction is O(n·d) per query and the whole training set must be kept in memory. Tree indexes (KD-tree, ball tree) help in low dimensions; approximate search is used at scale.' }
       ],
-      viz: 'knn',
       worked: {
-        title: 'Two representations, one classifier',
+        title: 'One patient, by hand',
         body:
-          'Hold the classifier fixed at k-NN with k = 5 and change only what it measures ' +
-          'distance in. Any difference in accuracy is attributable to the representation ' +
-          'alone. That is a clean experimental design and it is why this comparison belongs ' +
-          'with k-NN rather than with a more powerful model that could compensate.\n\n' +
-          'On the family task, the hand-engineered representation of amino-acid composition ' +
-          'plus four biophysical descriptors reaches essentially perfect accuracy, because ' +
-          'that is precisely how the families differ. The learned embedding does respectably ' +
-          'but no better. Buying a foundation model here would be spending compute to lose ' +
-          'accuracy.\n\n' +
-          'On the ordered-triad task the picture inverts. Composition is identical between ' +
-          'the classes by construction, so the engineered representation sits at chance, ' +
-          'around 0.50. The learned representation does clearly better. The classifier never ' +
-          'changed; only what it could see did.\n\n' +
-          'One further observation worth drawing out: the embedding\'s k-NN accuracy on the ' +
-          'family task is lower than its logistic-regression accuracy on the same data. In ' +
-          'high dimensions, many low-variance directions contribute noise to the distance ' +
-          'while a linear model can simply give them small weights. That is the irrelevant-' +
-          'feature problem, and a bigger embedding does not automatically make it better.',
-        keypoint: 'A better representation gives better neighbours only when the thing it represents better is the thing you are predicting.'
+          'A held-out patient is compared with the 227 training patients. Unscaled, the five continuous ' +
+          'features enter the distance with cholesterol supplying 77 per cent of it, so the "nearest" patients ' +
+          'are mostly those with similar cholesterol, whatever their ST depression, maximum heart rate or ' +
+          'chest-pain type. After standardising the continuous features and one-hot encoding the categorical ' +
+          'ones, every feature contributes and the neighbours resemble the patient clinically, not just in one ' +
+          'blood test.\n\n' +
+          'Take k = 5. If three of the five nearest patients have disease, the plain vote says disease, with an ' +
+          'estimated probability of 3/5 = 0.6. With distance weighting, a very close healthy neighbour can ' +
+          'outweigh two distant diseased ones, and the estimate changes even when the label does not; on these ' +
+          'data distance weighting mostly moves the probability rather than the decision.\n\n' +
+          'The final step is the honest one: the configuration is chosen by cross-validation on training ' +
+          'patients, and the test patients are used once, at the end.',
+        keypoint: 'Before trusting a neighbour, ask which features made it the neighbour.'
       },
       fm: {
-        title: 'Embeddings plus a classical head',
+        title: 'Embeddings plus a nearest-neighbour search',
         body:
-          'Embeddings followed by k-NN or logistic regression is the most useful ' +
-          'foundation-model recipe in practice, and it is the one that gets underused. It ' +
-          'needs no gradient steps through the large model, runs on a laptop once the ' +
-          'embeddings are computed, keeps the downstream model small enough to interpret and ' +
-          'to cross-validate honestly, and works with a few hundred labels. Before you ' +
-          'consider fine-tuning in Week 11, this is the baseline that fine-tuning has to beat.',
+          'Nearest-neighbour search is the most common way foundation-model embeddings are used in practice: ' +
+          'embed every protein, cell or sequence once, then find the stored items closest to a new one. Next ' +
+          'session (Week 7) shows how those embeddings are produced, why they need centring before distances ' +
+          'mean much, and how to test whether "near in the embedding" means "similar in biology". Everything ' +
+          'on this page carries over: the metric, the scaling, the curse of dimensionality and the need to ' +
+          'validate on held-out data.',
         models: ['esm2', 'prottrans']
       },
       scientist:
-        'Your k-NN on foundation-model embeddings outperforms k-NN on your engineered ' +
-        'features. Give two explanations other than "the embedding captures more biology", ' +
-        'and say what evidence would let you distinguish them.',
+        'Your k-NN classifier, trained on patients from one hospital, labels a new patient by her five ' +
+        'nearest neighbours. List three reasons the neighbours could be "near" without being clinically ' +
+        'comparable, and for each say what evidence or extra feature would let you check it.',
       quiz: [
-        { q: 'Increasing k from 1 to 51 on a 569-sample dataset. What happens at large k?',
-          options: ['Accuracy keeps improving', 'The decision boundary smooths and eventually the model approaches predicting the majority class everywhere', 'The model overfits more', 'Nothing changes'],
+        { q: 'A k-NN model has 100% training accuracy at k = 1. What does that tell you?',
+          options: ['The model generalises perfectly', 'Nothing about generalisation: each training case is its own nearest neighbour', 'k = 1 is the best choice', 'The data have no noise'],
           answer: 1,
-          why: 'As k approaches the dataset size, every query returns essentially the global class distribution. The measured curve on this page shows accuracy peaking early and then declining.' },
-        { q: 'Why does k-NN suffer more than a decision tree from irrelevant features?',
-          options: ['It uses more memory', 'It collapses all features into a single distance, so every irrelevant dimension adds noise to that distance; a tree can simply never split on the feature', 'It cannot handle continuous features', 'It uses the wrong metric'],
+          why: 'At k = 1 every training point is predicted by itself, at distance 0. Training accuracy cannot choose k; cross-validation can.' },
+        { q: 'Two features: cholesterol (SD about 52 mg/dl) and ST depression (SD about 1.2 mm). Unscaled Euclidean k-NN will choose neighbours mainly by…',
+          options: ['ST depression, because it is more informative', 'Cholesterol, because its differences are numerically far larger', 'Both equally', 'Neither: k-NN ignores units'],
           answer: 1,
-          why: 'The tree makes a per-feature decision and can ignore a feature entirely. k-NN has no such mechanism: every dimension contributes to every distance, whether it carries signal or not.' },
-        { q: 'Both classes contain exactly the same amino acids in the same proportions, differing only in residue order. What accuracy should a composition-based k-NN achieve?',
-          options: ['Near perfect', 'About chance, since the representation is identical between the classes by construction', 'It depends on k', 'It depends on the distance metric'],
+          why: 'Distance adds raw differences. Cholesterol supplies 77% of the unscaled squared distance in the heart data, ST depression 0.03%. Scaling fixes the units, not the informativeness.' },
+        { q: 'With distance weights 1/d², the three nearest neighbours have values 82 (d = 2), 83 (d = 4) and 78 (d = 6). The prediction is…',
+          options: ['81.0', '81.857', '82.0', '80.5'],
           answer: 1,
-          why: 'If two classes map to the same point distribution in feature space, no classifier operating on that space can separate them. Neither k nor the metric can recover information the representation discarded.' }
+          why: '(82/4 + 83/16 + 78/36) / (1/4 + 1/16 + 1/36) = 27.854 / 0.3403 = 81.857, pulled towards the nearest value, 82.' },
+        { q: 'Chest-pain type is coded 1, 2, 3, 4. Using the codes directly in Euclidean distance…',
+          options: ['is fine because they are numbers', 'claims that type 4 is three times as far from type 1 as from type 3, which is meaningless for categories', 'is the same as Hamming distance', 'only matters for large k'],
+          answer: 1,
+          why: 'Codes are labels. Use a match/mismatch (Hamming) comparison or one-hot encoding, unless the categories have a real order.' }
       ],
       lab: 'lab08',
-      datasets: ['wdbc', 'proteinSim'],
+      datasets: ['heartCleveland', 'proteinSim'],
       reading: [
-        { ref: 'greener2022', note: 'On choosing between model families.' },
-        { ref: 'esm2', note: 'For what the embedding actually is.' }
+        { ref: 'coverhart1967', note: 'The original analysis of the nearest-neighbour rule.' },
+        { ref: 'detrano1989', note: 'The study behind this week\'s data: read how the patients were selected.' },
+        { ref: 'greener2022', note: 'On choosing between model families.' }
       ],
       provenance: {
-        kept: 'The whole instance-based-learning treatment from the 2025/26 Week 8 deck: nearest neighbour, choosing k, Euclidean, Manhattan, Hamming and heterogeneous metrics, the problems-measuring-distance sequence, irrelevant features, distance-weighted k-NN and eager versus lazy learners. Also the existing Lab 8, which already uses a cancer dataset.',
-        changed: 'The romance-versus-action film example is replaced by biological similarity. The representation comparison is new and is what makes this week carry the foundation-model thread.'
+        kept: 'The whole instance-based-learning treatment from the 2025/26 Week 8 deck: nearest neighbour, the film example, k-NN classification and regression, choosing k, Euclidean, Manhattan, Hamming, heterogeneous and domain-specific metrics, the problems-measuring-distance sequence (scaling, irrelevant features, weighted Euclidean), distance-weighted k-NN with its worked votes, and eager versus lazy learners.',
+        changed: 'Arithmetic corrected (the four-feature Euclidean distance is √66 = 8.12; the scaling example\'s first term is 4). The real dataset is now the Cleveland heart-disease data with documented provenance, replacing the unlabelled cancer CSVs of the old Lab 8. Biological similarity, categorical encoding, Pipelines, cross-validated selection and the zero-distance rule are new, and every "Try this interactively" slide has a working exercise on this page.'
       }
     },
 

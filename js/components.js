@@ -84,6 +84,9 @@
         '<span class="week-num">Week ' + C.pad(w.n) + '</span>' +
         '<h3>' + C.esc(w.title) + '</h3>' +
         '<p>' + C.esc(w.short) + '</p>' +
+        (w.scheduleNote ? '<p class="small" style="color:var(--nucleus)"><strong>' +
+          (w.n === 8 ? 'Taught before Week 7 this year.' : 'Taught after Week 8 this year.') +
+          '</strong></p>' : '') +
         '<div class="pill-row" style="margin-bottom:0">' +
           C.loPills(w.los) +
         '</div>' +

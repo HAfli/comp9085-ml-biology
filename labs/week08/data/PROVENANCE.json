@@ -1,0 +1,21 @@
+{
+ "dataset": "Heart Disease (Cleveland subset, processed.cleveland.data)",
+ "creators": "Andras Janosi (Hungarian Institute of Cardiology, Budapest), William Steinbrunn and Matthias Pfisterer (University Hospitals Zurich and Basel), Robert Detrano (V.A. Medical Center, Long Beach, and Cleveland Clinic Foundation)",
+ "year": 1988,
+ "repository": "UCI Machine Learning Repository",
+ "doi": "10.24432/C52P4X",
+ "url": "https://archive.ics.uci.edu/static/public/45/heart+disease.zip",
+ "licence": "CC BY 4.0",
+ "citation": "Janosi, A., Steinbrunn, W., Pfisterer, M. & Detrano, R. (1988). Heart Disease [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C52P4X",
+ "original_study": "Detrano, R. et al. (1989). International application of a new probability algorithm for the diagnosis of coronary artery disease. American Journal of Cardiology 64(5), 304-310. https://doi.org/10.1016/0002-9149(89)90524-9",
+ "raw_sha256_processed_cleveland": "a74b7efa387bc9d108d7d0115d831fe9b414b29ae7124f331b622b4efa0427c8",
+ "csv_sha256": "8a69605d7d11da4a41663230d715e6bf07726ecea31b6a5679f3ad893555b6d7",
+ "changes": "Header added; a patient_id column (row order 1-303) added; '?' written as an empty cell (6 values: ca 4, thal 2). No rows removed, no values changed.",
+ "frozen_on": "2026-11-03",
+ "versions": {
+  "python": "3.13.1",
+  "sklearn": "1.9.1",
+  "pandas": "3.1.0",
+  "numpy": "2.5.4"
+ }
+}

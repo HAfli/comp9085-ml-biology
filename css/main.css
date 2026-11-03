@@ -1075,3 +1075,53 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-size: 0.85em;
   .deploy-grid { grid-template-columns: 1fr; }
   .decision-path li { flex-direction: column; gap: .15rem; }
 }
+
+/* ---- Week 3: pipeline builder ----------------------------------------- */
+.ppl { display: grid; grid-template-columns: 1fr 1.3fr; gap: var(--s4); margin-bottom: var(--s4); }
+.ppl-lane { border: 1px dashed var(--rule); border-radius: 8px; padding: var(--s3); min-height: 7rem; }
+.ppl-lane h4 { margin: 0 0 var(--s3); font-size: .8rem; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--ink-3); }
+.ppl-lane-out { background: var(--danger-soft); border-color: var(--danger); }
+.ppl-lane-in { background: var(--ok-soft); border-color: var(--ok); }
+.ppl-step { display: block; width: 100%; text-align: left; margin-bottom: var(--s2);
+  background: var(--ground); border: 1px solid var(--rule); border-left: 5px solid var(--ok);
+  border-radius: 6px; padding: var(--s2) var(--s3); cursor: pointer; font: inherit; color: var(--ink); }
+.ppl-step:hover:not([disabled]) { border-color: var(--ink-4); }
+.ppl-step:focus-visible { outline: 2px solid var(--clinical); outline-offset: 2px; }
+.ppl-step[disabled] { cursor: default; }
+.ppl-step.ppl-out { border-left-color: var(--danger); }
+.ppl-name { display: block; font-weight: 650; font-size: .9rem; }
+.ppl-what, .ppl-hint { display: block; font-size: .8rem; color: var(--ink-3); }
+.ppl-hint { color: var(--clinical); margin-top: 2px; }
+.ppl-warn, .ppl-ok { border-left: 5px solid var(--danger); background: var(--danger-soft);
+  padding: var(--s3) var(--s4); margin-bottom: var(--s3); font-size: .9rem; }
+.ppl-ok { border-left-color: var(--ok); background: var(--ok-soft); }
+.ppl-code { font-size: .78rem; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* ---- Week 3: end-to-end stepper ---------------------------------------- */
+.e2e-steps { list-style: none; display: flex; flex-wrap: wrap; gap: var(--s2);
+  padding: 0; margin: 0 0 var(--s4); }
+.e2e-steps li { margin: 0; }
+.e2e-steps button { font: inherit; font-size: .8rem; background: var(--ground-2);
+  border: 1px solid var(--rule); border-radius: 999px; padding: 4px 10px 4px 4px;
+  cursor: pointer; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; }
+.e2e-steps .n { display: inline-grid; place-items: center; width: 1.4rem; height: 1.4rem;
+  border-radius: 50%; background: var(--rule); font-weight: 650; font-size: .75rem; }
+.e2e-steps .is-done button { border-color: var(--ok); }
+.e2e-steps .is-done .n { background: var(--ok); color: #fff; }
+.e2e-steps .is-current button { border-color: var(--clinical); background: var(--clinical-soft);
+  color: var(--ink); font-weight: 620; }
+.e2e-steps .is-current .n { background: var(--clinical); color: #fff; }
+.e2e h4 { margin-top: 0; }
+
+/* ---- Interactive index page -------------------------------------------- */
+.ix-week { margin-bottom: var(--s6, 2.5rem); }
+.ix-list { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--s3); }
+.ix-item { border: 1px solid var(--rule); border-radius: 8px; padding: var(--s3) var(--s4); }
+.ix-item h4 { margin: 0 0 var(--s1); font-size: 1rem; }
+.ix-item p { margin: 0 0 var(--s2); font-size: .9rem; }
+.ix-meta { font-size: .8rem; color: var(--ink-3); }
+
+@media (max-width: 700px) {
+  .ppl { grid-template-columns: 1fr; }
+}

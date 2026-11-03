@@ -121,61 +121,470 @@
       altLabel: 'Read every pipeline and the measurement as text'
     },
 
-    'bayes': {
-      title: 'Medical test calculator',
-      intro: 'A test does not have one accuracy. It has two error rates, and ' +
-             'what a positive result means depends on who you tested.',
+    'data-splitter': {
+      title: 'Biological data splitter',
+      intro: 'Change the test size, the seed, and whether the split is stratified or ' +
+             'group-aware. Watch what happens to a patient\'s samples, and to the score.',
+      banner: 'week3-sim',
       controls:
-        U.select({ id: 'by-preset', label: 'Start from', value: 'screening',
+        U.slider({ id: 'ds-test', label: 'Test size', min: 10, max: 50, value: 30, step: 5 }) +
+        U.slider({ id: 'ds-seed', label: 'Random seed', min: 42, max: 61, value: 42 }) +
+        U.checkbox({ id: 'ds-strat', label: 'Stratified (keep the class ratio)', checked: true }) +
+        U.segmented({ id: 'ds-unit', label: 'Unit of splitting', value: 'row',
+          options: [{ value: 'row', label: 'By sample (row)' },
+                    { value: 'patient', label: 'By patient (group-aware)' }] }),
+      readout:
+        U.metric('ds-shared', 'Patients on both sides', '—') +
+        U.metric('ds-leak', 'Test samples with a sibling in training', '—') +
+        U.metric('ds-acc', 'Accuracy, this split', '—') +
+        U.metric('ds-avg', 'Accuracy, 20 seeds', '—'),
+      explain: '<p><strong>Predict first:</strong> a classifier is tested on samples from ' +
+        'patients it has already seen in training. Will its score be higher or lower than ' +
+        'on genuinely new patients? Start with "By sample", then switch to "By patient".</p>',
+      altLabel: 'Read where every patient\'s samples went as text'
+    },
+
+    'cv-explorer': {
+      title: 'Cross-validation explorer',
+      intro: 'Change the number of folds and whether they are stratified. Watch the ' +
+             'individual fold scores, not just their mean.',
+      banner: 'week3-real',
+      controls:
+        U.slider({ id: 'cv-k', label: 'Number of folds, k', min: 2, max: 10, value: 5 }) +
+        U.segmented({ id: 'cv-strat', label: 'Folds', value: 's',
+          options: [{ value: 's', label: 'Stratified' }, { value: 'p', label: 'Not stratified' }] }) +
+        U.select({ id: 'cv-model', label: 'Model', value: 'tree_d3',
           options: [
+            { value: 'tree_d3', label: 'Decision tree, max_depth = 3' },
+            { value: 'knn5', label: 'k-NN, k = 5, standardised' },
+            { value: 'tree_full', label: 'Decision tree, unpruned' },
+            { value: 'baseline', label: 'Majority-class baseline' }] }),
+      readout:
+        U.metric('cv-mean', 'Mean accuracy', '—') +
+        U.metric('cv-sd', 'Spread (sd)', '—') +
+        U.metric('cv-range', 'Lowest to highest fold', '—') +
+        U.metric('cv-train', 'Training rows per fold', '—'),
+      explain: '<p><strong>Predict first:</strong> at k = 5 the tree averages 91.7%. Will ' +
+        'every fold be close to that? Then try k = 2 and k = 10, and switch stratification off.</p>',
+      altLabel: 'Read every fold score as text'
+    },
+
+    'pipeline-builder': {
+      title: 'Pipeline builder: Scaler, then feature selector, then model',
+      intro: 'Click a step to move it between "fitted once on all rows" and "inside the ' +
+             'Pipeline". Each step that learns from data must sit inside, and the score alone ' +
+             'will not tell you when one does not.',
+      banner: 'week3-real-noise',
+      controls:
+        U.segmented({ id: 'pb-data', label: 'Data', value: 'noise',
+          options: [{ value: 'noise', label: 'Pure noise, random labels' },
+                    { value: 'wdbc', label: 'Real WDBC' }] }) +
+        U.segmented({ id: 'pb-scaler', label: 'StandardScaler', value: 'in',
+          options: [{ value: 'in', label: 'Inside' }, { value: 'out', label: 'Before CV' }] }) +
+        U.segmented({ id: 'pb-selector', label: 'SelectKBest', value: 'out',
+          options: [{ value: 'in', label: 'Inside' }, { value: 'out', label: 'Before CV' },
+                    { value: 'none', label: 'Not used' }] }),
+      readout:
+        U.metric('pb-reported', 'Reported CV accuracy', '—') +
+        U.metric('pb-honest', 'Honest CV accuracy', '—') +
+        U.metric('pb-infl', 'Inflation', '—') +
+        U.metric('pb-truth', 'Reference point', '—'),
+      explain: '<p>The builder starts the way the lecture suggests: with the feature selector ' +
+        'outside the Pipeline. Read the warning, then move it inside.</p>',
+      altLabel: 'Read every configuration and its score as text'
+    },
+
+    'hyperparameter': {
+      title: 'Hyperparameter explorer',
+      intro: 'Sweep max_depth or k and watch training, cross-validation and final-test ' +
+             'accuracy behave differently. Only one of them is allowed to choose.',
+      banner: 'week3-real',
+      controls:
+        U.segmented({ id: 'hp-model', label: 'Model', value: 'tree',
+          options: [{ value: 'tree', label: 'Decision tree: max_depth' },
+                    { value: 'knn', label: 'k-NN: k' }] }) +
+        U.slider({ id: 'hp-v', label: 'max_depth', min: 1, max: 12, value: 3 }) +
+        U.checkbox({ id: 'hp-reveal', label: 'Show the final-test accuracy (look once, after choosing)',
+                     checked: false }),
+      readout:
+        U.metric('hp-train', 'Training', '—') +
+        U.metric('hp-cv', 'Cross-validation', '—') +
+        U.metric('hp-test', 'Final test', 'hidden') +
+        U.metric('hp-best', 'Chosen by CV', '—'),
+      explain: '<p><strong>Your turn:</strong> find the point where the training curve keeps ' +
+        'climbing and the cross-validation curve does not. Which depth, or which k, would you ' +
+        'actually choose, and why?</p>',
+      altLabel: 'Read training, CV and test accuracy for every value as text'
+    },
+
+    'wdbc-e2e': {
+      title: 'WDBC end-to-end experiment',
+      intro: 'Baseline, decision tree, k-NN, cross-validation, tuning, one final test, and ' +
+             'the confusion matrix it produces: the lab\'s Task 8 onward, step by step.',
+      banner: 'week3-real',
+      controls:
+        U.slider({ id: 'e2e-s', label: 'Step', min: 1, max: 7, value: 1 }) +
+        '<div class="control"><span class="control-label">Move</span><div class="flex">' +
+          '<button type="button" class="btn btn-sm" data-e2e-prev data-opt="prev">Back</button>' +
+          '<button type="button" class="btn btn-sm" data-e2e-next data-opt="next">Next step</button>' +
+        '</div></div>' +
+        U.segmented({ id: 'e2e-final', label: 'Model taken to the final test', value: 'tree',
+          options: [{ value: 'tree', label: 'Tuned tree' }, { value: 'knn', label: 'Tuned k-NN' }] }),
+      readout:
+        U.metric('e2e-step', 'Step', '—') +
+        U.metric('e2e-test', 'Final test set', '—') +
+        U.metric('e2e-choice', 'Model chosen', '—') +
+        U.metric('e2e-report', 'Number you may report', '—'),
+      explain: '',
+      altLabel: 'Read the current step and its numbers as text'
+    },
+
+    'bayes': {
+      title: 'Diagnostic test and prevalence explorer',
+      intro: 'A test does not have one accuracy. It has two error rates, and ' +
+             'what a positive result means depends on who you tested. Change ' +
+             'the population and watch the same test change meaning.',
+      banner: 'week4-exact',
+      controls:
+        U.select({ id: 'by-preset', label: 'Start from', value: 'lecture',
+          options: [
+            { value: 'lecture', label: 'Lecture example: 1% prevalence, 95% / 95%' },
             { value: 'screening', label: 'Population screening, rare condition' },
             { value: 'wdbc', label: 'The WDBC cohort (37.3% malignant)' },
             { value: 'clinic', label: 'A symptomatic clinic' },
             { value: 'rare', label: 'Very rare condition, near-perfect test' }] }) +
-        U.slider({ id: 'by-prev', label: 'Prevalence', min: 0.05, max: 50, value: 0.5, step: 0.05 }) +
-        U.slider({ id: 'by-sens', label: 'Sensitivity', min: 50, max: 99.9, value: 99, step: 0.1 }) +
-        U.slider({ id: 'by-spec', label: 'Specificity', min: 50, max: 99.9, value: 99, step: 0.1 }),
+        U.select({ id: 'by-n', label: 'People tested', value: '1000',
+          options: [
+            { value: '1000', label: '1,000' },
+            { value: '10000', label: '10,000' },
+            { value: '100000', label: '100,000' }] }) +
+        U.slider({ id: 'by-prev', label: 'Prevalence', min: 0.05, max: 50, value: 1, step: 0.05 }) +
+        U.slider({ id: 'by-sens', label: 'Sensitivity', min: 50, max: 99.9, value: 95, step: 0.1 }) +
+        U.slider({ id: 'by-spec', label: 'Specificity', min: 50, max: 99.9, value: 95, step: 0.1 }),
       readout:
-        U.metric('by-ppv', 'PPV', '—') +
-        U.metric('by-npv', 'NPV', '—') +
-        U.metric('by-acc', 'Accuracy', '—') +
-        U.metric('by-fp', 'False positives', '—') +
-        U.metric('by-fn', 'False negatives', '—'),
-      explain: '',
+        U.metric('by-tp', 'TP', '—', ' ') +
+        U.metric('by-fp', 'FP', '—', ' ') +
+        U.metric('by-tn', 'TN', '—', ' ') +
+        U.metric('by-fn', 'FN', '—', ' ') +
+        U.metric('by-ppv', 'PPV', '—', ' ') +
+        U.metric('by-npv', 'NPV', '—', ' ') +
+        U.metric('by-acc', 'Accuracy', '—', ' '),
+      explain: '<p><strong>Before you touch anything:</strong> the test is 95% ' +
+        'sensitive and 95% specific, and 1% of the people tested have the ' +
+        'condition. Guess the PPV, then read it off. Then move only the ' +
+        'prevalence slider and ask: what changed, the test or the population?</p>',
       altLabel: 'Read the frequencies and predictive values as text'
     },
 
-    'naive-bayes': {
-      title: 'Naive Bayes text explorer',
-      intro: 'A real multinomial naive Bayes classifier, trained in your ' +
-             'browser. Every probability shown is read out of the fitted model.',
-      banner: 'sim-corpus',
+    'cm-calc': {
+      title: 'Confusion-matrix calculator: four questions, four denominators',
+      intro: 'Enter four counts, or start from a preset. Rows are what is true; ' +
+             'columns are what the test says. Choose a metric to highlight the ' +
+             'cells it divides by.',
       controls:
-        U.select({ id: 'nb-pair', label: 'Classes to separate', value: 'Class I|Class II',
+        U.select({ id: 'cm-preset', label: 'Start from', value: 'lecture',
           options: [
-            { value: 'Class I|Class II', label: 'Class I vs Class II' },
-            { value: 'Class I|Class III', label: 'Class I vs Class III' },
-            { value: 'Class II|Class III', label: 'Class II vs Class III' }] }) +
-        U.slider({ id: 'nb-alpha', label: 'Laplace smoothing (alpha)', min: 0, max: 5, value: 1, step: 0.05 }),
+            { value: 'lecture', label: 'Lecture example: 10,000 people, 1%, 95% / 95%' },
+            { value: 'wdbc', label: 'WDBC logistic regression, test set (lab Task 1)' },
+            { value: 'zero', label: 'Edge case: nobody has the condition' },
+            { value: 'custom', label: 'Your own counts' }] }) +
+        '<div class="control"><label for="cm-tp">TP (ill, test positive)</label>' +
+        '<input type="number" id="cm-tp" min="0" step="1" value="95" inputmode="numeric"></div>' +
+        '<div class="control"><label for="cm-fn">FN (ill, test negative)</label>' +
+        '<input type="number" id="cm-fn" min="0" step="1" value="5" inputmode="numeric"></div>' +
+        '<div class="control"><label for="cm-fp">FP (healthy, test positive)</label>' +
+        '<input type="number" id="cm-fp" min="0" step="1" value="495" inputmode="numeric"></div>' +
+        '<div class="control"><label for="cm-tn">TN (healthy, test negative)</label>' +
+        '<input type="number" id="cm-tn" min="0" step="1" value="9405" inputmode="numeric"></div>' +
+        U.segmented({ id: 'cm-focus', label: 'Highlight the denominator of', value: 'sens',
+          options: [
+            { value: 'sens', label: 'Sensitivity' }, { value: 'spec', label: 'Specificity' },
+            { value: 'ppv', label: 'PPV' }, { value: 'npv', label: 'NPV' }] }),
       readout:
-        U.metric('nb-acc', 'Held-out accuracy', '—') +
-        U.metric('nb-f1', 'Macro F1', '—') +
-        U.metric('nb-vocab', 'Vocabulary', '—') +
-        U.metric('nb-prior', 'Class priors', '—'),
+        U.metric('cm-sens', 'Sensitivity', '—', ' ') +
+        U.metric('cm-spec', 'Specificity', '—', ' ') +
+        U.metric('cm-ppv', 'PPV', '—', ' ') +
+        U.metric('cm-npv', 'NPV', '—', ' '),
+      explain: '<p><strong>Sensitivity</strong> = TP / (TP + FN) and ' +
+        '<strong>specificity</strong> = TN / (TN + FP) divide within a row: they ' +
+        'ask how the test behaves given the true status. <strong>PPV</strong> = ' +
+        'TP / (TP + FP) and <strong>NPV</strong> = TN / (TN + FN) divide within a ' +
+        'column: they ask what a result means.</p>',
+      altLabel: 'Read the matrix and the four metrics as text'
+    },
+
+    'wdbc-models': {
+      title: 'WDBC: two models, similar discrimination, different probabilities',
+      intro: 'The lab\'s two models on the WDBC final test set (171 cases): ' +
+             'logistic regression and Gaussian naive Bayes. Compare their ' +
+             'reliability diagrams and how their predictions are spread.',
+      banner: 'week4-real',
+      controls:
+        U.segmented({ id: 'wd-model', label: 'Model', value: 'logreg',
+          options: [
+            { value: 'logreg', label: 'Logistic regression' },
+            { value: 'gnb', label: 'Gaussian naive Bayes' }] }),
+      readout:
+        U.metric('wd-acc', 'Accuracy', '—', ' ') +
+        U.metric('wd-auc', 'AUC', '—', ' ') +
+        U.metric('wd-brier', 'Brier score', '—', ' ') +
+        U.metric('wd-ext', 'Extreme predictions', '—', ' ') +
+        U.metric('wd-ss', 'Sensitivity / specificity', '—', ' '),
+      explain: '<p><strong>Brier score</strong> = the mean squared difference ' +
+        'between the predicted probability and the outcome (0 or 1); lower is ' +
+        'better, and it rewards probabilities that match observed frequencies.</p>',
+      altLabel: 'Read the reliability bins and histogram as text'
+    },
+
+    'prevalence': {
+      title: 'Prevalence explorer: one test, five populations',
+      intro: 'The same test is used in five populations of 100,000 people. Each ' +
+             'bar is everyone who tested positive; the amber share is the ' +
+             'fraction who are really ill, which is the PPV.',
+      banner: 'week4-exact',
+      controls:
+        U.slider({ id: 'pv-sens', label: 'Sensitivity', min: 50, max: 99.9, value: 99, step: 0.1 }) +
+        U.slider({ id: 'pv-spec', label: 'Specificity', min: 50, max: 99.9, value: 99, step: 0.1 }) +
+        U.slider({ id: 'pv-custom', label: 'Your own prevalence', min: 0.05, max: 50, value: 5, step: 0.05 }),
+      readout:
+        U.metric('pv-a', 'PPV at 0.1%', '—', ' ') +
+        U.metric('pv-b', 'PPV at 1%', '—', ' ') +
+        U.metric('pv-c', 'PPV at 10%', '—', ' ') +
+        U.metric('pv-d', 'PPV at 37.3%', '—', ' '),
+      explain: '<p><strong>Predict first:</strong> the test is 99% sensitive and ' +
+        '99% specific. In a population where 1 in 1,000 people is ill, what ' +
+        'fraction of positive results are real? Then lower the specificity to ' +
+        '95% and watch which bars change most.</p>',
+      altLabel: 'Read the counts for every population as text'
+    },
+
+    'threshold': {
+      title: 'Decision threshold explorer',
+      intro: 'A model outputs a probability. A decision needs a threshold. ' +
+             'Drag it and watch missed cases trade against false alarms.',
+      banner: 'week4-sim',
+      controls:
+        U.slider({ id: 'th-t', label: 'Threshold', min: 0.05, max: 0.95, value: 0.5, step: 0.01 }) +
+        U.select({ id: 'th-preset', label: 'Jump to', value: '0.5',
+          options: [
+            { value: '0.2', label: '0.2 (screening-like)' },
+            { value: '0.5', label: '0.5 (the default)' },
+            { value: '0.8', label: '0.8 (confirmatory-like)' }] }),
+      readout:
+        U.metric('th-tp', 'True positives', '—', ' ') +
+        U.metric('th-fp', 'False positives', '—', ' ') +
+        U.metric('th-tn', 'True negatives', '—', ' ') +
+        U.metric('th-fn', 'False negatives', '—', ' ') +
+        U.metric('th-sens', 'Sensitivity', '—', ' ') +
+        U.metric('th-spec', 'Specificity', '—', ' ') +
+        U.metric('th-ppv', 'PPV', '—', ' ') +
+        U.metric('th-npv', 'NPV', '—', ' '),
+      explain: '<p><strong>Ask yourself first:</strong> in this setting, ' +
+        'would you rather miss a true case or raise a false alarm? Set the ' +
+        'threshold that matches your answer, then justify it.</p>',
+      altLabel: 'Read the outcomes at each threshold as text'
+    },
+
+    'calibration': {
+      title: 'Calibration explorer: is 0.8 really 80%?',
+      intro: 'A probability is a claim. If a model says 0.8 for a hundred ' +
+             'cases, about eighty of them should turn out positive. Distort ' +
+             'the model and see which numbers change and which do not.',
+      banner: 'week4-sim',
+      controls:
+        U.segmented({ id: 'cal-model', label: 'Model', value: 'A',
+          options: [
+            { value: 'A', label: 'A: calibrated' },
+            { value: 'B', label: 'B: over-confident' },
+            { value: 'C', label: 'C: under-confident' },
+            { value: 'D', label: 'D: shifted up' }] }) +
+        U.slider({ id: 'cal-k', label: 'Confidence factor', min: 0.3, max: 3, value: 1, step: 0.05 }) +
+        U.slider({ id: 'cal-shift', label: 'Shift (log-odds)', min: -1.5, max: 1.5, value: 0, step: 0.1 }) +
+        U.select({ id: 'cal-bins', label: 'Bins', value: '10',
+          options: [{ value: '5', label: '5' }, { value: '10', label: '10' }] }),
+      readout:
+        U.metric('cal-acc', 'Accuracy', '—', ' ') +
+        U.metric('cal-auc', 'AUC', '—', ' ') +
+        U.metric('cal-brier', 'Brier score', '—', ' ') +
+        U.metric('cal-ece', 'Calibration error', '—', ' ') +
+        U.metric('cal-08', 'Scored ~0.8, positive', '—', ' '),
+      explain: '<p><strong>Which model\'s probability would you trust?</strong> ' +
+        'Models A and B have the same accuracy and the same AUC. Compare ' +
+        'their reliability diagrams before deciding.</p>',
+      altLabel: 'Read the calibration bins as text'
+    },
+
+    'nb-bayes': {
+      title: 'A. From Bayes to a classifier: one word as evidence',
+      intro: 'Week 4\'s Bayes calculator with new labels. The prior is the share ' +
+             'of Class I texts; the evidence is one word in the reason text.',
+      banner: 'week5-sim',
+      controls:
+        U.select({ id: 'nbb-word', label: 'Evidence word (worked example)', value: 'listeria',
+          options: [
+            { value: 'listeria', label: '“listeria”: 4/12 vs 1/14' },
+            { value: 'undeclared', label: '“undeclared”: 4/12 vs 2/14' },
+            { value: 'label', label: '“label”: 2/12 vs 5/14' },
+            { value: 'neutral', label: 'a word equally likely in both' },
+            { value: 'custom', label: 'your own likelihoods (move a slider)' }] }) +
+        U.slider({ id: 'nbb-p', label: 'Prior P(Class I)', min: 0.05, max: 0.95, value: 0.4, step: 0.01 }) +
+        U.slider({ id: 'nbb-a', label: 'P(word | Class I)', min: 0.01, max: 0.6, value: 0.333, step: 0.001 }) +
+        U.slider({ id: 'nbb-b', label: 'P(word | Class II/III)', min: 0.01, max: 0.6, value: 0.071, step: 0.001 }),
+      readout:
+        U.metric('nbb-prior', 'Prior P(Class I)', '—', ' ') +
+        U.metric('nbb-lr', 'Likelihood ratio', '—', ' ') +
+        U.metric('nbb-post', 'Posterior P(Class I | word)', '—', ' '),
+      explain: '<p><strong>Predict first:</strong> the word “listeria” is about ' +
+        'five times more likely in a Class I text. Starting from a 40% prior, ' +
+        'will the posterior be above or below 75%?</p>',
+      altLabel: 'Read the calculation as text'
+    },
+
+    'nb-evidence': {
+      title: 'B. Naive Bayes evidence explorer: four words, by hand',
+      intro: 'The lecture\'s worked example. Build a short text from four words ' +
+             'and watch the evidence for each class accumulate, one word at a time.',
+      banner: 'week5-sim',
+      controls:
+        '<div class="control"><span class="control-label" id="nbe-add-label">Add a word</span>' +
+        '<div class="flex" role="group" aria-labelledby="nbe-add-label">' +
+          '<button type="button" class="btn btn-sm" data-nbe-add="listeria">listeria</button>' +
+          '<button type="button" class="btn btn-sm" data-nbe-add="undeclared">undeclared</button>' +
+          '<button type="button" class="btn btn-sm" data-nbe-add="label">label</button>' +
+          '<button type="button" class="btn btn-sm" data-nbe-add="packaging">packaging</button>' +
+          '<button type="button" class="btn btn-sm" data-nbe-clear>Clear the text</button>' +
+        '</div><p class="small mb0" aria-live="polite">Text: <strong class="mono" data-nbe-doc></strong></p></div>' +
+        U.segmented({ id: 'nbe-alpha', label: 'Smoothing', value: '1',
+          options: [{ value: '1', label: 'Laplace (alpha = 1)' }, { value: '0', label: 'None (alpha = 0)' }] }) +
+        U.slider({ id: 'nbe-reps', label: 'Repeat the text (copies)', min: 1, max: 400, value: 1, step: 1 }),
+      readout:
+        U.metric('nbe-post', 'Posterior P(Class I)', '—', ' ') +
+        U.metric('nbe-prod', 'Score, multiplied', '—', ' ') +
+        U.metric('nbe-log', 'Score, as a sum of logs', '—', ' '),
+      explain: '<p><strong>Predict first:</strong> “undeclared label” gives Class I a ' +
+        'posterior of 0.421. Add “listeria”. Which way does it move, and by how much? ' +
+        'Then switch smoothing off.</p>',
+      altLabel: 'Read the scores as text'
+    },
+
+    'text-repr': {
+      title: 'C. Text representation explorer: from words to a matrix',
+      intro: 'Before naive Bayes can count anything, a vectorizer turns each text ' +
+             'into a row of numbers. Edit the texts and watch the vocabulary and ' +
+             'the matrix change.',
+      banner: 'week5-text',
+      controls:
+        U.select({ id: 'tr-preset', label: 'Start from', value: 'real',
+          options: [
+            { value: 'real', label: 'Three real recall reasons (I, I, II)' },
+            { value: 'allergen', label: 'Real: “undeclared” in Class III, II and I' },
+            { value: 'order', label: 'Illustrative: word order and negation' },
+            { value: 'custom', label: 'Your own texts' }] }) +
+        U.segmented({ id: 'tr-mode', label: 'Representation', value: 'count',
+          options: [{ value: 'count', label: 'Counts' }, { value: 'binary', label: 'Presence' },
+            { value: 'tfidf', label: 'TF-IDF' }] }) +
+        '<div class="control" style="flex-basis:100%"><label for="tr-doc0">Text 1</label>' +
+        '<textarea id="tr-doc0" rows="2"></textarea></div>' +
+        '<div class="control" style="flex-basis:100%"><label for="tr-doc1">Text 2</label>' +
+        '<textarea id="tr-doc1" rows="2"></textarea></div>' +
+        '<div class="control" style="flex-basis:100%"><label for="tr-doc2">Text 3</label>' +
+        '<textarea id="tr-doc2" rows="2"></textarea></div>',
+      readout:
+        U.metric('tr-vocab', 'Vocabulary', '—', ' ') +
+        U.metric('tr-nz', 'Non-zero cells', '—', ' ') +
+        U.metric('tr-drop', 'Dropped tokens', '—', ' ') +
+        U.metric('tr-same', 'Identical rows', '—', ' '),
+      explain: '<p>Tokens follow scikit-learn\'s default rule: lowercase, then every ' +
+        'run of two or more letters or digits. The same rule is used in the lab.</p>',
+      altLabel: 'Read the vocabulary and the matrix as text'
+    },
+
+    'naive-bayes': {
+      title: 'The Week 5 classifier, trained in your browser',
+      intro: 'CountVectorizer + MultinomialNB, fitted to the 7,117 training texts ' +
+             'of the frozen openFDA snapshot and tested on 2,373 texts from other ' +
+             'recall events. At alpha = 1 it is the lab\'s model, with the lab\'s numbers.',
+      banner: 'week5-live',
+      controls:
+        U.segmented({ id: 'nb-view', label: 'View', value: 'words',
+          options: [
+            { value: 'words', label: 'Words' },
+            { value: 'errors', label: 'Errors' },
+            { value: 'probs', label: 'Probabilities' }] }) +
+        U.slider({ id: 'nb-alpha', label: 'Smoothing (alpha)', min: 0, max: 5, value: 1, step: 0.05 }) +
+        U.select({ id: 'nb-mindf', label: 'Words view: used in at least', value: '20',
+          options: [
+            { value: '1', label: '1 training text (every word)' },
+            { value: '10', label: '10 training texts' },
+            { value: '20', label: '20 training texts' },
+            { value: '50', label: '50 training texts' }] }),
+      readout:
+        U.metric('nb-acc', 'Test accuracy', '—', ' ') +
+        U.metric('nb-pr', 'Precision / recall', '—', ' ') +
+        U.metric('nb-auc', 'ROC AUC', '—', ' ') +
+        U.metric('nb-ext', 'Extreme predictions', '—', ' ') +
+        U.metric('nb-vocab', 'Vocabulary', '—', ' '),
       explain:
         '<div class="field" style="max-width:60ch">' +
-          '<label for="nb-probe">Score a notice of your own</label>' +
-          '<textarea id="nb-probe" rows="2">undeclared milk allergen not listed on the label</textarea>' +
-          '<div class="field-hint">Try adding an unusual word with smoothing set ' +
-          'to zero, and watch the classification break.</div>' +
+          '<label for="nb-probe">Score a text of your own</label>' +
+          '<textarea id="nb-probe" rows="2">Product may be contaminated with Listeria monocytogenes.</textarea>' +
+          '<div class="field-hint">Words the model never saw in training are ignored. ' +
+          'Try a negation, or a word that is not in the vocabulary.</div>' +
         '</div>' +
         '<div class="flex" style="margin-bottom:var(--s5)">' +
-          '<button type="button" class="btn btn-sm" data-nb-example="product may be contaminated with listeria monocytogenes">Pathogen notice</button>' +
-          '<button type="button" class="btn btn-sm" data-nb-example="minor printing error on the carton net weight statement">Labelling notice</button>' +
-          '<button type="button" class="btn btn-sm" data-nb-example="quixotic bioluminescent perambulation">Nonsense words</button>' +
+          '<button type="button" class="btn btn-sm" data-nb-example="Product may be contaminated with Listeria monocytogenes.">Pathogen</button>' +
+          '<button type="button" class="btn btn-sm" data-nb-example="Product contains undeclared milk.">Allergen</button>' +
+          '<button type="button" class="btn btn-sm" data-nb-example="Products may contain metal fragments">Foreign body</button>' +
+          '<button type="button" class="btn btn-sm" data-nb-example="No Listeria monocytogenes was found in the product.">Negation</button>' +
+          '<button type="button" class="btn btn-sm" data-nb-example="quixotic bioluminescent perambulation">Unknown words</button>' +
         '</div>' +
         '<div data-nb-probe></div>',
-      altLabel: 'Read the word probabilities and the confusion matrix as text'
+      altLabel: 'Read the words, the errors and the probabilities as text'
+    },
+
+    'nb-leakage': {
+      title: 'D. Leakage explorer: the whole pipeline must not learn from the test set',
+      intro: 'The same vectorizer and the same model, run three ways on the same ' +
+             'snapshot. Only the order of the steps and the unit of the split change.',
+      banner: 'week5-measured',
+      controls:
+        U.segmented({ id: 'lk-v', label: 'Pipeline', value: 'correct',
+          options: [
+            { value: 'correct', label: 'Correct' },
+            { value: 'vocab', label: 'Vectorizer fitted on all text' },
+            { value: 'records', label: 'Split by product record' }] }),
+      readout:
+        U.metric('lk-acc', 'Accuracy', '—', ' ') +
+        U.metric('lk-f1', 'F1 for Class I', '—', ' ') +
+        U.metric('lk-auc', 'ROC AUC', '—', ' ') +
+        U.metric('lk-ident', 'Test text already in training', '—', ' '),
+      explain: '<p><strong>Predict first:</strong> which of the two mistakes will ' +
+        'inflate the score more, fitting the vocabulary on all the text, or ' +
+        'splitting by product record instead of by recall event?</p>',
+      altLabel: 'Read the three pipelines and their results as text'
+    },
+
+    'nb-compare': {
+      title: 'E. Model comparison: naive Bayes, its variants and a pretrained encoder',
+      intro: 'Five models, one split, one test set. Choose the metric, then read ' +
+             'the cost table before deciding anything.',
+      banner: 'week5-measured',
+      controls:
+        U.select({ id: 'cmp-metric', label: 'Metric', value: 'accuracy',
+          options: [
+            { value: 'accuracy', label: 'Accuracy' },
+            { value: 'f1', label: 'F1 for Class I' },
+            { value: 'precision', label: 'Precision for Class I' },
+            { value: 'recall', label: 'Recall for Class I' },
+            { value: 'rocAuc', label: 'ROC AUC' },
+            { value: 'averagePrecision', label: 'Average precision' },
+            { value: 'brier', label: 'Brier score (lower is better)' }] }),
+      readout:
+        U.metric('cmp-nb', 'Naive Bayes', '—', ' ') +
+        U.metric('cmp-lm', 'Pretrained encoder', '—', ' ') +
+        U.metric('cmp-diff', 'Encoder minus naive Bayes', '—', ' '),
+      explain: '<div data-cmp-cost></div>',
+      altLabel: 'Read every model and metric as a table'
     },
 
     'data-quality': {
@@ -231,6 +640,7 @@
           }) }),
       readout:
         U.metric('pca-two', 'Variance in PC1 + PC2', '—') +
+        U.metric('pca-pair', 'Variance in the plotted pair', '—') +
         U.metric('pca-90', 'To reach 90%', '—') +
         U.metric('pca-two-acc', 'Accuracy on 2 components', '—') +
         U.metric('pca-best', 'Best accuracy', '—'),
@@ -263,8 +673,161 @@
       altLabel: 'Read the four measured accuracies and the family definitions as text'
     },
 
+    /* ---- Week 8: instance-based learning. One canonical implementation each;
+       the lecture's "Try this interactively" slides point at these anchors. */
+    'knn-vote': {
+      title: 'Exercise 1. Nearest neighbour and the k-NN vote',
+      intro: 'Click anywhere to place the query. Start at k = 1, then try k = 3 and k = 5 (lecture slides 7 and 15). ' +
+             'Flip the nearest neighbour\'s label to inject noise, and shade the decision regions to see the boundary.',
+      banner: 'week8-mixed',
+      controls:
+        U.segmented({ id: 'kv-set', label: 'Points', value: 'lecture',
+          options: [{ value: 'lecture', label: 'Lecture example' }, { value: 'heart', label: 'Real patients' }] }) +
+        U.slider({ id: 'kv-k', label: 'k', min: 1, max: 25, value: 1 }) +
+        '<div class="control"><span class="control-label">Jump to</span><div class="flex">' +
+          '<button type="button" class="btn btn-sm" data-kv-k="1">k = 1</button>' +
+          '<button type="button" class="btn btn-sm" data-kv-k="3">k = 3</button>' +
+          '<button type="button" class="btn btn-sm" data-kv-k="5">k = 5</button></div></div>' +
+        U.segmented({ id: 'kv-w', label: 'Voting', value: 'uniform',
+          options: [{ value: 'uniform', label: 'Majority' }, { value: 'distance', label: 'Weighted 1/d' }] }) +
+        U.checkbox({ id: 'kv-regions', label: 'Shade the decision regions', checked: false }) +
+        '<div class="control"><span class="control-label">Noise</span>' +
+        '<button type="button" class="btn btn-sm" id="kv-flip">Flip the nearest neighbour\'s label</button></div>',
+      readout:
+        U.metric('kv-q', 'Query', '—', ' ') + U.metric('kv-nn', 'Nearest distance', '—', ' ') +
+        U.metric('kv-tally', 'Votes', '—', ' ') + U.metric('kv-pred', 'Prediction', '—', ' '),
+      explain: '<p><strong>Predict first:</strong> on the lecture example, what does k = 1 predict? k = 3? k = 5? ' +
+        'Then flip the nearest neighbour\'s label: which of the three answers changes, and why is that the ' +
+        'argument for k &gt; 1?</p>',
+      altLabel: 'Read the neighbours and the vote as text'
+    },
+
+    'knn-regression': {
+      title: 'Exercise 2. k-NN regression: averaging the neighbours',
+      intro: 'The lecture example first: k = 3 averages 82, 83 and 78 to 81. Then switch on distance weighting ' +
+             '(the slides use 1/d², which gives 81.857), and finally predict a real patient\'s maximum heart rate from age.',
+      banner: 'week8-mixed',
+      controls:
+        U.segmented({ id: 'kr-mode', label: 'Data', value: 'lecture',
+          options: [{ value: 'lecture', label: 'Lecture example' }, { value: 'heart', label: 'Real patients' }] }) +
+        U.slider({ id: 'kr-k', label: 'k', min: 1, max: 7, value: 3 }) +
+        U.segmented({ id: 'kr-w', label: 'Average', value: 'uniform',
+          options: [{ value: 'uniform', label: 'Plain mean' }, { value: 'distance', label: 'Distance-weighted' }] }) +
+        U.slider({ id: 'kr-p', label: 'Exponent p in 1/d^p', min: 0.5, max: 4, value: 2, step: 0.5 }) +
+        U.slider({ id: 'kr-age', label: 'Query age', min: 29, max: 77, value: 55 }) +
+        U.checkbox({ id: 'kr-rule', label: 'Show the "220 − age" rule', checked: false }),
+      readout:
+        U.metric('kr-pred', 'Prediction', '—', ' ') + U.metric('kr-nk', 'Neighbours', '—', ' ') +
+        U.metric('kr-err', 'Held-out error', '—', ' '),
+      explain: '',
+      altLabel: 'Read the neighbours, weights and errors as text'
+    },
+
+    'distance-calc': {
+      title: 'Exercise 3. Distance calculator',
+      intro: 'Every distance worked on the slides, with the numbers editable. Change a value and every distance, ' +
+             'and each feature\'s share of the distance, updates.',
+      banner: 'week8-mixed',
+      controls:
+        U.select({ id: 'dc-preset', label: 'Example', value: 'movie', options: [
+          { value: 'movie', label: 'Movies: Euclidean and the 1-NN ranking' },
+          { value: 'table', label: 'Four-feature table: Euclidean vs Manhattan' },
+          { value: 'scaleRaw', label: 'Scaling: raw features (1–10 and 1–1000)' },
+          { value: 'scaleNorm', label: 'Scaling: after min-max normalisation' },
+          { value: 'weighted', label: 'Weighted Euclidean: an irrelevant feature' },
+          { value: 'weather', label: 'Hamming: categorical records' },
+          { value: 'dna', label: 'Hamming: two DNA sequences' },
+          { value: 'food', label: 'Domain-specific: ordering foods by calories' },
+          { value: 'mixed', label: 'Heterogeneous: two real patients' }] }),
+      readout:
+        U.metric('dc-euc', 'Euclidean', '—', ' ') + U.metric('dc-man', 'Manhattan', '—', ' ') +
+        U.metric('dc-weuc', 'Weighted Euclidean', '—', ' ') + U.metric('dc-ham', 'Hamming / mixed', '—', ' '),
+      explain: '',
+      altLabel: 'Read the calculation as text'
+    },
+
+    'knn-scaling': {
+      title: 'Exercise 4. Feature scaling decides who the neighbours are',
+      intro: 'One held-out patient (the star) and its k nearest training patients (outlined), chosen with the scaling ' +
+             'you select. Start unscaled with cholesterol against ST depression, then standardise.',
+      banner: 'week8-real',
+      controls:
+        U.segmented({ id: 'ks-scale', label: 'Scaling (fitted on training rows)', value: 'none',
+          options: [{ value: 'none', label: 'None' }, { value: 'minmax', label: 'Min-max' },
+                    { value: 'standard', label: 'Standardise' }] }) +
+        U.select({ id: 'ks-fx', label: 'Feature 1', value: 'chol', options: [
+          { value: 'chol', label: 'Cholesterol (mg/dl)' }, { value: 'trestbps', label: 'Resting BP (mm Hg)' },
+          { value: 'thalach', label: 'Max heart rate (bpm)' }, { value: 'age', label: 'Age (years)' }] }) +
+        U.select({ id: 'ks-fy', label: 'Feature 2', value: 'oldpeak', options: [
+          { value: 'oldpeak', label: 'ST depression (mm)' }, { value: 'age', label: 'Age (years)' },
+          { value: 'thalach', label: 'Max heart rate (bpm)' }] }) +
+        U.slider({ id: 'ks-k', label: 'k', min: 1, max: 31, value: 15, step: 2 }) +
+        '<div class="control"><span class="control-label">Query <span class="val" id="ks-q-val"></span></span>' +
+        '<button type="button" class="btn btn-sm" id="ks-next">Next held-out patient</button></div>',
+      readout:
+        U.metric('ks-share', 'Feature 1 share of distance', '—', ' ') + U.metric('ks-spread', 'Feature 2 spread', '—', ' ') +
+        U.metric('ks-pred', 'Prediction', '—', ' ') + U.metric('ks-cv', 'All features, CV', '—', ' '),
+      explain: '<p><strong>Predict first:</strong> cholesterol has a standard deviation of about 52 mg/dl; ST ' +
+        'depression about 1.2 mm. Unscaled, which feature decides who the neighbours are?</p>',
+      altLabel: 'Read the neighbours and distance shares as text'
+    },
+
+    'knn-irrelevant': {
+      title: 'Exercise 5. Irrelevant features, and weighting them down',
+      intro: 'Add columns of pure noise to the real patients and watch cross-validated accuracy fall. Then give the ' +
+             'noise columns a smaller weight in the distance.',
+      banner: 'week8-real',
+      controls:
+        U.slider({ id: 'ki-n', label: 'Noise features added', min: 0, max: 6, value: 0 }) +
+        U.segmented({ id: 'ki-w', label: 'Weight of the noise features', value: '1.0',
+          options: [{ value: '1.0', label: '1' }, { value: '0.5', label: '0.5' },
+                    { value: '0.25', label: '0.25' }, { value: '0.0', label: '0 (removed)' }] }),
+      readout:
+        U.metric('ki-acc', 'CV accuracy', '—', ' ') + U.metric('ki-drop', 'Change', '—', ' ') +
+        U.metric('ki-share', 'Distance that is noise', '—', ' '),
+      explain: '',
+      altLabel: 'Read the accuracy table as text'
+    },
+
+    'knn-weighted': {
+      title: 'Exercise 6. Distance-weighted voting and the exponent n',
+      intro: 'The lecture\'s nine points. Votes are the sum of 1/dⁿ for each class among the k nearest. ' +
+             'Check the slide numbers at n = 1 and n = 3, then set n = 0 (a plain vote) with k = 9.',
+      banner: 'week8-exact',
+      controls:
+        U.slider({ id: 'kw-k', label: 'k', min: 1, max: 9, value: 9 }) +
+        U.slider({ id: 'kw-n', label: 'Exponent n', min: 0, max: 4, value: 1, step: 0.5 }) +
+        U.checkbox({ id: 'kw-zero', label: 'Add a Yellow point exactly on the query (d = 0)', checked: false }),
+      readout:
+        U.metric('kw-blue', 'Blue', '—', ' ') + U.metric('kw-yellow', 'Yellow', '—', ' ') +
+        U.metric('kw-black', 'Black', '—', ' ') + U.metric('kw-win', 'Prediction', '—', ' '),
+      explain: '',
+      altLabel: 'Read the weights and votes as text'
+    },
+
+    'knn-cv': {
+      title: 'Exercise 7. Choosing k by cross-validation',
+      intro: 'Measured 10-fold cross-validated accuracy for every odd k from 1 to 51 on the 227 training patients, ' +
+             'for each scaling, metric and weighting. Choose a setting from these curves; only then look at the test set.',
+      banner: 'week8-real',
+      controls:
+        U.segmented({ id: 'kc-scale', label: 'Continuous features', value: 'standard',
+          options: [{ value: 'standard', label: 'Standardised' }, { value: 'none', label: 'Unscaled' }] }) +
+        U.segmented({ id: 'kc-metric', label: 'Metric', value: 'euclidean',
+          options: [{ value: 'euclidean', label: 'Euclidean' }, { value: 'manhattan', label: 'Manhattan' }] }) +
+        U.segmented({ id: 'kc-weights', label: 'Weights', value: 'uniform',
+          options: [{ value: 'uniform', label: 'Uniform' }, { value: 'distance', label: 'Distance' }] }) +
+        U.checkbox({ id: 'kc-train', label: 'Show training accuracy', checked: true }) +
+        U.checkbox({ id: 'kc-reveal', label: 'Show the final-test result (look once, after choosing)', checked: false }),
+      readout:
+        U.metric('kc-best', 'Best k here', '—', ' ') + U.metric('kc-k1', 'k = 1', '—', ' ') +
+        U.metric('kc-grid', 'GridSearchCV choice', '—', ' ') + U.metric('kc-test', 'Final test', 'hidden', ' '),
+      explain: '',
+      altLabel: 'Read every accuracy value as text'
+    },
+
     'knn': {
-      title: 'Who is biologically similar?',
+      title: 'Exercise 8 (extension). Who is biologically similar? Classifier versus representation',
       intro: 'Change the classifier, or change what it measures distance in. ' +
              'Only one of those two is about the model.',
       banner: 'real',
@@ -464,6 +1027,108 @@
         'browser from the UCI Breast Cancer Wisconsin (Diagnostic) dataset, ' +
         '569 samples, CC BY 4.0.</span></div></div>';
     }
+    if (kind === 'week3-real' || kind === 'week3-real-noise') {
+      var W3 = window.WEEK03;
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0">' +
+        '<div class="control"><span class="provenance provenance-real">' +
+        '● Real measured data</span></div>' +
+        '<div class="control"><span class="small muted" style="max-width:70ch">' +
+        'UCI Breast Cancer Wisconsin (Diagnostic), 569 cases. Measured once with ' +
+        'scikit-learn' + (W3 ? ' ' + U.esc(W3.sklearnVersion) : '') + ' by ' +
+        'data/scripts/17_build_week03_interactives.py, with the protocol on the Week 3 ' +
+        'slides. Every number that also appears on a slide matches it exactly.' +
+        (kind === 'week3-real-noise' ? ' The "pure noise" option is 100 rows of random ' +
+          'numbers with random labels, generated with seed 42: a known ground truth ' +
+          '(chance, 50%), not biological data.' : '') +
+        '</span></div></div>';
+    }
+    if (kind === 'week3-sim') {
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0;' +
+        'background:var(--warn-soft)">' +
+        '<div class="control"><span class="provenance provenance-sim">' +
+        '▲ Illustrative simulation — not a biological dataset.</span></div>' +
+        '<div class="control"><span class="small" style="max-width:70ch">' +
+        'WDBC has one row per patient, so it cannot show this problem. Sixty simulated ' +
+        'patients with 2 to 4 samples each are generated in your browser with a fixed seed, ' +
+        'built like the lecture\'s simulation but not the same draw, so the averages differ ' +
+        'slightly from slide 16. The direction of the effect is the lesson.</span></div></div>';
+    }
+    if (kind === 'week4-real') {
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0">' +
+        '<div class="control"><span class="provenance provenance-real">' +
+        '● Real data</span></div>' +
+        '<div class="control"><span class="small muted" style="max-width:70ch">' +
+        'UCI Breast Cancer Wisconsin (Diagnostic), final test set of 171 cases, ' +
+        'computed once by data/scripts/08_build_week04_data.py. Real data used for ' +
+        'classroom evaluation, not evidence of clinical performance.</span></div></div>';
+    }
+    if (kind === 'week8-real' || kind === 'week8-mixed') {
+      var W8v = window.WEEK08 ? ' ' + U.esc(window.WEEK08.sklearnVersion) : '';
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0">' +
+        '<div class="control"><span class="provenance provenance-real">' +
+        (kind === 'week8-real' ? '● Real data' : '● Lecture arithmetic and real data') + '</span></div>' +
+        '<div class="control"><span class="small muted" style="max-width:70ch">' +
+        (kind === 'week8-mixed' ? 'The lecture example is the slide\'s own numbers. ' : '') +
+        'Real data: UCI Heart Disease, Cleveland Clinic subset (Janosi et al. 1988), 303 patients, CC BY 4.0; ' +
+        '227 training and 76 held-out patients, the lab\'s split. Measured with scikit-learn' + W8v + ' by ' +
+        'data/scripts/18_build_week08_data.py with the lab\'s protocol. Classroom analysis, not a clinical tool.' +
+        '</span></div></div>';
+    }
+    if (kind === 'week8-exact') {
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0">' +
+        '<div class="control"><span class="provenance provenance-real">● Exact arithmetic</span></div>' +
+        '<div class="control"><span class="small muted" style="max-width:70ch">The lecture\'s worked ' +
+        'example: nine stored points at the distances on the slides. Every vote is computed exactly.</span></div></div>';
+    }
+    if (kind === 'week4-exact') {
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0">' +
+        '<div class="control"><span class="provenance provenance-real">' +
+        '● Exact arithmetic</span></div>' +
+        '<div class="control"><span class="small muted" style="max-width:70ch">' +
+        'Hypothetical classroom numbers. The counts are the exact expected ' +
+        'values that follow from the prevalence, sensitivity and specificity ' +
+        'you set; they are not the performance of any real test.</span></div></div>';
+    }
+    if (kind === 'week4-sim') {
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0;' +
+        'background:var(--warn-soft)">' +
+        '<div class="control"><span class="provenance provenance-sim">' +
+        '▲ Illustrative simulation — not a biological dataset.</span></div>' +
+        '<div class="control"><span class="small" style="max-width:70ch">' +
+        'Synthetic, seeded data from data/scripts/08_build_week04_data.py, ' +
+        'identical to the numbers on the lecture slides. Chosen because the ' +
+        'teaching point needs a known ground truth; nothing here describes a ' +
+        'real clinical model.</span></div></div>';
+    }
+    if (kind === 'week5-live' || kind === 'week5-measured' || kind === 'week5-text') {
+      var P = window.WEEK05 && window.WEEK05.provenance;
+      var when = P ? 'snapshot of ' + P.openfda_last_updated + ', ' : '';
+      var how = {
+        'week5-live': 'Fitted live in your browser to a frozen ' + when + 'one row per ' +
+          'event–reason–classification record, split by event exactly as in the lab.',
+        'week5-measured': 'Measured once on the frozen ' + when + 'same split as the lab, by ' +
+          'data/scripts/10_build_week05_data.py (and 11_ for the pretrained encoder).',
+        'week5-text': 'The first two presets are verbatim reason texts from the frozen ' + when +
+          'the third is an illustrative example written for this explorer.'
+      }[kind];
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0">' +
+        '<div class="control"><span class="provenance provenance-real">' +
+        '● Real openFDA food-recall data</span></div>' +
+        '<div class="control"><span class="small muted" style="max-width:70ch">' + how +
+        ' US FDA, public domain (CC0). The label is FDA\'s hazard classification, an ' +
+        'administrative decision, not a measured health outcome; classroom use, not a ' +
+        'food-safety tool.</span></div></div>';
+    }
+    if (kind === 'week5-sim') {
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0;' +
+        'background:var(--warn-soft)">' +
+        '<div class="control"><span class="provenance provenance-sim">' +
+        '▲ Illustrative simulation — not a biological dataset.</span></div>' +
+        '<div class="control"><span class="small" style="max-width:70ch">' +
+        'Hand-made counts for a four-word vocabulary, chosen so the arithmetic can be ' +
+        'done on paper. They are the numbers on the lecture slides and are not ' +
+        'estimated from FDA data.</span></div></div>';
+    }
     if (kind === 'sim-embed') {
       var S = window.SEQUENCES;
       if (S && S.simulatedEmbedding === false) {
@@ -537,6 +1202,9 @@
       { id: 'welcome', label: 'Welcome and orientation' },
       { id: 'objectives', label: 'Learning objectives' },
       { id: 'biology', label: 'Biological context' },
+    ].concat((w.sections || []).map(function (x) {
+      return { id: x.id, label: x.nav || x.title };
+    })).concat([
       { id: 'concepts', label: 'Key concepts' },
       { id: 'transition', label: 'From generic to biological' },
       { id: 'videos', label: 'Watch' },
@@ -550,11 +1218,12 @@
       { id: 'selfcheck', label: 'Quick self-check' },
       { id: 'checkin', label: 'Weekly check-in' },
       { id: 'reading', label: 'Further reading' }
-    ].filter(function (s) {
+    ]).filter(function (s) {
       if (s.id === 'welcome') return !!w.welcome;
       if (s.id === 'transition') return !!w.transition;
       if (s.id === 'videos') return !!(w.videos && w.videos.length);
       if (s.id === 'sustainability') return !!w.sustainability;
+      if (s.id === 'foundation') return !w.fm.inline;
       if (s.id === 'datasets') return !!(w.datasets && w.datasets.length);
       return true;
     });
@@ -581,6 +1250,9 @@
     html += '<p class="canvas-note small muted">The Week ' + n + ' lecture is ' +
       'given from slides posted on Canvas. This page is the interactive ' +
       'companion: explore the ideas here, then work through the lab below.</p>';
+    if (w.scheduleNote) {
+      html += U.callout('sci', 'Teaching order', '<p class="mb0">' + U.esc(w.scheduleNote) + '</p>');
+    }
 
     /* 0. Welcome and orientation (Week 1 only) */
     if (w.welcome) {
@@ -617,6 +1289,19 @@
         : '') +
       '</section>';
 
+    /* 2b. Optional explanatory sections (Week 4 uses these for the ideas
+       that need more than a glossary entry). Each is {id, title, body}. */
+    /* A section may also carry trusted HTML from course.js (x.html, e.g. a
+       worked table or a think-first reveal) and embed interactives (x.viz,
+       a list of ids), so a concept and its interactive sit together. */
+    (w.sections || []).forEach(function (x) {
+      html += '<section id="' + U.esc(x.id) + '"><h2>' + U.esc(x.title) + '</h2>' +
+        (x.body ? U.prose(x.body) : '') + (x.html || '') +
+        (x.viz || []).map(function (v) { return vizBlock(v); }).join('') +
+        (x.keypoint ? U.callout('key', 'The point', '<p class="mb0">' +
+          U.esc(x.keypoint) + '</p>') : '') + '</section>';
+    });
+
     /* 3. Concepts */
     html += '<section id="concepts"><h2>Key concepts</h2>' +
       U.concepts(w.concepts) + '</section>';
@@ -650,9 +1335,25 @@
     }
 
     /* 4. Interactive */
+    var allLink = '<p class="small muted">Every week\'s exercises, with the lecture ' +
+      'slide that points to each: <a href="' + window.siteUrl('interactives.html') +
+      '#week-' + n + '">the interactive exercises index</a>.</p>';
+    if (w.interactiveIndex) {
+      /* The week's interactives live inside its sections; this section keeps
+         the #interactive anchor and lists them. */
+      html += '<section id="interactive"><h2>Interactive exploration</h2>' +
+        (w.interactiveIntro ? U.prose(w.interactiveIntro) : '') + allLink +
+        '<ol>' + w.interactiveIndex.map(function (it) {
+          return '<li><a href="#viz-' + U.esc(it.id) + '">' + U.esc(it.label) +
+            '</a>' + (it.note ? ': ' + U.esc(it.note) : '') + '</li>';
+        }).join('') + '</ol></section>';
+    } else
     html += '<section id="interactive"><h2>Interactive exploration</h2>' +
-      vizBlock(w.viz) + (w.viz2 ? vizBlock(w.viz2) : '') +
-      (w.viz3 ? vizBlock(w.viz3) : '') + '</section>';
+      (w.interactiveIntro ? U.prose(w.interactiveIntro) : '') + allLink +
+      (w.vizList ? w.vizList.map(vizBlock).join('') :
+        vizBlock(w.viz) + (w.viz2 ? vizBlock(w.viz2) : '') +
+        (w.viz3 ? vizBlock(w.viz3) : '') +
+        (w.viz4 ? vizBlock(w.viz4) : '')) + '</section>';
 
     /* 5. Worked example */
     html += '<section id="worked"><h2>Worked example</h2>' +
@@ -737,7 +1438,9 @@
         }).join('') + '</div></section>';
     }
 
-    /* 8. Foundation model connection */
+    /* 8. Foundation model connection (skipped when the week places it inline,
+       as one of its own sections) */
+    if (!w.fm.inline)
     html += '<section id="foundation"><h2>Foundation-model connection</h2>' +
       U.callout('fm', w.fm.title, U.prose(w.fm.body)) +
       (w.fm.models && w.fm.models.length

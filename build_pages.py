@@ -36,6 +36,11 @@ SCRIPTS = [
     "js/visualisations/entropy.js",
     "js/visualisations/leakage.js",
     "js/visualisations/bayes.js",
+    "js/visualisations/cm-calc.js",
+    "js/visualisations/prevalence.js",
+    "js/visualisations/threshold.js",
+    "js/visualisations/calibration.js",
+    "js/visualisations/wdbc-models.js",
     "js/visualisations/naive-bayes.js",
     "js/visualisations/data-quality.js",
     "js/visualisations/pca.js",
@@ -49,6 +54,35 @@ SCRIPTS = [
     "js/visualisations/trust.js",
     "js/week-page.js",
 ]
+
+# Data and interactives used by one week only, loaded before js/week-page.js
+# on that week's page and nowhere else (the Week 5 corpus alone is ~1 MB).
+WEEK_SCRIPTS = {
+    3: ["js/data/week03.js",
+        "js/visualisations/data-splitter.js",
+        "js/visualisations/cv-explorer.js",
+        "js/visualisations/pipeline-builder.js",
+        "js/visualisations/hyperparameter.js",
+        "js/visualisations/wdbc-e2e.js"],
+    4: ["js/data/week04.js"],
+    5: ["js/data/week05.js",
+        "js/data/week05_corpus.js",
+        "js/visualisations/week05-common.js",
+        "js/visualisations/nb-bayes.js",
+        "js/visualisations/nb-evidence.js",
+        "js/visualisations/text-repr.js",
+        "js/visualisations/nb-leakage.js",
+        "js/visualisations/nb-compare.js"],
+    8: ["js/data/week08.js",
+        "js/visualisations/week08-common.js",
+        "js/visualisations/knn-vote.js",
+        "js/visualisations/knn-regression.js",
+        "js/visualisations/distance-calc.js",
+        "js/visualisations/knn-scaling.js",
+        "js/visualisations/knn-irrelevant.js",
+        "js/visualisations/knn-weighted.js",
+        "js/visualisations/knn-cv.js"],
+}
 
 TEMPLATE = """<!DOCTYPE html>
 <html lang="en" data-root="../" data-section="weeks">
@@ -116,12 +150,17 @@ def read_weeks():
     return weeks
 
 
+def scripts_for(n):
+    extra = WEEK_SCRIPTS.get(n, [])
+    order = SCRIPTS[:-1] + extra + SCRIPTS[-1:]   # week-page.js stays last
+    return "\n".join(f'<script src="../{s}"></script>' for s in order)
+
+
 def main():
     weeks = read_weeks()
     if len(weeks) != 12:
         raise SystemExit(f"expected 12 weeks in course.js, parsed {len(weeks)}")
 
-    scripts = "\n".join(f'<script src="../{s}"></script>' for s in SCRIPTS)
     outdir = os.path.join(ROOT, "weeks")
     os.makedirs(outdir, exist_ok=True)
 
@@ -132,7 +171,7 @@ def main():
             title=w["title"].replace("&", "&amp;"),
             desc=w["short"].replace('"', "&quot;"),
             favicon=FAVICON,
-            scripts=scripts,
+            scripts=scripts_for(w["n"]),
         )
         with open(path, "w") as f:
             f.write(html)

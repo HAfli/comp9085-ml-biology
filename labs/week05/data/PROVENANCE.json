@@ -1,0 +1,21 @@
+{
+ "source": "openFDA food enforcement bulk export (U.S. Food and Drug Administration)",
+ "download_url": "https://download.open.fda.gov/food/enforcement/food-enforcement-0001-of-0001.json.zip",
+ "api_documentation": "https://open.fda.gov/apis/food/enforcement/",
+ "licence": "Public domain (CC0 1.0); see https://open.fda.gov/license/",
+ "openfda_disclaimer": "Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.",
+ "openfda_last_updated": "2026-09-28",
+ "zip_sha256": "c011f158b2dd7c2f5f22298413278a0e0de8a86fbb11b3e7b89bca4ea08c85b3",
+ "product_records_in_export": 29463,
+ "product_records_kept": 29462,
+ "dropped": "records not yet classified, or with an empty reason_for_recall",
+ "event_level_rows": 9490,
+ "recall_events": 7890,
+ "report_date_range": [
+  "2012-06-20",
+  "2026-09-23"
+ ],
+ "unit_of_observation": "an event-reason-classification record: one row per distinct (event_id, reason_for_recall, classification)",
+ "text_preparation": "whitespace collapsed and stripped; nothing else changed",
+ "target": "is_class_I = 1 for Class I, 0 for Class II or Class III"
+}

@@ -813,5 +813,52 @@
     if (window.Chart) window.Chart.mountAll();
   };
 
+  /* ==================================================================== */
+  /* Interactive exercises, by week                                       */
+  /* ==================================================================== */
+
+  window.renderInteractives = function () {
+    var IX = window.INTERACTIVES || [];
+    var total = IX.reduce(function (n, w) { return n + w.items.length; }, 0);
+    var jump = IX.map(function (w) {
+      return '<a class="pill" href="#week-' + w.week + '">Week ' + w.week + '</a>';
+    }).join(' ');
+    var body = IX.map(function (w) {
+      var wk = C.weeks.filter(function (x) { return x.n === w.week; })[0] || { title: '' };
+      var page = 'weeks/week' + U.pad(w.week) + '.html';
+      return '<section class="ix-week" id="week-' + w.week + '">' +
+        '<h2>Week ' + w.week + ': ' + U.esc(wk.title) + '</h2>' +
+        '<ul class="ix-list">' + w.items.map(function (it) {
+          var anchor = it.kind === 'video' ? it.id : 'viz-' + it.id;
+          return '<li class="ix-item">' +
+            '<h4><a href="' + url(page) + '#' + anchor + '">' + U.esc(it.title) + '</a></h4>' +
+            '<p>' + U.esc(it.learn) + '</p>' +
+            '<div class="ix-meta">' + (it.kind === 'video' ? 'Video with a question' :
+              'Interactive, with a Reset button') +
+            (it.slides ? ' &middot; From the Week ' + w.week + ' lecture: ' +
+              (/^[0-9, ]+$/.test(it.slides) ? 'slide' + (it.slides.indexOf(',') > -1 ? 's ' : ' ') : '') +
+              U.esc(it.slides) : '') +
+            ' &middot; <a href="' + url(page) + '#' + anchor + '">Open it on the Week ' + w.week +
+            ' page</a></div></li>';
+        }).join('') + '</ul></section>';
+    }).join('');
+    document.getElementById('main').innerHTML =
+      '<div class="page-hero"><div class="wrap">' +
+        '<span class="eyebrow">Interactive exercises</span>' +
+        '<h1>Every interactive exercise, by week</h1>' +
+        '<p class="lede">When a lecture slide says "Try this interactively", this is where ' +
+        'to find it. Each exercise lives on its week\'s page; the links below go straight ' +
+        'to it. ' + total + ' exercises in all, each with a short note on what it is for.</p>' +
+      '</div></div>' +
+      '<div class="wrap">' +
+        '<p>' + jump + '</p>' +
+        '<p class="small muted">Everything runs in your browser: no installation, no ' +
+        'account and no instructor permissions are needed. Every interactive has a Reset ' +
+        'button and a "Read this as text" panel under it. Lecture slides are on Canvas; ' +
+        'the slide numbers refer to that week\'s Canvas lecture.</p>' +
+        body +
+      '</div>';
+  };
+
 
 })();

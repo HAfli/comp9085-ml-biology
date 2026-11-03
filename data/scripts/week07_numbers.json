@@ -1,0 +1,389 @@
+{
+ "seed": 42,
+ "curse": {
+  "n_points": 1000,
+  "query": "point 0",
+  "by_dimension": {
+   "2": {
+    "min": 0.0093,
+    "max": 0.9098,
+    "relative_contrast": 96.6882
+   },
+   "10": {
+    "min": 0.6001,
+    "max": 1.8939,
+    "relative_contrast": 2.1561
+   },
+   "100": {
+    "min": 3.357,
+    "max": 4.6931,
+    "relative_contrast": 0.398
+   },
+   "1000": {
+    "min": 12.0816,
+    "max": 13.5735,
+    "relative_contrast": 0.1235
+   }
+  }
+ },
+ "wdbc": {
+  "n": 569,
+  "p": 30,
+  "malignant": 212,
+  "evr": [
+   0.4427,
+   0.1897,
+   0.0939,
+   0.066,
+   0.055,
+   0.0402,
+   0.0225,
+   0.0159,
+   0.0139,
+   0.0117
+  ],
+  "cum": [
+   0.4427,
+   0.6324,
+   0.7264,
+   0.7924,
+   0.8473,
+   0.8876,
+   0.9101,
+   0.926,
+   0.9399,
+   0.9516
+  ],
+  "k90": 7,
+  "k95": 10,
+  "k99": 17,
+  "pc1_same_sign_loadings": 30,
+  "pc1_top": [
+   [
+    "mean concave points",
+    0.261
+   ],
+   [
+    "mean concavity",
+    0.258
+   ],
+   [
+    "worst concave points",
+    0.251
+   ],
+   [
+    "mean compactness",
+    0.239
+   ],
+   [
+    "worst perimeter",
+    0.237
+   ],
+   [
+    "worst concavity",
+    0.229
+   ]
+  ],
+  "pc2_top": [
+   [
+    "mean fractal dimension",
+    0.367
+   ],
+   [
+    "fractal dimension error",
+    0.28
+   ],
+   [
+    "worst fractal dimension",
+    0.275
+   ],
+   [
+    "mean radius",
+    -0.234
+   ],
+   [
+    "compactness error",
+    0.233
+   ],
+   [
+    "mean area",
+    -0.231
+   ]
+  ],
+  "unscaled_pc1_share": 0.982,
+  "unscaled_pc1_top_feature": "worst area",
+  "worst_area_sd": 569.4,
+  "smoothness_sd": 0.0141,
+  "pairs": {
+   "mean radius / mean perimeter": {
+    "r": 0.9979,
+    "pc1_share_formula": 0.9989,
+    "pc1_share_pca": 0.9989
+   },
+   "mean radius / mean texture": {
+    "r": 0.3238,
+    "pc1_share_formula": 0.6619,
+    "pc1_share_pca": 0.6619
+   }
+  },
+  "split": {
+   "train": 398,
+   "test": 171,
+   "test_size": 0.3
+  },
+  "curve": {
+   "1": {
+    "accuracy": 0.9069,
+    "accuracy_sd": 0.0368,
+    "roc_auc": 0.9636,
+    "roc_auc_sd": 0.0139
+   },
+   "2": {
+    "accuracy": 0.9472,
+    "accuracy_sd": 0.0391,
+    "roc_auc": 0.9866,
+    "roc_auc_sd": 0.0061
+   },
+   "3": {
+    "accuracy": 0.9422,
+    "accuracy_sd": 0.029,
+    "roc_auc": 0.9869,
+    "roc_auc_sd": 0.0057
+   },
+   "5": {
+    "accuracy": 0.9673,
+    "accuracy_sd": 0.0143,
+    "roc_auc": 0.9931,
+    "roc_auc_sd": 0.0059
+   },
+   "7": {
+    "accuracy": 0.9648,
+    "accuracy_sd": 0.024,
+    "roc_auc": 0.9915,
+    "roc_auc_sd": 0.0075
+   },
+   "10": {
+    "accuracy": 0.9649,
+    "accuracy_sd": 0.0223,
+    "roc_auc": 0.9901,
+    "roc_auc_sd": 0.0096
+   },
+   "15": {
+    "accuracy": 0.9824,
+    "accuracy_sd": 0.0069,
+    "roc_auc": 0.9915,
+    "roc_auc_sd": 0.0078
+   },
+   "20": {
+    "accuracy": 0.9799,
+    "accuracy_sd": 0.0112,
+    "roc_auc": 0.992,
+    "roc_auc_sd": 0.0074
+   },
+   "30": {
+    "accuracy": 0.9824,
+    "accuracy_sd": 0.0069,
+    "roc_auc": 0.9926,
+    "roc_auc_sd": 0.0071
+   },
+   "all 30 features": {
+    "accuracy": 0.9824,
+    "accuracy_sd": 0.0069,
+    "roc_auc": 0.9926,
+    "roc_auc_sd": 0.0071
+   }
+  },
+  "one_se": {
+   "best_k": 5,
+   "best_roc_auc": 0.9931,
+   "se": 0.0026,
+   "chosen_k": 5
+  },
+  "test": {
+   "PCA 5": {
+    "accuracy": 0.9883,
+    "roc_auc": 0.9981,
+    "errors": 2
+   },
+   "all 30 features": {
+    "accuracy": 0.9708,
+    "roc_auc": 0.9975,
+    "errors": 5
+   }
+  },
+  "pca_before_split_cv_roc_auc": 0.9925
+ },
+ "proteins": {
+  "n": 2000,
+  "flow": {
+   "swissprot_human_nonfragment": 20430,
+   "mapped_to_uniref50": 19748,
+   "length_50_1000": 17324,
+   "standard_residues_only": 17299,
+   "one_per_uniref50_cluster": 16139
+  },
+  "uniprot_release": "2026_03",
+  "tm": 488,
+  "sp": 350,
+  "tm_rate": 0.244,
+  "sp_rate": 0.175,
+  "both": 128,
+  "neither": 1290,
+  "length": {
+   "min": 51,
+   "median": 380.0,
+   "max": 999
+  },
+  "tm_evidence": {
+   "sequence analysis": 425,
+   "experimental": 33,
+   "by similarity": 24,
+   "curator inference": 6
+  },
+  "sp_evidence": {
+   "sequence analysis": 237,
+   "experimental": 81,
+   "no evidence code": 16,
+   "by similarity": 13,
+   "curator inference": 3
+  },
+  "emb_dim": 320,
+  "uniref50_unique": true,
+  "split": {
+   "train": 1500,
+   "test": 500,
+   "test_tm": 122,
+   "test_sp": 87
+  }
+ },
+ "geometry": {
+  "mean_cosine_raw": 0.8422,
+  "mean_cosine_centred": 0.0075,
+  "mean_cosine_composition": 0.8678,
+  "mean_cosine_composition_centred": 0.0018,
+  "emb_pc1_share": 0.2119,
+  "emb_pc2_share": 0.0986,
+  "emb_top10_share": 0.6506,
+  "emb_k90": 48,
+  "emb_k90_standardised": 60,
+  "comp_k90_standardised": 15,
+  "emb_norm_mean": 5.221,
+  "emb_mean_vector_norm": 4.809,
+  "corr_pc1_gravy": 0.325,
+  "corr_pc1_loglength": 0.152,
+  "corr_pc2_gravy": 0.647,
+  "pc1_far_tail": {
+   "threshold": 3.5,
+   "n": 21,
+   "olfactory_receptors": 20,
+   "olfactory_receptors_in_sample": 22,
+   "transmembrane": 21
+  }
+ },
+ "probe_cv": {
+  "transmembrane": {
+   "length only": {
+    "roc_auc": 0.477,
+    "roc_auc_sd": 0.0458,
+    "average_precision": 0.2344
+   },
+   "composition (20)": {
+    "roc_auc": 0.8661,
+    "roc_auc_sd": 0.0188,
+    "average_precision": 0.7665
+   },
+   "ESM-2 (320)": {
+    "roc_auc": 0.9743,
+    "roc_auc_sd": 0.0112,
+    "average_precision": 0.9489
+   },
+   "ESM-2 on shuffled sequences (320)": {
+    "roc_auc": 0.8287,
+    "roc_auc_sd": 0.0245,
+    "average_precision": 0.7259
+   },
+   "composition + 2 hydropathy features (22)": {
+    "roc_auc": 0.9821,
+    "roc_auc_sd": 0.0072,
+    "average_precision": 0.9427
+   },
+   "prevalence_train": 0.244
+  },
+  "signal_peptide": {
+   "length only": {
+    "roc_auc": 0.5522,
+    "roc_auc_sd": 0.0433,
+    "average_precision": 0.2235
+   },
+   "composition (20)": {
+    "roc_auc": 0.7565,
+    "roc_auc_sd": 0.0277,
+    "average_precision": 0.4419
+   },
+   "ESM-2 (320)": {
+    "roc_auc": 0.9657,
+    "roc_auc_sd": 0.0135,
+    "average_precision": 0.9004
+   },
+   "ESM-2 on shuffled sequences (320)": {
+    "roc_auc": 0.7789,
+    "roc_auc_sd": 0.0263,
+    "average_precision": 0.4813
+   },
+   "composition + 2 hydropathy features (22)": {
+    "roc_auc": 0.9434,
+    "roc_auc_sd": 0.0076,
+    "average_precision": 0.7721
+   },
+   "prevalence_train": 0.1753
+  }
+ },
+ "probe_test": {
+  "transmembrane": {
+   "composition (20)": {
+    "roc_auc": 0.8654,
+    "average_precision": 0.7732
+   },
+   "ESM-2 (320)": {
+    "roc_auc": 0.9705,
+    "average_precision": 0.9461
+   },
+   "composition + 2 hydropathy features (22)": {
+    "roc_auc": 0.9782,
+    "average_precision": 0.948
+   }
+  },
+  "signal_peptide": {
+   "composition (20)": {
+    "roc_auc": 0.7282,
+    "average_precision": 0.4234
+   },
+   "ESM-2 (320)": {
+    "roc_auc": 0.9658,
+    "average_precision": 0.8988
+   },
+   "composition + 2 hydropathy features (22)": {
+    "roc_auc": 0.9451,
+    "average_precision": 0.7332
+   }
+  }
+ },
+ "pca_embedding": {
+  "transmembrane": {
+   "2": 0.8682,
+   "8": 0.911,
+   "16": 0.9595,
+   "32": 0.971,
+   "64": 0.9751,
+   "128": 0.971
+  },
+  "signal_peptide": {
+   "2": 0.7227,
+   "8": 0.9171,
+   "16": 0.9465,
+   "32": 0.9619,
+   "64": 0.9613,
+   "128": 0.9607
+  }
+ }
+}

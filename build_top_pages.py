@@ -21,6 +21,7 @@ SCRIPTS = [
     "js/data/datasets.js",
     "js/data/models.js",
     "js/data/labs.js",
+    "js/data/interactives.js",
     "js/data/wdbc.js",
     "js/data/benchmarks.js",
     "js/data/sequences.js",
@@ -156,6 +157,11 @@ PAGES = [
          render="renderWeeksIndex",
          title="All weeks | COMP9085", h1="The twelve teaching weeks",
          desc="Index of all twelve teaching weeks of COMP9085."),
+    dict(path="interactives.html", root="", section="interactives",
+         render="renderInteractives",
+         title="Interactive exercises | COMP9085", h1="Every interactive exercise, by week",
+         desc="Every COMP9085 interactive exercise, organised by teaching week, with "
+              "the lecture slide that points to it and a direct link."),
     dict(path="labs/index.html", root="../", section="labs", render="renderLabs",
          title="Practical labs | COMP9085", h1="Practical labs",
          desc="Eleven two-hour scikit-learn labs, each ending with an "

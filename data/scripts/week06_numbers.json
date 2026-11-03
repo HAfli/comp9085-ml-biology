@@ -1,0 +1,508 @@
+{
+ "software": {
+  "python": "3.13.1",
+  "sklearn": "1.9.1",
+  "pandas": "3.0.6",
+  "numpy": "2.5.4"
+ },
+ "setup": {
+  "seed": 42,
+  "test_size": 0.25,
+  "threshold": 6.5,
+  "numeric": [
+   "RIDAGEYR",
+   "INDFMPIR",
+   "BMXBMI",
+   "BMXWAIST",
+   "SBP",
+   "LBXTC",
+   "DR1TKCAL",
+   "DR1TSUGR"
+  ],
+  "ordinal": [
+   "DMDEDUC2"
+  ],
+  "nominal": [
+   "RIAGENDR",
+   "RIDRETH3",
+   "SMQ020"
+  ]
+ },
+ "flow": {
+  "demo_rows": 11933,
+  "interview_only": 3073,
+  "examined": 8860,
+  "file_rows": {
+   "demo": 11933,
+   "ghb": 7199,
+   "bmx": 8860,
+   "bpxo": 7801,
+   "tchol": 8068,
+   "dr1tot": 8860,
+   "dr2tot": 8860,
+   "smq": 9015,
+   "diq": 11744
+  },
+  "adults": 7809,
+  "adults_examined": 6064,
+  "adults_with_hba1c": 5767,
+  "adults_examined_no_hba1c": 297,
+  "inner_join_all_files_adults": 6064
+ },
+ "codes": {
+  "DMDEDUC2_7_or_9": 2,
+  "SMQ020_7_or_9": 7,
+  "age_80_topcoded": 321,
+  "indfmpir_5_topcoded": 1288,
+  "all_adults": {
+   "DMDEDUC2_7_or_9": 11,
+   "SMQ020_7_or_9": 14,
+   "age_80_topcoded": 525,
+   "indfmpir_5_topcoded": 1616
+  },
+  "dr1_status_counts": {
+   "1": 4598,
+   "2": 26,
+   "5": 1143
+  },
+  "tiny_floats": {
+   "DEMO_L": 3362,
+   "GHB_L": 449,
+   "BMX_L": 0,
+   "BPXO_L": 0,
+   "TCHOL_L": 0,
+   "DR1TOT_L": 14,
+   "DR2TOT_L": 1,
+   "SMQ_L": 0,
+   "DIQ_L": 0
+  }
+ },
+ "outcome": {
+  "n": 5767,
+  "positives": 721,
+  "prevalence_unweighted": 0.125,
+  "prevalence_weighted_WTPH2YR": 0.1045,
+  "prevalence_weighted_WTMEC2YR": 0.1037,
+  "hba1c_median": 5.5,
+  "hba1c_max": 17.1,
+  "majority_baseline_accuracy": 0.875
+ },
+ "weights": {
+  "by_age": {
+   "20-39": {
+    "n": 1451,
+    "share_sample": 0.2516,
+    "share_weighted": 0.354,
+    "prevalence": 0.0276
+   },
+   "40-59": {
+    "n": 1671,
+    "share_sample": 0.2898,
+    "share_weighted": 0.335,
+    "prevalence": 0.1293
+   },
+   "60-80": {
+    "n": 2645,
+    "share_sample": 0.4586,
+    "share_weighted": 0.311,
+    "prevalence": 0.1758
+   }
+  },
+  "by_eth": {
+   "1": {
+    "n": 389,
+    "share_sample": 0.0675,
+    "share_weighted": 0.0711,
+    "prevalence": 0.1774
+   },
+   "2": {
+    "n": 588,
+    "share_sample": 0.102,
+    "share_weighted": 0.0961,
+    "prevalence": 0.1276
+   },
+   "3": {
+    "n": 3427,
+    "share_sample": 0.5942,
+    "share_weighted": 0.6018,
+    "prevalence": 0.1056
+   },
+   "4": {
+    "n": 683,
+    "share_sample": 0.1184,
+    "share_weighted": 0.1105,
+    "prevalence": 0.1742
+   },
+   "6": {
+    "n": 315,
+    "share_sample": 0.0546,
+    "share_weighted": 0.0606,
+    "prevalence": 0.127
+   },
+   "7": {
+    "n": 365,
+    "share_sample": 0.0633,
+    "share_weighted": 0.0599,
+    "prevalence": 0.1534
+   }
+  },
+  "wt_min": 4391.8,
+  "wt_max": 241728.9,
+  "wt_sum": 244126236.0
+ },
+ "missing": {
+  "by_feature": {
+   "DR1TKCAL": 0.2027,
+   "DR1TSUGR": 0.2027,
+   "INDFMPIR": 0.128,
+   "LBXTC": 0.0472,
+   "BMXWAIST": 0.0458,
+   "SBP": 0.0316,
+   "BMXBMI": 0.014,
+   "SMQ020": 0.0012,
+   "DMDEDUC2": 0.0003,
+   "RIDAGEYR": 0.0,
+   "RIAGENDR": 0.0,
+   "RIDRETH3": 0.0
+  },
+  "complete_rows": 3712,
+  "income_by_education": {
+   "1": 0.2226,
+   "2": 0.1592,
+   "3": 0.1443,
+   "4": 0.1237,
+   "5": 0.1026
+  },
+  "income_missing_prev": 0.126,
+  "income_present_prev": 0.1249,
+  "diet_missing_prev": 0.1334,
+  "diet_present_prev": 0.1229,
+  "diet_missing_age": 49.5,
+  "diet_present_age": 55.1
+ },
+ "outcome_missing": {
+  "n_eligible": 7809,
+  "n_with_hba1c": 5767,
+  "frac_without_hba1c": 0.2615,
+  "n_not_examined": 1745,
+  "n_examined_no_hba1c": 297,
+  "n_dx_unknown": 3,
+  "dx_rate_examined_no_hba1c": 0.165,
+  "dx_rate_with_hba1c": 0.142,
+  "dx_rate_without_hba1c": 0.1231,
+  "age_with_hba1c": 54.0,
+  "age_without_hba1c": 52.6,
+  "n_without_hba1c": 2042,
+  "dx_rate_interview_only": 0.116,
+  "dx_rate_examined": 0.1431
+ },
+ "median_impute_income": {
+  "median": 2.86,
+  "sd_observed": 1.651,
+  "sd_after": 1.542,
+  "share_at_median_before": 0.0007,
+  "share_at_median_after": 0.1287
+ },
+ "recall": {
+  "n_both_days": 4112,
+  "corr_day1_day2": 0.51,
+  "median_abs_diff": 499.0,
+  "kcal_min": 0.0,
+  "kcal_max": 10446.0,
+  "kcal_lt_500": 70,
+  "kcal_gt_5000": 41
+ },
+ "split": {
+  "train": 4325,
+  "test": 1442,
+  "train_pos": 541,
+  "test_pos": 180,
+  "train_prev": 0.1251,
+  "test_prev": 0.1248
+ },
+ "outliers": {
+  "BMXBMI": {
+   "q1": 24.8,
+   "q3": 33.5,
+   "lo": 11.75,
+   "hi": 46.55,
+   "n_flagged": 131,
+   "n_observed": 4265,
+   "n_above": 130,
+   "n_below": 1,
+   "min": 11.1,
+   "max": 69.9,
+   "prev_flagged": 0.2595,
+   "prev_not": 0.1197
+  },
+  "DR1TKCAL": {
+   "q1": 1388.0,
+   "q3": 2434.0,
+   "lo": -181.0,
+   "hi": 4003.0,
+   "n_flagged": 86,
+   "n_observed": 3449,
+   "n_above": 86,
+   "n_below": 0,
+   "min": 0.0,
+   "max": 10446.0,
+   "prev_flagged": 0.093,
+   "prev_not": 0.1252
+  },
+  "SBP": {
+   "q1": 110.67,
+   "q3": 132.67,
+   "lo": 77.67,
+   "hi": 165.67,
+   "n_flagged": 100,
+   "n_observed": 4195,
+   "n_above": 99,
+   "n_below": 1,
+   "min": 76.3,
+   "max": 232.3,
+   "prev_flagged": 0.19,
+   "prev_not": 0.1228
+  },
+  "isolation_forest": {
+   "contamination": 0.02,
+   "n_flagged": 87,
+   "prev_flagged": 0.1379,
+   "prev_not": 0.1248,
+   "median_bmi_flagged": 40.1,
+   "median_kcal_flagged": 3146.0
+  }
+ },
+ "imputation": {
+  "complete_case": {
+   "n": 2798,
+   "prev": 0.1204,
+   "roc_auc": 0.7853,
+   "roc_auc_sd": 0.0153,
+   "average_precision": 0.3287,
+   "average_precision_sd": 0.0208,
+   "recall": 0.0801,
+   "recall_sd": 0.0219,
+   "balanced_accuracy": 0.5335,
+   "balanced_accuracy_sd": 0.0084,
+   "convergence_warnings": 0,
+   "coverage_train": 0.6469,
+   "coverage_test": 0.6338,
+   "prev_incomplete_rows": 0.1336
+  },
+  "median": {
+   "n": 4325,
+   "prev": 0.1251,
+   "roc_auc": 0.7844,
+   "roc_auc_sd": 0.016,
+   "average_precision": 0.3242,
+   "average_precision_sd": 0.0298,
+   "recall": 0.0592,
+   "recall_sd": 0.0216,
+   "balanced_accuracy": 0.5235,
+   "balanced_accuracy_sd": 0.01,
+   "convergence_warnings": 0
+  },
+  "iterative_indicator": {
+   "n": 4325,
+   "prev": 0.1251,
+   "roc_auc": 0.7905,
+   "roc_auc_sd": 0.0177,
+   "average_precision": 0.3316,
+   "average_precision_sd": 0.0272,
+   "recall": 0.0647,
+   "recall_sd": 0.0254,
+   "balanced_accuracy": 0.5264,
+   "balanced_accuracy_sd": 0.0129,
+   "convergence_warnings": 0
+  }
+ },
+ "baseline": {
+  "accuracy": 0.8749,
+  "roc_auc": 0.5,
+  "average_precision": 0.1251,
+  "recall": 0.0
+ },
+ "encoding": {
+  "one_hot": {
+   "n": 4325,
+   "prev": 0.1251,
+   "roc_auc": 0.7844,
+   "roc_auc_sd": 0.016,
+   "average_precision": 0.3242,
+   "average_precision_sd": 0.0298,
+   "recall": 0.0592,
+   "recall_sd": 0.0216,
+   "balanced_accuracy": 0.5235,
+   "balanced_accuracy_sd": 0.01,
+   "convergence_warnings": 0
+  },
+  "integer_coded": {
+   "n": 4325,
+   "prev": 0.1251,
+   "roc_auc": 0.7803,
+   "roc_auc_sd": 0.0104,
+   "average_precision": 0.3107,
+   "average_precision_sd": 0.0274,
+   "recall": 0.0425,
+   "recall_sd": 0.0182,
+   "balanced_accuracy": 0.516,
+   "balanced_accuracy_sd": 0.0088,
+   "convergence_warnings": 0
+  }
+ },
+ "scaling": {
+  "scaled": {
+   "n": 4325,
+   "prev": 0.1251,
+   "roc_auc": 0.7844,
+   "roc_auc_sd": 0.016,
+   "average_precision": 0.3242,
+   "average_precision_sd": 0.0298,
+   "recall": 0.0592,
+   "recall_sd": 0.0216,
+   "balanced_accuracy": 0.5235,
+   "balanced_accuracy_sd": 0.01,
+   "convergence_warnings": 0
+  },
+  "unscaled_default_iter": {
+   "n": 4325,
+   "prev": 0.1251,
+   "roc_auc": 0.7397,
+   "roc_auc_sd": 0.0112,
+   "average_precision": 0.2941,
+   "average_precision_sd": 0.0279,
+   "recall": 0.0462,
+   "recall_sd": 0.0164,
+   "balanced_accuracy": 0.5186,
+   "balanced_accuracy_sd": 0.0081,
+   "convergence_warnings": 5
+  },
+  "unscaled_max_iter_5000": {
+   "n": 4325,
+   "prev": 0.1251,
+   "roc_auc": 0.7847,
+   "roc_auc_sd": 0.0156,
+   "average_precision": 0.3246,
+   "average_precision_sd": 0.0283,
+   "recall": 0.0555,
+   "recall_sd": 0.0235,
+   "balanced_accuracy": 0.5218,
+   "balanced_accuracy_sd": 0.0101,
+   "convergence_warnings": 5
+  },
+  "ranges": {
+   "RIDAGEYR": [
+    20.0,
+    80.0
+   ],
+   "INDFMPIR": [
+    0.0,
+    5.0
+   ],
+   "BMXBMI": [
+    11.1,
+    69.9
+   ],
+   "SBP": [
+    76.3,
+    232.3
+   ],
+   "LBXTC": [
+    62.0,
+    438.0
+   ],
+   "DR1TKCAL": [
+    0.0,
+    10446.0
+   ]
+  },
+  "kcal": {
+   "mean": 1975.9,
+   "sd": 898.2,
+   "median": 1844.0,
+   "q1": 1388.0,
+   "q3": 2434.0,
+   "min": 0.0,
+   "max": 10446.0
+  }
+ },
+ "imbalance": {
+  "unweighted": {
+   "n": 4325,
+   "prev": 0.1251,
+   "roc_auc": 0.7844,
+   "roc_auc_sd": 0.016,
+   "average_precision": 0.3242,
+   "average_precision_sd": 0.0298,
+   "recall": 0.0592,
+   "recall_sd": 0.0216,
+   "balanced_accuracy": 0.5235,
+   "balanced_accuracy_sd": 0.01,
+   "convergence_warnings": 0
+  },
+  "balanced": {
+   "n": 4325,
+   "prev": 0.1251,
+   "roc_auc": 0.7854,
+   "roc_auc_sd": 0.0144,
+   "average_precision": 0.3204,
+   "average_precision_sd": 0.0292,
+   "recall": 0.7228,
+   "recall_sd": 0.0347,
+   "balanced_accuracy": 0.7085,
+   "balanced_accuracy_sd": 0.0132,
+   "convergence_warnings": 0
+  }
+ },
+ "resampling": {
+  "tree": {
+   "before_split": {
+    "roc_auc": 0.9366,
+    "average_precision": 0.8879,
+    "recall": 0.9987,
+    "precision": 0.8884,
+    "val_prev": 0.5
+   },
+   "inside_folds": {
+    "roc_auc": 0.586,
+    "average_precision": 0.1657,
+    "recall": 0.2865,
+    "precision": 0.2639,
+    "val_prev": 0.1251
+   },
+   "val_rows_also_in_train_before": 0.4984
+  },
+  "logreg": {
+   "before_split": {
+    "roc_auc": 0.7889,
+    "average_precision": 0.7514,
+    "recall": 0.7376,
+    "precision": 0.7049,
+    "val_prev": 0.5
+   },
+   "inside_folds": {
+    "roc_auc": 0.7863,
+    "average_precision": 0.3217,
+    "recall": 0.7246,
+    "precision": 0.2538,
+    "val_prev": 0.1251
+   },
+   "val_rows_also_in_train_before": 0.4984
+  }
+ },
+ "selection_rule": "Among pipelines that can score every participant, take the best mean CV balanced accuracy at threshold 0.5; keep the simplest pipeline within one SD of it.",
+ "chosen": "median_balanced",
+ "test": {
+  "roc_auc": 0.8007,
+  "average_precision": 0.3559,
+  "accuracy": 0.7039,
+  "balanced_accuracy": 0.7237,
+  "recall": 0.75,
+  "precision": 0.2611,
+  "specificity": 0.6973,
+  "tp": 135,
+  "fp": 382,
+  "fn": 45,
+  "tn": 880
+ }
+}

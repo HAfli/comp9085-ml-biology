@@ -1,0 +1,24 @@
+{
+ "model": "sentence-transformers/all-MiniLM-L6-v2",
+ "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+ "parameters": 22713216,
+ "embeddingDimension": 384,
+ "weightsMB": 90.9,
+ "classifier": "LogisticRegression(C=1.0, max_iter=2000) on L2-normalised embeddings",
+ "split": "identical to Week 5 (StratifiedGroupKFold, 4 folds, seed 42, first fold, groups = event_id)",
+ "accuracy": 0.7939,
+ "precision": 0.7443,
+ "recall": 0.7466,
+ "f1": 0.7454,
+ "rocAuc": 0.8636,
+ "averagePrecision": 0.7744,
+ "brier": 0.1474,
+ "fractionExtreme": 0.107,
+ "seconds": {
+  "loadModel": 0.6,
+  "embedAllTexts": 8.4,
+  "fitClassifier": 0.02,
+  "naiveBayesFitAndPredict": 0.06
+ },
+ "hardware": "CPU only (laptop), single run; timings are indicative, not benchmarks"
+}

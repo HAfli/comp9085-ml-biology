@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Week 4: Probability, Bayes and medical decision making | COMP9085</title>
-<meta name="description" content="Why a 99 per cent accurate test can still be wrong most of the time it fires.">
+<title>Week 4: Bayes in healthcare: from prediction to probability | COMP9085</title>
+<meta name="description" content="A prediction is not automatically a diagnosis. What a positive result means depends on the test, the threshold and the population.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Crect width='26' height='26' rx='6' fill='%231f5f4b'/%3E%3Cpath d='M8 5.5c0 4 10 4 10 8s-10 4-10 8' stroke='white' stroke-width='1.6' fill='none'/%3E%3Cpath d='M18 5.5c0 4-10 4-10 8s10 4 10 8' stroke='%23e7c48a' stroke-width='1.6' fill='none'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="../css/main.css">
 <link rel="stylesheet" href="../css/responsive.css">
@@ -15,7 +15,7 @@
   <div class="wrap" style="padding-top:3rem">
     <noscript>
       <div class="noscript-note">
-        <h1>Week 4: Probability, Bayes and medical decision making</h1>
+        <h1>Week 4: Bayes in healthcare: from prediction to probability</h1>
         <p><strong>This page needs JavaScript.</strong> The week pages are
         assembled in the browser from a single course-content file so that the
         material stays consistent across the site, and every figure on this site
@@ -53,6 +53,11 @@
 <script src="../js/visualisations/entropy.js"></script>
 <script src="../js/visualisations/leakage.js"></script>
 <script src="../js/visualisations/bayes.js"></script>
+<script src="../js/visualisations/cm-calc.js"></script>
+<script src="../js/visualisations/prevalence.js"></script>
+<script src="../js/visualisations/threshold.js"></script>
+<script src="../js/visualisations/calibration.js"></script>
+<script src="../js/visualisations/wdbc-models.js"></script>
 <script src="../js/visualisations/naive-bayes.js"></script>
 <script src="../js/visualisations/data-quality.js"></script>
 <script src="../js/visualisations/pca.js"></script>
@@ -64,6 +69,7 @@
 <script src="../js/visualisations/fine-tuning.js"></script>
 <script src="../js/visualisations/foundation-models.js"></script>
 <script src="../js/visualisations/trust.js"></script>
+<script src="../js/data/week04.js"></script>
 <script src="../js/week-page.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {

@@ -103,29 +103,31 @@ window.DATASETS = [
     aka: 'openFDA food/enforcement',
     domain: 'Food safety and nutrition',
     modality: 'Semi-structured records with free text',
-    inSite: false,
+    inSite: true,
     weeks: [5],
     source: 'US Food and Drug Administration',
     sourceRef: 'openfda',
     url: 'https://open.fda.gov/apis/food/enforcement/',
     licence: 'Public domain, CC0 1.0 Universal dedication.',
-    access: 'Free JSON REST API, no key required for modest volumes; an API key raises the rate limit. Bulk downloads are also published. Data runs from 2004 to the present and is updated weekly.',
-    samples: 'Query the API for the current record count; it grows every week, so no fixed figure is quoted here.',
-    features: 'Fields include reason_for_recall (free text), product_description (free text), classification, status, recalling firm, distribution pattern, geographic fields and dates.',
-    target: 'classification: Class I, II or III, defined by the FDA according to the level of hazard. Class I denotes a reasonable probability of serious adverse health consequences or death; Class II, temporary or medically reversible consequences; Class III, use is unlikely to cause adverse health consequences.',
+    access: 'Week 5 uses a frozen snapshot of the openFDA bulk export (last_updated 2026-09-28; SHA-256 of the zip recorded in labs/week05/data/PROVENANCE.json), shipped with the lab as labs/week05/data/openfda_food_recall_events.csv. Neither the lab nor this site calls the API. The live API and weekly bulk downloads remain free to use, with no key needed for modest volumes.',
+    samples: '9,490 event–reason–classification records (7,890 recall events; 9,394 event–reason pairs), de-duplicated from 29,462 classified product records. Report dates June 2012 to September 2026.',
+    features: 'In the snapshot: event_id, report_date, classification, is_class_I, n_product_records and reason_for_recall (free text, the model input). The full export also has product_description, recalling firm, distribution pattern, status and geographic fields.',
+    target: 'is_class_I: 1 for Class I (3,836 rows, 40.4%), 0 for Class II (4,882) or Class III (772). FDA defines Class I as a reasonable probability of serious adverse health consequences or death; Class II, temporary or medically reversible consequences or a remote probability of serious ones; Class III, use is not likely to cause adverse health consequences.',
     biology:
       'Each record is a real food-safety event: an undeclared allergen, a pathogen ' +
       'contamination, a labelling error, a foreign-body incident. Predicting the hazard ' +
-      'classification from the free-text reason is a genuine and useful text-classification ' +
-      'task, and the vocabulary is domain-specific enough to be interesting.',
+      'classification from the free-text reason is a genuine text-classification task, ' +
+      'and the data also teaches a data lesson: one recall event covers many products ' +
+      'with the same text, so the event, not the product record, is the unit of observation.',
     limitations: [
       'The classification is an FDA administrative decision, not a measured health outcome. A model predicting it learns how the FDA classifies, which is related to but not identical with actual risk.',
-      'The FDA explicitly states the data should not be used to issue public alerts or to track the lifecycle of a recall, and that recall status is not updated after classification.',
-      'Free text is written by many people over two decades, so style and terminology drift over time. A random train/test split will therefore be optimistic relative to prospective use.',
-      'Classes are imbalanced, and the balance itself changes across years.',
+      'One recall event can cover hundreds of product records with the same reason text. Splitting by record puts identical texts on both sides of the split; Week 5 splits by event.',
+      '95 event–reason pairs carry more than one FDA classification within the same event, 73 of them conflicting on the Class I target: real label conflicts, kept in the data, showing that the text alone does not necessarily determine the label. Many texts also repeat stock phrases or name the recalling firm, which a classifier can learn instead of the hazard.',
+      'The FDA states the data should not be used for medical decisions or public alerting; recall status is not updated after classification.',
+      'Free text is written by many people over many years, so wording drifts over time. A random split will be optimistic relative to prospective use.',
       'US-only, so it does not generalise to other regulatory regimes.'
     ],
-    citation: 'U.S. Food and Drug Administration. openFDA Food Enforcement API.'
+    citation: 'U.S. Food and Drug Administration. openFDA Food Enforcement reports, bulk export with last_updated 2026-09-28.'
   },
   {
     id: 'tcga',
@@ -185,6 +187,37 @@ window.DATASETS = [
       'Confidence is self-reported by the model. It is well calibrated in aggregate but is not a guarantee for any individual structure.'
     ],
     citation: 'Varadi, M. et al. (2024). AlphaFold Protein Structure Database in 2024. Nucleic Acids Research 52(D1):D368-D375.'
+  },
+  {
+    id: 'heartCleveland',
+    name: 'Heart Disease (Cleveland Clinic subset)',
+    aka: 'UCI Heart Disease, processed.cleveland.data',
+    domain: 'Healthcare',
+    modality: 'Tabular, clinical: continuous measurements and coded categories',
+    inSite: true,
+    weeks: [8],
+    source: 'UCI Machine Learning Repository',
+    sourceRef: 'janosi1988',
+    url: 'https://archive.ics.uci.edu/dataset/45/heart+disease',
+    licence: 'CC BY 4.0',
+    access: 'Open download. The Week 8 lab ships a frozen copy with a header row (labs/week08/data/), with checksums in PROVENANCE.json; no account or network is needed in the lab.',
+    samples: '303 patients (Cleveland Clinic Foundation, collected 1981-1984)',
+    features: '13: five continuous (age, resting blood pressure, serum cholesterol, maximum heart rate on exercise, ST depression) and eight categorical or binary (sex, chest-pain type, fasting blood sugar > 120 mg/dl, resting ECG, exercise-induced angina, ST slope, number of major vessels coloured by fluoroscopy, thallium scan result). Six values are missing (ca 4, thal 2).',
+    target: 'Angiographic coronary artery disease, recorded 0-4 and used here as present (1-4: 139) or absent (0: 164).',
+    biology:
+      'Patients referred for coronary angiography had non-invasive tests (exercise ECG, thallium ' +
+      'scintigraphy, fluoroscopy) and routine measurements; the angiogram, which shows whether a major ' +
+      'coronary artery is narrowed by more than 50 per cent, provides the label. The measurements sit on ' +
+      'very different scales and several categories are stored as integer codes, which is exactly what ' +
+      'makes the dataset instructive for distance-based methods [ref:detrano1989].',
+    limitations: [
+      'A referral population (patients already suspected of coronary disease), so prevalence (46%) and every predictive value are far higher than in the general population.',
+      'Collected in the early 1980s at one centre; diagnostic practice and risk-factor treatment have changed since.',
+      'Only 303 patients: cross-validation estimates have a fold-to-fold SD of several percentage points, and many model settings are statistically indistinguishable.',
+      'Integer-coded categories (chest-pain type 1-4, thal 3/6/7) look numerical but are not quantities.',
+      'Sex is recorded as binary and the cohort is two-thirds male, so performance for women is poorly estimated.'
+    ],
+    citation: 'Janosi, A., Steinbrunn, W., Pfisterer, M. & Detrano, R. (1988). Heart Disease [Dataset]. UCI Machine Learning Repository. DOI 10.24432/C52P4X'
   },
   {
     id: 'proteinSim',

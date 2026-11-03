@@ -25,7 +25,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 PAGES = [
     "index.html", "start-here.html", "canvas.html", "roadmap.html",
     "weeks/index.html", "labs/index.html", "datasets.html",
-    "foundation-models.html",
+    "foundation-models.html", "interactives.html",
 ] + [f"weeks/week{n:02d}.html" for n in range(1, 13)]
 
 # canvas.html deliberately carries no site chrome: it is embedded inside

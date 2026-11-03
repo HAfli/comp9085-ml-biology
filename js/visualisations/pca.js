@@ -235,6 +235,10 @@
       }
       window.UI.setMetric('pca-two', window.Chart.pct(c2),
         'variance in the first two components');
+      var pair = state.cx === state.cy ? pca.explained[state.cx]
+                                       : pca.explained[state.cx] + pca.explained[state.cy];
+      window.UI.setMetric('pca-pair', window.Chart.pct(pair),
+        'variance in PC' + (state.cx + 1) + ' + PC' + (state.cy + 1) + ', the pair plotted');
       window.UI.setMetric('pca-90', String(need90) + ' comps',
         'needed to reach 90% of the variance');
       var best = accByK.reduce(function (a, b) { return b.acc > a.acc ? b : a; });
@@ -270,6 +274,14 @@
           'one axis. That is the redundancy it exists to find.';
       }
 
+      if (state.cx + state.cy !== 1) {
+        msg += ' You are plotting PC' + (state.cx + 1) + ' against PC' + (state.cy + 1) +
+          ', which together carry ' + window.Chart.pct(state.cx === state.cy
+            ? pca.explained[state.cx] : pca.explained[state.cx] + pca.explained[state.cy]) +
+          ' of the variance. Whether the diagnoses separate on a pair is a different ' +
+          'question from how much variance it carries: the directions of largest ' +
+          'variance are not guaranteed to be the most diagnostic.';
+      }
       msg += ' The right-hand panel measures what the reduction costs. Two ' +
         'components give ' + window.Chart.pct(accByK[1].acc) +
         ' and the full 30 give ' +
