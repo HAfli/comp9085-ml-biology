@@ -323,7 +323,8 @@
       return '<tr>' +
         '<th scope="row"><a href="' + url('weeks/week' + U.pad(w.n) + '.html') +
           '"><strong>' + w.n + '</strong><br>' + U.esc(w.title) + '</a></th>' +
-        '<td>' + U.esc(w.short) + '</td>' +
+        '<td>' + U.esc(w.short) + (w.scheduleNote ? '<br><span class="small" style="color:var(--nucleus)">' +
+          (w.n === 8 ? 'Taught before Week 7 this year.' : 'Taught after Week 8 this year.') + '</span>' : '') + '</td>' +
         '<td>' + U.esc(w.concepts[0].term) +
           (w.concepts[1] ? ', ' + U.esc(w.concepts[1].term) : '') + '</td>' +
         '<td>' + (fmModels || '<span class="muted">deliberately none</span>') + '</td>' +
@@ -348,6 +349,8 @@
           url('weeks/week' + U.pad(w.n) + '.html') + '">' + U.esc(w.title) +
           '</a></h3>' +
         '<p>' + U.esc(w.short) + '</p>' +
+        (w.scheduleNote ? '<p class="small" style="color:var(--nucleus)"><strong>Teaching order:</strong> ' +
+          U.esc(w.scheduleNote) + '</p>' : '') +
         '<div class="grid grid-2" style="gap:var(--s4)">' +
           '<div><h4 style="margin-top:0;font-size:0.82rem;text-transform:uppercase;' +
             'letter-spacing:0.05em;color:var(--ink-3)">Biological application</h4>' +
