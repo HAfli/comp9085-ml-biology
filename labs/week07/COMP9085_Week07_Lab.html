@@ -7796,77 +7796,71 @@ a.anchor-link {
 <!-- End of mermaid configuration --></head>
 <body class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <main>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4543470b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e9ef159c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="COMP9085-Week-7-Laboratory">COMP9085 Week 7 Laboratory<a class="anchor-link" href="#COMP9085-Week-7-Laboratory">¶</a></h1><h2 id="PCA-and-the-geometry-of-a-learned-representation">PCA and the geometry of a learned representation<a class="anchor-link" href="#PCA-and-the-geometry-of-a-learned-representation">¶</a></h2><p><strong>Two hours.</strong> Until now you have chosen the features. This week you meet two ways of
-<em>replacing</em> them: principal component analysis (PCA), which finds a few directions that
-summarise many measured features, and a protein <strong>foundation model</strong>, which turns a raw
-sequence into a vector it learned to produce from millions of unlabelled proteins. You will
-reduce a real dataset properly, look inside a real learned representation, and then test,
-with one fixed classifier, what that representation sees that simple features do not.</p>
-<p><strong>Part A (Tasks 1–5, about 50 minutes): WDBC.</strong> The breast-mass data from Weeks 2–4
-(569 fine-needle aspirates, 30 nuclear measurements), loaded from scikit-learn's bundled copy.</p>
-<p><strong>Part B (Tasks 6–10, about 60 minutes): human proteins.</strong> 2,000 reviewed human proteins
-from UniProtKB/Swiss-Prot (release 2026_03), one per UniRef50 cluster, each
-with two real annotations (is it an integral <strong>membrane</strong> protein? does it carry an
-N-terminal <strong>signal peptide</strong>?) and a real 320-dimensional embedding from the protein
-language model <strong>ESM-2</strong> (8 million parameters). The module team computed the embeddings
-once; you load them from <code>data/</code>. <strong>No network, no GPU and no deep-learning library are
-needed.</strong> <code>data/README.md</code> documents every column and <code>data/PROVENANCE.json</code> the sources,
-model version and checksums.</p>
-<p><strong>The question.</strong> When does a representation learned by a foundation model beat features
-a biologist would choose, and <em>why</em>? A higher score is not an answer. An answer says what
-property of the task the representation captures.</p>
+<h1 id="COMP9085-Week-7-Laboratory">COMP9085 Week 7 Laboratory<a class="anchor-link" href="#COMP9085-Week-7-Laboratory">¶</a></h1><h2 id="Protein-representations,-dimensionality-reduction-and-k-NN:-classical-features-versus-ESM-2">Protein representations, dimensionality reduction and k-NN: classical features versus ESM-2<a class="anchor-link" href="#Protein-representations,-dimensionality-reduction-and-k-NN:-classical-features-versus-ESM-2">¶</a></h2><p><strong>Two hours.</strong> Last session you built k-NN and found that everything depends on the space in
+which "nearest" is measured. Today you build three kinds of space for the same 2,000 real human
+proteins (hand-made descriptors, a pretrained protein language-model embedding, and reduced
+versions of both) and find out, with a controlled experiment, which one gives k-NN the more
+useful neighbours, for which biological question, and why.</p>
+<p><strong>The data.</strong> 2,000 reviewed human proteins from <strong>UniProtKB/Swiss-Prot</strong>
+(release 2026_03), one per UniRef50 cluster, 50–1,000 residues. Two
+labels from UniProt keywords: <strong>signal peptide</strong> (KW-0732; 350 proteins) and
+<strong>transmembrane</strong> (KW-0812; 488). Each protein also has an <strong>ESM-2 embedding</strong>
+(<code>facebook/esm2_t6_8M_UR50D</code>, 8 million parameters, 320 numbers), computed once by the module
+team from the real sequence and from a residue-shuffled copy. Everything is in <code>data/</code>:
+<code>data/README.md</code> documents every column and <code>data/PROVENANCE.json</code> the source, the model
+version and checksums. <strong>No network, GPU or deep-learning package is needed.</strong></p>
+<p><strong>The question.</strong> If k-NN predicts a protein's annotation from its nearest neighbours, does it
+find better neighbours among proteins with similar <em>composition and hydropathy</em>, or among
+proteins with similar <em>ESM-2 embeddings</em>? And what happens to the neighbours when we reduce
+dimension with PCA, t-SNE or UMAP?</p>
 <p><strong>By the end of this lab you should be able to</strong></p>
 <ol>
-<li>explain the curse of dimensionality and show distance concentration numerically;</li>
-<li>perform PCA correctly (standardised, inside a pipeline when it feeds a model) and
-interpret the explained-variance spectrum and the loadings;</li>
-<li>distinguish what PCA preserves from what a neighbour embedding (t-SNE) preserves, and
-read each plot without over-reading it;</li>
-<li>describe how a protein language-model embedding is produced, and measure two properties
-of its geometry (anisotropy, effective dimension);</li>
-<li>compare engineered and learned representations under one fixed classifier and one
-protocol, and use a control experiment to explain <em>why</em> they differ.</li>
+<li>explore a real protein dataset and say where its labels come from and how reliable they are;</li>
+<li>compute classical sequence descriptors and say what each can and cannot see;</li>
+<li>apply PCA correctly and interpret the spectrum, the loadings and the effect of scaling;</li>
+<li>run and read t-SNE and UMAP, and measure how faithful a 2-D map is;</li>
+<li>use pretrained ESM-2 embeddings in a downstream k-NN task, with preprocessing in the folds;</li>
+<li>compare two representations fairly, select hyperparameters by cross-validation, evaluate once,
+and interpret the difference with its uncertainty and its biological limits.</li>
 </ol>
-<p><strong>Prerequisites.</strong> Weeks 3–6: train/test splits, <code>StratifiedKFold</code>, <code>Pipeline</code>, baselines,
-ROC AUC and average precision. No biology beyond the two short explanations in Part B.</p>
-<p><strong>How the cells work.</strong> Cells marked <em>provided</em> run as they are: read them, run them, and
-make sure you understand them. Cells containing <code># your code here</code> are yours. Before some
-tasks you are asked to <strong>predict</strong> a result first: write the prediction down before you
-run anything.</p>
-<p><strong>Structure.</strong> <strong>Tasks 1–10 are the core lab.</strong> A checkpoint after Task 10 marks the end of
-the core; three optional extensions and a final reflection follow.</p>
-<p><strong>Rules for the whole lab.</strong> Each dataset is split once, in a provided cell. Every choice is
-made with 5-fold cross-validation on the training rows. Each test set is used <strong>once</strong>
-(Task 5 and Task 10). Anything that learns from data (scaler, PCA, classifier) is fitted
-inside a <code>Pipeline</code>, so cross-validation refits it in every fold.</p>
-<p><strong>Practice, not assessment.</strong> This lab is not part of Assignment 1 and uses different
-data. Do not add PCA or embeddings to your assignment because they appear here; use a
-method there only if you can justify it for <em>your</em> data, with <em>your</em> numbers.</p>
-<p><strong>The Week 7 page is your interactive companion.</strong> Its PCA visualiser lets you rotate and
-project WDBC yourself; use it alongside Tasks 2–4.</p>
-<p><strong>Deliverable.</strong> This notebook, run top to bottom (<strong>Kernel → Restart &amp; Run All</strong>), with
-every question answered in the markdown cells using your own numbers.</p>
+<p><strong>Time plan.</strong> Tasks 1–2 about 20 min · Tasks 3–5 about 35 min · Task 6 about 30 min ·
+Tasks 7–9 about 35 min. <strong>Tasks 1–9 are the core lab.</strong> Four optional extensions follow.</p>
+<p><strong>How the cells work.</strong> Cells marked <em>provided</em> run as they are: read them, then run them.
+Cells containing <code># your code here</code> are yours; nothing later depends on them, so the notebook
+still runs if you skip one. Some tasks ask you to <strong>predict</strong> first: write the prediction
+down before running anything. Markdown cells marked <em>Your answer here</em> are for written
+answers, using your own numbers.</p>
+<p><strong>Rules for the whole lab.</strong> The proteins are split once, in a provided cell, into 1,500
+training and 500 test proteins (the Week 7 split). Every choice is made with 5-fold
+cross-validation on the training proteins. The test set is used <strong>once</strong>, in Task 6. Anything
+that learns from data (scaler, PCA) sits inside a <code>Pipeline</code>, so it is refitted in every fold.</p>
+<p><strong>The Week 7 page is your interactive companion</strong>
+(<a href="https://hafli.github.io/comp9085-ml-biology/weeks/week07.html">https://hafli.github.io/comp9085-ml-biology/weeks/week07.html</a>). Its section 11 maps each task
+to the exercise that shows the same idea with the same numbers.</p>
+<p><strong>Practice, not assessment.</strong> This lab is not part of Assignment 1 and uses different data.</p>
+<p><strong>Deliverable.</strong> This notebook, run top to bottom (<strong>Kernel → Restart &amp; Run All</strong>), with every
+question answered in the markdown cells.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6f7e1a1b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7e7f4aa9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Setup">Setup<a class="anchor-link" href="#Setup">¶</a></h3><p>Run this cell first.</p>
+<h3 id="Setup-(provided)">Setup (provided)<a class="anchor-link" href="#Setup-(provided)">¶</a></h3><p>Run this cell first. <code>umap-learn</code> is optional: if it is not installed, the UMAP cells are skipped (<code>pip install umap-learn</code> to add it).</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=471371ba">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=0a64b7b3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7874,69 +7868,53 @@ every question answered in the markdown cells using your own numbers.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_breast_cancer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.decomposition</span><span class="w"> </span><span class="kn">import</span> <span class="n">PCA</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.manifold</span><span class="w"> </span><span class="kn">import</span> <span class="n">TSNE</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.linear_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogisticRegression</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">,</span> <span class="n">average_precision_score</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_test_split</span><span class="p">,</span> <span class="n">StratifiedKFold</span><span class="p">,</span> <span class="n">cross_validate</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_pipeline</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.manifold</span><span class="w"> </span><span class="kn">import</span> <span class="n">TSNE</span><span class="p">,</span> <span class="n">trustworthiness</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">roc_auc_score</span><span class="p">,</span> <span class="n">average_precision_score</span><span class="p">,</span> <span class="n">confusion_matrix</span><span class="p">,</span>
+                             <span class="n">ConfusionMatrixDisplay</span><span class="p">,</span> <span class="n">precision_score</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">,</span> <span class="n">f1_score</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_test_split</span><span class="p">,</span> <span class="n">StratifiedKFold</span><span class="p">,</span> <span class="n">GridSearchCV</span><span class="p">,</span> <span class="n">cross_val_score</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.neighbors</span><span class="w"> </span><span class="kn">import</span> <span class="n">KNeighborsClassifier</span><span class="p">,</span> <span class="n">NearestNeighbors</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pipeline</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">StandardScaler</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">sklearn</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"scikit-learn"</span><span class="p">,</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="s2">"| pandas"</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="s2">"| numpy"</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">umap</span>
+    <span class="n">HAVE_UMAP</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">HAVE_UMAP</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"scikit-learn"</span><span class="p">,</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="s2">"| pandas"</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="s2">"| numpy"</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span>
+      <span class="s2">"| umap-learn"</span><span class="p">,</span> <span class="n">umap</span><span class="o">.</span><span class="n">__version__</span> <span class="k">if</span> <span class="n">HAVE_UMAP</span> <span class="k">else</span> <span class="s2">"not installed"</span><span class="p">)</span>
 
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
 <span class="n">SEED</span> <span class="o">=</span> <span class="mi">42</span>
-<span class="n">CV</span> <span class="o">=</span> <span class="n">StratifiedKFold</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span>
 <span class="n">DATA</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"data"</span><span class="p">)</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">cv_scores</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">(</span><span class="s2">"roc_auc"</span><span class="p">,</span> <span class="s2">"average_precision"</span><span class="p">)):</span>
-<span class="w">    </span><span class="sd">"""Mean 5-fold CV score of a pipeline on the TRAINING rows (the course protocol)."""</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="n">cross_validate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">CV</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">metrics</span><span class="p">))</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="p">{</span><span class="n">m</span><span class="p">:</span> <span class="n">s</span><span class="p">[</span><span class="sa">f</span><span class="s2">"test_</span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">metrics</span><span class="p">}</span>
-    <span class="n">out</span><span class="p">[</span><span class="s2">"roc_auc_sd"</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s2">"test_roc_auc"</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"roc_auc"</span> <span class="ow">in</span> <span class="n">metrics</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-    <span class="k">return</span> <span class="n">out</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">"figure.dpi"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">90</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0a445194">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b9f02f97">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Part-A-%E2%80%94-Principal-component-analysis-on-WDBC">Part A — Principal component analysis on WDBC<a class="anchor-link" href="#Part-A-%E2%80%94-Principal-component-analysis-on-WDBC">¶</a></h1><hr/>
-<h2 id="Task-1-%E2%80%94-The-curse-of-dimensionality-(provided,-about-8-minutes)">Task 1 — The curse of dimensionality (provided, about 8 minutes)<a class="anchor-link" href="#Task-1-%E2%80%94-The-curse-of-dimensionality-(provided,-about-8-minutes)">¶</a></h2><p>Many biological datasets are <em>wide</em>: a transcriptome measures 20,000 genes in perhaps 200
-patients. The cell below draws 1,000 points uniformly at random in a cube of dimension
-<em>d</em> and measures the distance from the first point to every other point.</p>
-<p><strong>Predict first.</strong> As <em>d</em> grows from 2 to 1,000, what happens to the ratio between the
-farthest and the nearest of those distances? Write your prediction here, then run the cell.</p>
+<h2 id="Task-1.-Explore-the-protein-dataset-(about-15-minutes)">Task 1. Explore the protein dataset (about 15 minutes)<a class="anchor-link" href="#Task-1.-Explore-the-protein-dataset-(about-15-minutes)">¶</a></h2><p>Start with the data, not the model. Load the proteins and the two embedding files (provided).</p>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8c7ce90f">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><em>(Prediction.)</em></p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=dd9d1072">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=ab76a9e6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -7944,97 +7922,31 @@ farthest and the nearest of those distances? Write your prediction here, then ru
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">SEED</span><span class="p">)</span>
-<span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]:</span>
-    <span class="n">P</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">1000</span><span class="p">,</span> <span class="n">d</span><span class="p">))</span>
-    <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">P</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"dimension"</span><span class="p">:</span> <span class="n">d</span><span class="p">,</span> <span class="s2">"nearest"</span><span class="p">:</span> <span class="n">dist</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="s2">"farthest"</span><span class="p">:</span> <span class="n">dist</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
-                 <span class="s2">"relative contrast (far - near) / near"</span><span class="p">:</span> <span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">dist</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="n">dist</span><span class="o">.</span><span class="n">min</span><span class="p">()})</span>
-<span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"dimension"</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># provided</span>
+<span class="n">prot</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">DATA</span> <span class="o">/</span> <span class="s2">"swissprot_human_2000.csv"</span><span class="p">)</span>
+<span class="n">emb</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">DATA</span> <span class="o">/</span> <span class="s2">"esm2_t6_8M_embeddings.csv.gz"</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"accession"</span><span class="p">)</span>
+<span class="n">emb_shuf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">DATA</span> <span class="o">/</span> <span class="s2">"esm2_t6_8M_embeddings_shuffled.csv.gz"</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"accession"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"proteins:"</span><span class="p">,</span> <span class="n">prot</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">"| embeddings:"</span><span class="p">,</span> <span class="n">emb</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">"| shuffled-sequence embeddings:"</span><span class="p">,</span> <span class="n">emb_shuf</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">prot</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"sequence"</span><span class="p">,</span> <span class="s2">"shuffled_sequence"</span><span class="p">])</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b877b26b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=28d27605">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Question 1.1.</strong> Describe what happens to the nearest and farthest distances, and to
-their relative contrast, as the dimension grows. Why does this matter for any method that
-relies on "the nearest points" (next week: k-nearest neighbours)?</p>
-<p><strong>Question 1.2.</strong> WDBC has 30 features and 569 cases; a transcriptome study might have 20,000
-features and 200 cases. Give one reason why reducing the dimension can help, and one thing
-you could lose by doing it.</p>
+<p><strong>1a.</strong> Describe the data with code: the distribution of sequence <code>length</code> (summary and a
+histogram, split by each label), the missing values in every column, how many proteins carry
+each label and how many carry both (<code>pd.crosstab</code>), and whether any sequence appears twice.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7fd173f3">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><em>Your answer here.</em></p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f1da4ef9">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="Task-2-%E2%80%94-PCA-on-standardised-WDBC-(about-10-minutes)">Task 2 — PCA on standardised WDBC (about 10 minutes)<a class="anchor-link" href="#Task-2-%E2%80%94-PCA-on-standardised-WDBC-(about-10-minutes)">¶</a></h2><p>The provided cell loads WDBC with <strong>malignant = 1</strong>, as in Weeks 2–4, and makes the one
-split used in Part A (stratified, 30% test, <code>SEED = 42</code>, the Week 4 protocol).</p>
-<p>In this task you are <strong>describing</strong> the data, not evaluating a model, so PCA is fitted on
-all 569 cases and no label is used. When PCA feeds a model (Task 4) it goes inside the
-pipeline instead.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=f630f5b1">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">wdbc</span> <span class="o">=</span> <span class="n">load_breast_cancer</span><span class="p">()</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">wdbc</span><span class="o">.</span><span class="n">data</span>
-<span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">wdbc</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>          <span class="c1"># 1 = malignant</span>
-<span class="n">feature_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">wdbc</span><span class="o">.</span><span class="n">feature_names</span><span class="p">)</span>
-<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">stratify</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">"| malignant:"</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="s2">"| train"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_train</span><span class="p">),</span> <span class="s2">"| test"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_test</span><span class="p">))</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=03d3cebc">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Your task.</strong> Standardise <code>X</code> with <code>StandardScaler</code>, fit <code>PCA()</code> (all components), and
-plot (a) the explained-variance ratio of each component (a <em>scree plot</em>) and (b) the
-cumulative explained variance, with a horizontal line at 0.90. Store the fitted PCA as
-<code>pca_all</code> and print how many components are needed to reach 90% and 95%.</p>
-<p><em>Hint:</em> <code>pca_all.explained_variance_ratio_</code> and <code>np.cumsum</code>.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=b54103cf">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=b78b5c78">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8049,23 +7961,83 @@ cumulative explained variance, with a horizontal line at 0.90. Store the fitted 
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5e976cb2">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6c9b29ae">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Question 2.1.</strong> How much variance do the first two components carry, and how many
-components do you need for 90%? What does that say about how much a two-dimensional plot
-of WDBC can show?</p>
-<p><strong>Question 2.2.</strong> WDBC measures 30 features, but ten of them are the <em>mean</em>, ten the
-<em>standard error</em> and ten the <em>worst</em> value of the same ten nuclear properties. Why would you
-expect such data to be compressible?</p>
+<p><strong>1b.</strong> Where do the labels come from? The provided cell counts the strongest evidence code
+behind each annotation (see <code>data/README.md</code>).</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=14662cef">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># provided</span>
+<span class="n">sp</span> <span class="o">=</span> <span class="n">prot</span><span class="p">[</span><span class="s2">"has_signal_peptide"</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+<span class="n">tm</span> <span class="o">=</span> <span class="n">prot</span><span class="p">[</span><span class="s2">"is_transmembrane"</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"signal-peptide labels by evidence:</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">prot</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">sp</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"sp_evidence"</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(),</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"transmembrane labels by evidence:</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">prot</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">tm</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"tm_evidence"</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">())</span>
+</pre></div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=df5da2c9">
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=83af9a18">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>1c. The split (provided).</strong> One stratified 75/25 split on both labels together, seed 42:
+the same split as the Week 7 lecture and website. Every model in this lab uses these indices.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=021f5eed">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># provided</span>
+<span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">prot</span><span class="p">))</span>
+<span class="n">train_idx</span><span class="p">,</span> <span class="n">test_idx</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">stratify</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">tm</span> <span class="o">+</span> <span class="n">sp</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span>
+<span class="n">CV</span> <span class="o">=</span> <span class="n">StratifiedKFold</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">"train"</span><span class="p">:</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">train_idx</span><span class="p">),</span> <span class="n">sp</span><span class="p">[</span><span class="n">train_idx</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">tm</span><span class="p">[</span><span class="n">train_idx</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()],</span>
+              <span class="s2">"test"</span><span class="p">:</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">test_idx</span><span class="p">),</span> <span class="n">sp</span><span class="p">[</span><span class="n">test_idx</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">tm</span><span class="p">[</span><span class="n">test_idx</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()]},</span>
+             <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">"proteins"</span><span class="p">,</span> <span class="s2">"signal peptide"</span><span class="p">,</span> <span class="s2">"transmembrane"</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=26582dab">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Question 1.</strong> (a) What fraction of proteins carry each label, and what does that imply for
+accuracy as a metric? (b) Most labels come from "sequence analysis". What does that mean, and
+why might it matter when the <em>inputs</em> to our models are also computed from the sequence?
+(c) A protein with <code>has_signal_peptide = 0</code>: has it been shown to lack a signal peptide?</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=44a92fc1">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8076,21 +8048,25 @@ expect such data to be compressible?</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c5bdc130">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47d4ab4f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="Task-3-%E2%80%94-What-the-components-mean,-and-why-scaling-matters-(about-12-minutes)">Task 3 — What the components mean, and why scaling matters (about 12 minutes)<a class="anchor-link" href="#Task-3-%E2%80%94-What-the-components-mean,-and-why-scaling-matters-(about-12-minutes)">¶</a></h2><p>A component is a weighted sum of the original features. The weights are its <strong>loadings</strong>.
-The provided cell shows the six largest loadings (by absolute value) of PC1 and PC2. The sign
-of a component is arbitrary: PCA could return PC1 or −PC1, so read the <em>pattern</em> of signs,
-not the signs themselves.</p>
+<h2 id="Task-2.-Classical-protein-descriptors-(about-10-minutes)">Task 2. Classical protein descriptors (about 10 minutes)<a class="anchor-link" href="#Task-2.-Classical-protein-descriptors-(about-10-minutes)">¶</a></h2><p>The simplest fixed-length description of a protein is its <strong>amino-acid composition</strong>: the
+fraction of each of the 20 residues. It ignores order completely. We add three more descriptors:
+<strong>log length</strong>, and two summaries of the <strong>Kyte–Doolittle hydropathy</strong> scale (Kyte and Doolittle,
+1982): the highest mean hydropathy over any 19-residue window (a membrane-spanning helix is about
+that long and strongly hydrophobic) and the mean hydropathy of the first 25 residues (where a
+signal peptide's hydrophobic core sits). Unlike composition, the last two depend on <em>where</em>
+residues are.</p>
+<p><strong>2a.</strong> Using the scale <code>KD</code> below, write <code>max_hydropathy(seq, w=19)</code> and
+<code>nterm_hydropathy(seq, n=25)</code>, and compute both for the first protein.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=4439ffc9">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=6ddb63d3">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8098,54 +8074,17 @@ not the signs themselves.</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">Z</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-<span class="n">pca2</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
-    <span class="n">load</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">pca2</span><span class="o">.</span><span class="n">components_</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">feature_names</span><span class="p">)</span>
-    <span class="n">top</span> <span class="o">=</span> <span class="n">load</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">load</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">)[:</span><span class="mi">6</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"PC</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">pca2</span><span class="o">.</span><span class="n">explained_variance_ratio_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> of variance)  "</span>
-          <span class="sa">f</span><span class="s2">"| loadings with the same sign: </span><span class="si">{</span><span class="nb">max</span><span class="p">((</span><span class="n">load</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="w"> </span><span class="p">(</span><span class="n">load</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="si">}</span><span class="s2"> of 30"</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">top</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">to_string</span><span class="p">(),</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-
-<span class="n">scores</span> <span class="o">=</span> <span class="n">pca2</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">Z</span><span class="p">)[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">5.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">))</span>
-<span class="k">for</span> <span class="n">lab</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"#4a90c2"</span><span class="p">,</span> <span class="s2">"benign"</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">"#c8102e"</span><span class="p">,</span> <span class="s2">"malignant"</span><span class="p">)]:</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="n">y</span> <span class="o">==</span> <span class="n">lab</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">scores</span><span class="p">[</span><span class="n">y</span> <span class="o">==</span> <span class="n">lab</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">col</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s2">"PC1"</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s2">"PC2"</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">"WDBC projected on PC1 and PC2"</span><span class="p">);</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># provided: the Kyte-Doolittle hydropathy scale (J Mol Biol 1982;157:105-132)</span>
+<span class="n">KD</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"A"</span><span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span> <span class="s2">"R"</span><span class="p">:</span> <span class="o">-</span><span class="mf">4.5</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.5</span><span class="p">,</span> <span class="s2">"D"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.5</span><span class="p">,</span> <span class="s2">"C"</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span> <span class="s2">"Q"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.5</span><span class="p">,</span> <span class="s2">"E"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.5</span><span class="p">,</span> <span class="s2">"G"</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.4</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.2</span><span class="p">,</span>
+      <span class="s2">"I"</span><span class="p">:</span> <span class="mf">4.5</span><span class="p">,</span> <span class="s2">"L"</span><span class="p">:</span> <span class="mf">3.8</span><span class="p">,</span> <span class="s2">"K"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.9</span><span class="p">,</span> <span class="s2">"M"</span><span class="p">:</span> <span class="mf">1.9</span><span class="p">,</span> <span class="s2">"F"</span><span class="p">:</span> <span class="mf">2.8</span><span class="p">,</span> <span class="s2">"P"</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.6</span><span class="p">,</span> <span class="s2">"S"</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.8</span><span class="p">,</span> <span class="s2">"T"</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.7</span><span class="p">,</span> <span class="s2">"W"</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.9</span><span class="p">,</span>
+      <span class="s2">"Y"</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.3</span><span class="p">,</span> <span class="s2">"V"</span><span class="p">:</span> <span class="mf">4.2</span><span class="p">}</span>
+<span class="n">AA</span> <span class="o">=</span> <span class="s2">"ACDEFGHIKLMNPQRSTVWY"</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=eaa5fa61">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Predict first.</strong> If you run PCA on the <strong>unscaled</strong> features, what share of the
-variance do you expect PC1 to take, and which feature will dominate it? (Look at the units:
-<code>worst area</code> is in square pixels, <code>mean smoothness</code> is a small dimensionless number.)</p>
-<p><strong>Your task.</strong> Fit <code>PCA()</code> on the unscaled <code>X</code>. Print PC1's share of the variance and the
-feature with the largest absolute loading on PC1. Then print the standard deviations of
-<code>worst area</code> and <code>mean smoothness</code>.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ce6d11be">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><em>(Prediction.)</em></p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=c4c37ac0">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=6964f595">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8160,48 +8099,19 @@ feature with the largest absolute loading on PC1. Then print the standard deviat
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=4ef17e82">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9850445a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Question 3.1.</strong> All 30 loadings of PC1 have the same sign. Describe in words what a
-case with a high score on PC1 looks like (use the features with the largest loadings), and
-relate it to what a pathologist looks for in a malignant nucleus.</p>
-<p><strong>Question 3.2.</strong> PC2 contrasts the fractal-dimension features with the size features. What
-kind of variation does it describe, and does it separate the two diagnoses in the plot?</p>
-<p><strong>Question 3.3.</strong> Explain the unscaled result. When would PCA on unscaled data be the right
-choice?</p>
+<p><strong>2b. The feature matrices (provided).</strong> The module's reference implementation builds the
+23 classical descriptors for every protein (and for the shuffled sequences, used in Task 8). Check
+that your two functions agree with columns 21 and 22 for the first protein.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c9d9135c">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><em>Your answer here.</em></p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=48f47979">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Seeing-versus-measuring:-t-SNE-(provided)">Seeing versus measuring: t-SNE (provided)<a class="anchor-link" href="#Seeing-versus-measuring:-t-SNE-(provided)">¶</a></h3><p>t-SNE is a <em>neighbour embedding</em>: it places points in two dimensions so that each point's
-nearest neighbours in the original space stay near it. It does not preserve distances
-between groups, and its picture depends on a tuning parameter (<code>perplexity</code>) and on the
-random seed. The cell runs it twice on the standardised data (about 20 seconds).</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=5e0f320b">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=19588ccf">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8209,35 +8119,41 @@ random seed. The cell runs it twice on the standardised data (about 20 seconds).
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">Z</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mf">4.4</span><span class="p">))</span>
-<span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">perp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">50</span><span class="p">]):</span>
-    <span class="n">emb</span> <span class="o">=</span> <span class="n">TSNE</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">perplexity</span><span class="o">=</span><span class="n">perp</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="s2">"pca"</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">lab</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"#4a90c2"</span><span class="p">,</span> <span class="s2">"benign"</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">"#c8102e"</span><span class="p">,</span> <span class="s2">"malignant"</span><span class="p">)]:</span>
-        <span class="n">a</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">emb</span><span class="p">[</span><span class="n">y</span> <span class="o">==</span> <span class="n">lab</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">emb</span><span class="p">[</span><span class="n">y</span> <span class="o">==</span> <span class="n">lab</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">col</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
-    <span class="n">a</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">"t-SNE, perplexity </span><span class="si">{</span><span class="n">perp</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">xticks</span><span class="o">=</span><span class="p">[],</span> <span class="n">yticks</span><span class="o">=</span><span class="p">[])</span>
-<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># provided</span>
+<span class="n">FEATURES</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"frac_</span><span class="si">{</span><span class="n">a</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">AA</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"log_length"</span><span class="p">,</span> <span class="s2">"max_hydropathy_19"</span><span class="p">,</span> <span class="s2">"nterm_hydropathy_25"</span><span class="p">]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">classical_features</span><span class="p">(</span><span class="n">seqs</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mi">19</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">25</span><span class="p">):</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">seqs</span><span class="p">:</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">KD</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">q</span><span class="p">])</span>
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">q</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">AA</span><span class="p">]</span> <span class="o">+</span>
+                    <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">q</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">/</span> <span class="n">w</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"valid"</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">h</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+
+<span class="n">X_classical</span> <span class="o">=</span> <span class="n">classical_features</span><span class="p">(</span><span class="n">prot</span><span class="p">[</span><span class="s2">"sequence"</span><span class="p">])</span>
+<span class="n">X_classical_shuf</span> <span class="o">=</span> <span class="n">classical_features</span><span class="p">(</span><span class="n">prot</span><span class="p">[</span><span class="s2">"shuffled_sequence"</span><span class="p">])</span>
+<span class="n">X_comp</span> <span class="o">=</span> <span class="n">X_classical</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">20</span><span class="p">]</span>                      <span class="c1"># composition only</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">X_classical</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">"| first protein:"</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">X_classical</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">:],</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">X_classical</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">FEATURES</span><span class="p">)</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">22</span><span class="p">]]</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3fe21a81">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a17077e1">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Question 3.4.</strong> Compare the two t-SNE plots with each other and with the PCA plot.
-Which of the following can you read from a t-SNE plot: (a) which cases are similar to
-which; (b) how far apart the two groups are; (c) how large or spread out each group is;
-(d) how many groups there are? Why do the axes have no units?</p>
+<p><strong>Question 2.</strong> Which of the 23 descriptors are blind to residue order, and which are not?
+Name one biological property of a protein that none of them can capture.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cdc5c4b6">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=62f3af26">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8248,28 +8164,27 @@ which; (b) how far apart the two groups are; (c) how large or spread out each gr
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=313a816e">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=25c802a4">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="Task-4-%E2%80%94-How-many-components-does-the-model-need?-(about-12-minutes)">Task 4 — How many components does the model need? (about 12 minutes)<a class="anchor-link" href="#Task-4-%E2%80%94-How-many-components-does-the-model-need?-(about-12-minutes)">¶</a></h2><p>Now PCA feeds a classifier, so it goes <strong>inside the pipeline</strong>, where cross-validation refits
-the scaler and the PCA on each training fold.</p>
-<p><strong>Your task.</strong> For each <code>k</code> in <code>[1, 2, 3, 5, 7, 10, 15, 20, 30]</code>, cross-validate
-<code>make_pipeline(StandardScaler(), PCA(n_components=k, random_state=SEED), LogisticRegression(max_iter=5000))</code> on
-<code>X_train, y_train</code> with <code>cv_scores(..., metrics=("roc_auc", "accuracy"))</code>. Add one row for
-logistic regression on all 30 standardised features (no PCA). Store the results in a
-DataFrame <code>curve</code> indexed by <code>k</code>, plot mean ROC AUC against <code>k</code> with the all-features value
-as a horizontal line, and print the table.</p>
-<p>Then choose <code>k</code> with the <strong>one-standard-error rule</strong>: take the best mean ROC AUC, compute its
-standard error (<code>roc_auc_sd / sqrt(5)</code>), and choose the <em>smallest</em> <code>k</code> whose mean ROC AUC is
-within one standard error of the best. Store it as <code>k_chosen</code>.</p>
+<h2 id="Task-3.-PCA-on-the-classical-descriptors-(about-15-minutes)">Task 3. PCA on the classical descriptors (about 15 minutes)<a class="anchor-link" href="#Task-3.-PCA-on-the-classical-descriptors-(about-15-minutes)">¶</a></h2><p>PCA finds orthogonal directions of greatest variance. It uses no labels, so here we fit it on
+all 2,000 proteins to <em>describe</em> the data (when PCA feeds a model, it goes inside the Pipeline:
+Extension A).</p>
+<p><strong>Predict first:</strong> without standardising, which descriptors will dominate PC1, and why?</p>
+<p><strong>3a.</strong> Standardise <code>X_classical</code> and fit <code>PCA()</code>. Report PC1's and PC2's share of the variance
+and the number of components needed for 90%. Plot the explained-variance ratio and the
+cumulative curve.</p>
+<p><strong>3b.</strong> Plot PC1 against PC2, coloured by signal peptide and, separately, by transmembrane.
+List the six largest PC1 loadings (with sign).</p>
+<p><strong>3c.</strong> Repeat PCA <em>without</em> standardising. What share does PC1 take now, and which features
+dominate it?</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=098faeb4">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=704244a2">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8284,25 +8199,20 @@ within one standard error of the best. Store it as <code>k_chosen</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24f44e16">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fcc8107c">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Question 4.1.</strong> Where is the "knee" of the curve? How does the best PCA pipeline
-compare with all 30 features, given the standard deviations across folds?</p>
-<p><strong>Question 4.2.</strong> Which <code>k</code> does the one-standard-error rule choose, and why prefer the
-smallest adequate <code>k</code> over the single best mean?</p>
-<p><strong>Question 4.3.</strong> A colleague fits the scaler and PCA on all 569 cases <em>before</em> splitting,
-then cross-validates only the logistic regression. Is that leakage? On WDBC the effect is
-tiny. Why would it be much larger on a dataset with 20,000 features and 100 cases, or if the
-reduction step used the labels?</p>
+<p><strong>Question 3.</strong> (a) Is the standardised spectrum steep or flat, and what does that say about
+redundancy among the descriptors? (b) What biological contrast does PC1 express? (c) Explain the
+unscaled result: is it telling you about the proteins or about the units?</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=380de253">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a6e50a9e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8313,21 +8223,48 @@ reduction step used the labels?</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=44eacfaf">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a9a5b9ff">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="Task-5-%E2%80%94-One-honest-number-for-Part-A-(about-5-minutes)">Task 5 — One honest number for Part A (about 5 minutes)<a class="anchor-link" href="#Task-5-%E2%80%94-One-honest-number-for-Part-A-(about-5-minutes)">¶</a></h2><p><strong>Your task.</strong> Fit two pre-specified pipelines on the training rows: PCA with your
-<code>k_chosen</code> components followed by logistic regression, and logistic regression on all 30
-standardised features. Evaluate each <strong>once</strong> on <code>X_test</code>: report accuracy, ROC AUC and the
-number of misclassified cases. Store the results in a DataFrame <code>test_a</code>.</p>
+<h2 id="Task-4.-t-SNE-and-UMAP-(about-15-minutes)">Task 4. t-SNE and UMAP (about 15 minutes)<a class="anchor-link" href="#Task-4.-t-SNE-and-UMAP-(about-15-minutes)">¶</a></h2><p>t-SNE and UMAP place points in 2-D so that near neighbours stay near. They are stochastic and
+have settings that change the picture. <strong>Trustworthiness</strong> (between 0 and 1) measures how many
+of each point's nearest neighbours in the 2-D map are true neighbours in the original space.</p>
+<p><strong>Predict first:</strong> will a 2-D t-SNE map keep a protein's true neighbours better or worse than
+the first two principal components?</p>
+<p><strong>4a. (provided)</strong> The cell computes t-SNE with perplexity 5 and 50, and UMAP with
+<code>n_neighbors</code> 5 and 50, on the standardised classical descriptors (about 30 seconds).</p>
+<p><strong>4b.</strong> Plot the four maps and the PCA map side by side, coloured by transmembrane, and compute
+the trustworthiness (<code>n_neighbors=10</code>) of each against <code>Z_cl</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=6b6c3689">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=8e1e2e53">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># provided</span>
+<span class="n">Z_cl</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X_classical</span><span class="p">)</span>
+<span class="n">maps_cl</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"PCA"</span><span class="p">:</span> <span class="n">PCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">Z_cl</span><span class="p">)}</span>
+<span class="k">for</span> <span class="n">perp</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">50</span><span class="p">]:</span>
+    <span class="n">maps_cl</span><span class="p">[</span><span class="sa">f</span><span class="s2">"t-SNE, perplexity </span><span class="si">{</span><span class="n">perp</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="n">TSNE</span><span class="p">(</span><span class="n">perplexity</span><span class="o">=</span><span class="n">perp</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="s2">"pca"</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">Z_cl</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">HAVE_UMAP</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">nn</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">50</span><span class="p">]:</span>
+        <span class="n">maps_cl</span><span class="p">[</span><span class="sa">f</span><span class="s2">"UMAP, n_neighbors </span><span class="si">{</span><span class="n">nn</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="n">umap</span><span class="o">.</span><span class="n">UMAP</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="n">nn</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                                       <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">Z_cl</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">maps_cl</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=34e0fc37">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8342,19 +8279,21 @@ number of misclassified cases. Store the results in a DataFrame <code>test_a</co
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=86f75d73">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=cfe1923d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Question 5.1.</strong> Which pipeline did better on the test set, and by how many cases?
-Is that difference evidence that PCA <em>improves</em> the model? What would you report?</p>
+<p><strong>Question 4.</strong> (a) Which map keeps neighbours best, and how does perplexity (or
+<code>n_neighbors</code>) change the picture? (b) Three things you <strong>cannot</strong> read from a t-SNE or UMAP map.
+(c) If transmembrane proteins form a visible group, does that show the descriptors "understand"
+membrane proteins?</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e85376cb">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e827e394">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8365,32 +8304,22 @@ Is that difference evidence that PCA <em>improves</em> the model? What would you
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=91612749">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b16f23f7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Part-B-%E2%80%94-A-learned-representation-of-real-proteins">Part B — A learned representation of real proteins<a class="anchor-link" href="#Part-B-%E2%80%94-A-learned-representation-of-real-proteins">¶</a></h1><hr/>
-<h2 id="Task-6-%E2%80%94-Meet-the-proteins-(about-10-minutes)">Task 6 — Meet the proteins (about 10 minutes)<a class="anchor-link" href="#Task-6-%E2%80%94-Meet-the-proteins-(about-10-minutes)">¶</a></h2><p><strong>The biology in two paragraphs.</strong> <em>Integral membrane proteins</em> (receptors, channels,
-transporters) cross the lipid bilayer, usually as α-helices of roughly 20 mostly hydrophobic
-residues; about a quarter of human proteins are of this kind. A <em>signal peptide</em> is a short
-stretch (typically 15–30 residues) at the <strong>N-terminus</strong> of a protein, with a hydrophobic
-core, that directs the protein into the secretory pathway; it is usually cut off. Secreted
-proteins (hormones, antibodies, digestive enzymes) and many membrane proteins carry one.</p>
-<p><strong>The data.</strong> One row per protein. <code>sequence</code> is the amino-acid sequence (one letter per
-residue); <code>is_transmembrane</code> and <code>has_signal_peptide</code> come from the UniProt keywords
-Transmembrane (KW-0812) and Signal (KW-0732); <code>tm_evidence</code> and <code>sp_evidence</code> record the
-strongest evidence behind the annotated feature; <code>uniref50</code> is the protein's cluster of
-sequences sharing at least 50% identity. <code>shuffled_sequence</code> is the same protein with its
-residues randomly permuted: identical amino-acid composition, order destroyed (used in
-Task 9).</p>
-<p>The provided cell loads the table and makes the one split used in Part B (25% test,
-stratified on both labels together, <code>SEED = 42</code>).</p>
+<h2 id="Task-5.-The-ESM-2-embeddings-(about-10-minutes)">Task 5. The ESM-2 embeddings (about 10 minutes)<a class="anchor-link" href="#Task-5.-The-ESM-2-embeddings-(about-10-minutes)">¶</a></h2><p>ESM-2 is a protein language model pretrained to predict masked residues from the rest of the
+sequence (no annotations are used). The module team ran the 8-million-parameter model
+(<code>facebook/esm2_t6_8M_UR50D</code>, pinned revision; see <code>data/PROVENANCE.json</code>) on every sequence
+and <strong>mean-pooled</strong> the final layer over residue positions: one 320-number vector per protein,
+whatever its length.</p>
+<p><strong>5a. (provided)</strong> Put the embeddings in the same row order as <code>prot</code> and check integrity.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=25580c5d">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=63c50062">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8398,41 +8327,33 @@ stratified on both labels together, <code>SEED = 42</code>).</p>
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">prot</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">DATA</span> <span class="o">/</span> <span class="s2">"swissprot_human_2000.csv"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">prot</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">"| one protein per UniRef50 cluster:"</span><span class="p">,</span> <span class="n">prot</span><span class="o">.</span><span class="n">uniref50</span><span class="o">.</span><span class="n">is_unique</span><span class="p">)</span>
-<span class="n">display</span><span class="p">(</span><span class="n">prot</span><span class="p">[[</span><span class="s2">"accession"</span><span class="p">,</span> <span class="s2">"protein_name"</span><span class="p">,</span> <span class="s2">"length"</span><span class="p">,</span> <span class="s2">"is_transmembrane"</span><span class="p">,</span> <span class="s2">"has_signal_peptide"</span><span class="p">,</span>
-              <span class="s2">"tm_evidence"</span><span class="p">,</span> <span class="s2">"sp_evidence"</span><span class="p">]]</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
-<span class="n">display</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">crosstab</span><span class="p">(</span><span class="n">prot</span><span class="o">.</span><span class="n">is_transmembrane</span><span class="p">,</span> <span class="n">prot</span><span class="o">.</span><span class="n">has_signal_peptide</span><span class="p">,</span> <span class="n">margins</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-<span class="n">display</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">({</span><span class="s2">"transmembrane"</span><span class="p">:</span> <span class="n">prot</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">prot</span><span class="o">.</span><span class="n">is_transmembrane</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"tm_evidence"</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(),</span>
-                   <span class="s2">"signal peptide"</span><span class="p">:</span> <span class="n">prot</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">prot</span><span class="o">.</span><span class="n">has_signal_peptide</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"sp_evidence"</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()},</span>
-                  <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>
-
-<span class="n">y_tm</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">is_transmembrane</span><span class="o">.</span><span class="n">values</span>
-<span class="n">y_sp</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">has_signal_peptide</span><span class="o">.</span><span class="n">values</span>
-<span class="n">idx_train</span><span class="p">,</span> <span class="n">idx_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">prot</span><span class="p">)),</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
-                                       <span class="n">stratify</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">y_tm</span> <span class="o">+</span> <span class="n">y_sp</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"train"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx_train</span><span class="p">),</span> <span class="s2">"| test"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx_test</span><span class="p">))</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># provided</span>
+<span class="n">E</span> <span class="o">=</span> <span class="n">emb</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">prot</span><span class="p">[</span><span class="s2">"accession"</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+<span class="n">E_shuf</span> <span class="o">=</span> <span class="n">emb_shuf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">prot</span><span class="p">[</span><span class="s2">"accession"</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"shape"</span><span class="p">,</span> <span class="n">E</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">"| non-finite values"</span><span class="p">,</span> <span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">E</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+      <span class="s2">"| accessions match"</span><span class="p">,</span> <span class="nb">set</span><span class="p">(</span><span class="n">emb</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">prot</span><span class="p">[</span><span class="s2">"accession"</span><span class="p">]),</span>
+      <span class="s2">"| identical real and shuffled rows"</span><span class="p">,</span> <span class="nb">int</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">E</span> <span class="o">-</span> <span class="n">E_shuf</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=32ef2bc8">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=56619969">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Your task.</strong> Write a function <code>composition(seqs)</code> that returns an array with one row
-per sequence and 20 columns: the fraction of each amino acid in the order
-<code>AA = "ACDEFGHIKLMNPQRSTVWY"</code>. Build <code>C = composition(prot.sequence)</code>, check that every row
-sums to 1, and print <code>C.shape</code>. This is the classic hand-engineered protein representation
-(Nakashima &amp; Nishikawa used it in 1994 to tell intracellular from extracellular proteins).</p>
+<p><strong>5b.</strong> (i) Anisotropy: compute the mean cosine similarity between all pairs of raw
+embeddings, then after subtracting the mean vector. (ii) Standardise <code>E</code>, fit <code>PCA()</code>, and
+report how many components are needed for 90% of the variance. (iii) Plot PC1 against PC2 and
+(if UMAP is available) a UMAP (<code>n_neighbors=15, min_dist=0.1, random_state=0</code>) coloured by signal
+peptide, with the trustworthiness of each.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=4bee7240">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=c50e613b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8447,25 +8368,21 @@ sums to 1, and print <code>C.shape</code>. This is the classic hand-engineered p
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=24a062b0">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e3c180ba">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Question 6.1.</strong> Why does the dataset keep only one protein per UniRef50 cluster? What
-would go wrong in the evaluation if close homologues (say 90% identical paralogues) could
-fall on both sides of the split?</p>
-<p><strong>Question 6.2.</strong> Look at the evidence table. What fraction of the transmembrane labels rest
-on "sequence analysis" rather than experiment? UniProt annotates a predicted signal peptide
-when at least two of Phobius, Predotar, SignalP and TargetP agree, and annotates predicted
-transmembrane regions when several tools agree and the prediction fits the protein's
-function. What does that imply about what a classifier trained on these labels learns?</p>
+<p><strong>Question 5.</strong> (a) What does a mean raw cosine near 1 mean for cosine-based nearest
+neighbours, and what is the fix? (b) The embeddings were computed for all 2,000 proteins
+<em>before</em> the train/test split. Why is that not leakage, when fitting a <code>StandardScaler</code> on all
+2,000 would be? (c) Compare the ESM-2 spectrum with the classical one (Task 3).</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=0ed373c2">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b6aa39c5">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8476,25 +8393,57 @@ function. What does that imply about what a classifier trained on these labels l
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=409c3406">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1490737d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="Task-7-%E2%80%94-The-geometry-of-a-learned-representation-(about-12-minutes)">Task 7 — The geometry of a learned representation (about 12 minutes)<a class="anchor-link" href="#Task-7-%E2%80%94-The-geometry-of-a-learned-representation-(about-12-minutes)">¶</a></h2><p><strong>How the embedding was made.</strong> Each sequence was given to ESM-2 (6 layers, 8 million
-parameters), a transformer trained by its authors to predict masked amino acids in tens of
-millions of UniRef sequences; <strong>no labels were involved in that pretraining, or in computing
-these vectors.</strong> For a protein of length L the model outputs one 320-dimensional vector per
-residue; averaging them (mean pooling) gives one vector per protein, whatever its length.</p>
-<p>The provided cell loads the embeddings of the real and of the shuffled sequences, aligned
-row by row with <code>prot</code>, and defines a function for the <strong>mean cosine similarity</strong> between all
-pairs of rows (1 = all vectors point the same way, 0 = unrelated directions on average).</p>
+<h2 id="Task-6.-The-key-experiment:-k-NN-on-classical-descriptors-versus-ESM-2-(about-30-minutes)">Task 6. The key experiment: k-NN on classical descriptors versus ESM-2 (about 30 minutes)<a class="anchor-link" href="#Task-6.-The-key-experiment:-k-NN-on-classical-descriptors-versus-ESM-2-(about-30-minutes)">¶</a></h2><p>You have studied k-NN, distance metrics and scaling. Now use them to compare two representations
+<strong>fairly</strong>. Everything is held fixed except the representation:</p>
+<table>
+<thead>
+<tr>
+<th>Held fixed</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Proteins and labels</td>
+<td>the same 2,000; the same target</td>
+</tr>
+<tr>
+<td>Split</td>
+<td><code>train_idx</code> / <code>test_idx</code> from Task 1 (1,500 / 500)</td>
+</tr>
+<tr>
+<td>Model selection</td>
+<td>5-fold stratified CV on training proteins only (<code>CV</code>), mean ROC AUC</td>
+</tr>
+<tr>
+<td>Pipeline</td>
+<td>optional <code>StandardScaler</code> → <code>KNeighborsClassifier</code>, refitted in every fold</td>
+</tr>
+<tr>
+<td>Grid</td>
+<td>k in <code>K_GRID</code> × metric {euclidean, manhattan, cosine} × weights {uniform, distance} × scaling {none, standardise}: 192 settings</td>
+</tr>
+<tr>
+<td>Test set</td>
+<td>used once per representation, for the selected pipeline only</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Predict first:</strong> for the signal-peptide task, will 320 learned dimensions beat 23 hand-made
+descriptors? For the transmembrane task?</p>
+<p><strong>6a.</strong> Write the pipeline and the <code>GridSearchCV</code> for the <strong>classical descriptors</strong> and the
+<strong>signal-peptide</strong> label, fitted on the training proteins only. Print <code>best_params_</code> and
+<code>best_score_</code>.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=1637efa0">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=c9aa16a7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8502,90 +8451,381 @@ pairs of rows (1 = all vectors point the same way, 0 = unrelated directions on a
 <div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">load_embedding</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-    <span class="n">e</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">DATA</span> <span class="o">/</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"accession"</span><span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">prot</span><span class="o">.</span><span class="n">accession</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">e</span><span class="o">.</span><span class="n">values</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># provided: the one grid every representation gets</span>
+<span class="n">K_GRID</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">41</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="mi">61</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="mi">101</span><span class="p">]</span>
+<span class="n">GRID</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"scale"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"passthrough"</span><span class="p">,</span> <span class="n">StandardScaler</span><span class="p">()],</span> <span class="s2">"knn__n_neighbors"</span><span class="p">:</span> <span class="n">K_GRID</span><span class="p">,</span>
+        <span class="s2">"knn__metric"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"euclidean"</span><span class="p">,</span> <span class="s2">"manhattan"</span><span class="p">,</span> <span class="s2">"cosine"</span><span class="p">],</span> <span class="s2">"knn__weights"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"uniform"</span><span class="p">,</span> <span class="s2">"distance"</span><span class="p">]}</span>
 
-<span class="n">E</span> <span class="o">=</span> <span class="n">load_embedding</span><span class="p">(</span><span class="s2">"esm2_t6_8M_embeddings.csv.gz"</span><span class="p">)</span>
-<span class="n">E_shuf</span> <span class="o">=</span> <span class="n">load_embedding</span><span class="p">(</span><span class="s2">"esm2_t6_8M_embeddings_shuffled.csv.gz"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"E:"</span><span class="p">,</span> <span class="n">E</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">"| E_shuf:"</span><span class="p">,</span> <span class="n">E_shuf</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">mean_cosine</span><span class="p">(</span><span class="n">M</span><span class="p">):</span>
-    <span class="n">U</span> <span class="o">=</span> <span class="n">M</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">S</span> <span class="o">=</span> <span class="n">U</span> <span class="o">@</span> <span class="n">U</span><span class="o">.</span><span class="n">T</span>
-    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">-</span> <span class="n">n</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_pipe</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">Pipeline</span><span class="p">([(</span><span class="s2">"scale"</span><span class="p">,</span> <span class="n">StandardScaler</span><span class="p">()),</span> <span class="p">(</span><span class="s2">"knn"</span><span class="p">,</span> <span class="n">KNeighborsClassifier</span><span class="p">())])</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=ca850f7e">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># your code here</span>
 </pre></div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=375ea9de">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=90cda1a2">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Predict first.</strong> Pick two unrelated proteins, say a membrane transporter and a nuclear
-transcription factor. What cosine similarity do you expect between their embeddings?</p>
-<p><strong>Your task.</strong></p>
+<p><strong>6b. (provided)</strong> The same search for every representation and both tasks:
+composition only (20), classical (23), ESM-2 (320), and ESM-2 of the shuffled sequences (the
+control for Task 8). About a minute.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=1a977866">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># provided</span>
+<span class="n">REPS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"composition"</span><span class="p">:</span> <span class="n">X_comp</span><span class="p">,</span> <span class="s2">"classical"</span><span class="p">:</span> <span class="n">X_classical</span><span class="p">,</span> <span class="s2">"esm2"</span><span class="p">:</span> <span class="n">E</span><span class="p">,</span> <span class="s2">"esm2_shuffled"</span><span class="p">:</span> <span class="n">E_shuf</span><span class="p">}</span>
+<span class="n">TASKS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"signal_peptide"</span><span class="p">:</span> <span class="n">sp</span><span class="p">,</span> <span class="s2">"transmembrane"</span><span class="p">:</span> <span class="n">tm</span><span class="p">}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">describe</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"k=</span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">'knn__n_neighbors'</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">'knn__metric'</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">'knn__weights'</span><span class="p">]</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'unscaled'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">'scale'</span><span class="p">],</span><span class="w"> </span><span class="nb">str</span><span class="p">)</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'standardised'</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="n">searches</span><span class="p">,</span> <span class="n">rows</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">[]</span>
+<span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">task</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">TASKS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">rep</span><span class="p">,</span> <span class="n">M</span> <span class="ow">in</span> <span class="n">REPS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">GridSearchCV</span><span class="p">(</span><span class="n">make_pipe</span><span class="p">(),</span> <span class="n">GRID</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">CV</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s2">"roc_auc"</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">M</span><span class="p">[</span><span class="n">train_idx</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">train_idx</span><span class="p">])</span>
+        <span class="n">searches</span><span class="p">[(</span><span class="n">task</span><span class="p">,</span> <span class="n">rep</span><span class="p">)]</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="n">sd</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">cv_results_</span><span class="p">[</span><span class="s2">"std_test_score"</span><span class="p">][</span><span class="n">s</span><span class="o">.</span><span class="n">best_index_</span><span class="p">]</span>
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"task"</span><span class="p">:</span> <span class="n">task</span><span class="p">,</span> <span class="s2">"representation"</span><span class="p">:</span> <span class="n">rep</span><span class="p">,</span> <span class="s2">"dimensions"</span><span class="p">:</span> <span class="n">M</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                     <span class="s2">"CV ROC AUC"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">best_score_</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="s2">"CV SD"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">sd</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="s2">"selected"</span><span class="p">:</span> <span class="n">describe</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">best_params_</span><span class="p">)})</span>
+<span class="n">cv_table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">"task"</span><span class="p">,</span> <span class="s2">"representation"</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="si">%.0f</span><span class="s2"> s"</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">))</span>
+<span class="n">cv_table</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=75005265">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>6c. The test set, once (provided).</strong> Each representation's selected pipeline (refitted on
+all 1,500 training proteins by <code>GridSearchCV</code>) predicts the 500 test proteins. A paired bootstrap
+gives a 95% interval for the difference in test ROC AUC.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=77ee7b4d">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># provided</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">bootstrap_diff</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pa</span><span class="p">,</span> <span class="n">pb</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="p">):</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">==</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">():</span>
+            <span class="k">continue</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">roc_auc_score</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">pa</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">-</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">pb</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pa</span><span class="p">)</span> <span class="o">-</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pb</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="p">[</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">97.5</span><span class="p">])</span>
+
+<span class="n">test_rows</span><span class="p">,</span> <span class="n">probs</span><span class="p">,</span> <span class="n">preds</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">{},</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">rep</span><span class="p">),</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">searches</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">TASKS</span><span class="p">[</span><span class="n">task</span><span class="p">]</span>
+    <span class="n">probs</span><span class="p">[(</span><span class="n">task</span><span class="p">,</span> <span class="n">rep</span><span class="p">)]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">REPS</span><span class="p">[</span><span class="n">rep</span><span class="p">][</span><span class="n">test_idx</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">preds</span><span class="p">[(</span><span class="n">task</span><span class="p">,</span> <span class="n">rep</span><span class="p">)]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">REPS</span><span class="p">[</span><span class="n">rep</span><span class="p">][</span><span class="n">test_idx</span><span class="p">])</span>
+    <span class="n">test_rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"task"</span><span class="p">:</span> <span class="n">task</span><span class="p">,</span> <span class="s2">"representation"</span><span class="p">:</span> <span class="n">rep</span><span class="p">,</span>
+                      <span class="s2">"ROC AUC"</span><span class="p">:</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">test_idx</span><span class="p">],</span> <span class="n">probs</span><span class="p">[(</span><span class="n">task</span><span class="p">,</span> <span class="n">rep</span><span class="p">)]),</span>
+                      <span class="s2">"avg precision"</span><span class="p">:</span> <span class="n">average_precision_score</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">test_idx</span><span class="p">],</span> <span class="n">probs</span><span class="p">[(</span><span class="n">task</span><span class="p">,</span> <span class="n">rep</span><span class="p">)]),</span>
+                      <span class="s2">"precision"</span><span class="p">:</span> <span class="n">precision_score</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">test_idx</span><span class="p">],</span> <span class="n">preds</span><span class="p">[(</span><span class="n">task</span><span class="p">,</span> <span class="n">rep</span><span class="p">)],</span> <span class="n">zero_division</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                      <span class="s2">"recall"</span><span class="p">:</span> <span class="n">recall_score</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">test_idx</span><span class="p">],</span> <span class="n">preds</span><span class="p">[(</span><span class="n">task</span><span class="p">,</span> <span class="n">rep</span><span class="p">)]),</span>
+                      <span class="s2">"F1"</span><span class="p">:</span> <span class="n">f1_score</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">test_idx</span><span class="p">],</span> <span class="n">preds</span><span class="p">[(</span><span class="n">task</span><span class="p">,</span> <span class="n">rep</span><span class="p">)])})</span>
+<span class="n">test_table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">test_rows</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s2">"task"</span><span class="p">,</span> <span class="s2">"representation"</span><span class="p">])</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">test_table</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">task</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">TASKS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">other</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"classical"</span><span class="p">,</span> <span class="s2">"composition"</span><span class="p">]:</span>
+        <span class="n">d</span><span class="p">,</span> <span class="n">ci</span> <span class="o">=</span> <span class="n">bootstrap_diff</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">test_idx</span><span class="p">],</span> <span class="n">probs</span><span class="p">[(</span><span class="n">task</span><span class="p">,</span> <span class="s2">"esm2"</span><span class="p">)],</span> <span class="n">probs</span><span class="p">[(</span><span class="n">task</span><span class="p">,</span> <span class="n">other</span><span class="p">)])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">task</span><span class="si">:</span><span class="s2">15s</span><span class="si">}</span><span class="s2"> ESM-2 minus </span><span class="si">{</span><span class="n">other</span><span class="si">:</span><span class="s2">12s</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">d</span><span class="si">:</span><span class="s2">+.3f</span><span class="si">}</span><span class="s2">  95% interval [</span><span class="si">{</span><span class="n">ci</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">+.3f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">ci</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">+.3f</span><span class="si">}</span><span class="s2">]"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d6c13a07">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>6d.</strong> Plot the four confusion matrices (classical and ESM-2, both tasks) for the test
+set. For the signal-peptide task, explain why recall at scikit-learn's default threshold differs
+so much between representations even where the ROC AUC is similar.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=4e0a02c0">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># your code here</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=34138431">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Question 6.</strong> (a) Report, for each task, the selected settings and the test ROC AUC of
+the classical and ESM-2 models, with the bootstrap interval. Which representation did better, for
+which task? (b) Is the comparison fair? Name every way in which it is, and one way in which the
+two representations still differ besides the information they contain. (c) Why did GridSearchCV
+choose different metrics and scalings for different representations, and is that a problem?</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d1ab7e25">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><em>Your answer here.</em></p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=216f8761">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Question 6d.</strong> Explain the recall difference.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=08f221da">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><em>Your answer here.</em></p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e55dec3f">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Task-7.-Whose-neighbours?-Comparing-neighbourhoods-(about-10-minutes)">Task 7. Whose neighbours? Comparing neighbourhoods (about 10 minutes)<a class="anchor-link" href="#Task-7.-Whose-neighbours?-Comparing-neighbourhoods-(about-10-minutes)">¶</a></h2><p>k-NN predicts from neighbours, so compare the neighbours themselves. For every protein, find its
+10 nearest proteins (among all 2,000; standardised features, Euclidean) in several spaces.</p>
+<p><strong>7a. (provided)</strong> The helper returns each protein's 10 nearest neighbours.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=cae08996">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># provided</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">neighbours</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">"euclidean"</span><span class="p">):</span>
+    <span class="n">nn</span> <span class="o">=</span> <span class="n">NearestNeighbors</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">idx_</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">kneighbors</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">row</span> <span class="k">if</span> <span class="n">j</span> <span class="o">!=</span> <span class="n">i</span><span class="p">][:</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">idx_</span><span class="p">)])</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">overlap</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)])</span>
+
+<span class="n">Z_e</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
+<span class="n">pcs_e</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">Z_e</span><span class="p">)</span>       <span class="c1"># unsupervised: all proteins</span>
+<span class="n">nbr</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"composition"</span><span class="p">:</span> <span class="n">neighbours</span><span class="p">(</span><span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X_comp</span><span class="p">)),</span>
+       <span class="s2">"classical"</span><span class="p">:</span> <span class="n">neighbours</span><span class="p">(</span><span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X_classical</span><span class="p">)),</span>
+       <span class="s2">"esm2"</span><span class="p">:</span> <span class="n">neighbours</span><span class="p">(</span><span class="n">Z_e</span><span class="p">)}</span>
+<span class="k">for</span> <span class="n">kc</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">50</span><span class="p">]:</span>
+    <span class="n">nbr</span><span class="p">[</span><span class="sa">f</span><span class="s2">"esm2_pca</span><span class="si">{</span><span class="n">kc</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span> <span class="o">=</span> <span class="n">neighbours</span><span class="p">(</span><span class="n">pcs_e</span><span class="p">[:,</span> <span class="p">:</span><span class="n">kc</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">nbr</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=15dc3a90">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>7b.</strong> (i) Make a table: for each space, the mean overlap of its neighbour sets with the
+ESM-2 neighbour sets, and the mean share of a <strong>signal-peptide</strong> protein's neighbours that also
+have a signal peptide. (ii) Print the 10 neighbours of Interleukin-12 subunit beta (P29460, a
+secreted protein with an experimentally supported signal peptide) in the composition, classical
+and ESM-2 spaces, with their names and labels.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=d65a1715">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># your code here</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9c53be77">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Question 7.</strong> (a) How similar are the neighbourhoods defined by the classical descriptors
+and by ESM-2? (b) What does PCA do to the ESM-2 neighbourhoods as the number of components
+falls? (c) Interpret the IL-12B example biologically, carefully.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fd39bc56">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><em>Your answer here.</em></p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ea36b735">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Task-8.-The-residue-shuffling-control-(about-10-minutes)">Task 8. The residue-shuffling control (about 10 minutes)<a class="anchor-link" href="#Task-8.-The-residue-shuffling-control-(about-10-minutes)">¶</a></h2><p>Every protein was also embedded after <strong>shuffling its residues</strong>: the same residues, so the same
+composition and length, in random order. If ESM-2's advantage comes from order, it should
+vanish for the shuffled sequences.</p>
+<p><strong>Predict first:</strong> after shuffling, will k-NN on the ESM-2 embedding fall to the level of
+composition, stay at its original level, or fall below composition?</p>
+<p><strong>8a.</strong> (i) Check that composition and length are unchanged by the shuffle and measure how the
+two hydropathy features change (<code>X_classical</code> against <code>X_classical_shuf</code>). (ii) In the
+standardised ESM-2 space (scaler fitted on the real embeddings), compare each protein's distance
+to its own shuffled copy with its distance to its nearest <em>other</em> real protein. (iii) Use
+<code>cv_table</code> and <code>test_table</code> to compare ESM-2 and shuffled ESM-2.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=0aa43a0f">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># your code here</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=61cde6b6">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><strong>Question 8.</strong> What does the control show, and what does it <strong>not</strong> show?</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=71d71337">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<p><em>Your answer here.</em></p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=caf2ffdf">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Task-9.-Critical-reflection-(about-10-minutes)">Task 9. Critical reflection (about 10 minutes)<a class="anchor-link" href="#Task-9.-Critical-reflection-(about-10-minutes)">¶</a></h2><p>Answer in short paragraphs, using your numbers.</p>
 <ol>
-<li>Print the mean cosine similarity of <code>E</code>, and of <code>E</code> after <strong>centring</strong> (subtracting the
-mean vector, <code>E - E.mean(axis=0)</code>). Do the same for the composition matrix <code>C</code>.</li>
-<li>Fit <code>PCA()</code> to <code>E</code> and to standardised <code>C</code>. Print PC1's share of the variance for <code>E</code>,
-and how many components each needs to reach 90% of the variance.</li>
-<li>Plot PC1 against PC2 of <code>E</code> twice, side by side, coloured by <code>y_tm</code> and by <code>y_sp</code>.</li>
+<li>Which representation performed better in this experiment, for which task, and how sure are you?</li>
+<li>What information might explain the difference (and the absence of a difference)?</li>
+<li>How did dimensionality reduction affect nearest-neighbour relationships?</li>
+<li>Did visual clusters in the maps correspond to the biological annotations?</li>
+<li>What are the limitations of the dataset and of the evaluation? Consider homology between
+training and test proteins, pretraining exposure, and annotation uncertainty.</li>
+<li>What further experiment would you run next, and what would it tell you?</li>
 </ol>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6dbb8321">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><em>(Prediction.)</em></p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=878ff520">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># your code here</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=47eb5653">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Question 7.1.</strong> What is the mean cosine similarity of the raw embeddings, and what
-happens after centring? Explain what <em>anisotropy</em> means and why it matters if you use
-cosine similarity to find "similar proteins".</p>
-<p><strong>Question 7.2.</strong> The raw composition vectors have a high mean cosine too. What does that
-tell you about interpreting a raw cosine similarity, whatever the representation?</p>
-<p><strong>Question 7.3.</strong> How many dimensions does the embedding need for 90% of its variance? Do the
-two labels separate in the PC1–PC2 plot? Does that tell you how well a classifier using all
-320 dimensions will do?</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c07d3444">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=22dd25bb">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8596,58 +8836,33 @@ two labels separate in the PC1–PC2 plot? Does that tell you how well a classif
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ded59e30">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=af8ad795">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h2 id="Task-8-%E2%80%94-One-classifier,-four-representations-(about-15-minutes)">Task 8 — One classifier, four representations (about 15 minutes)<a class="anchor-link" href="#Task-8-%E2%80%94-One-classifier,-four-representations-(about-15-minutes)">¶</a></h2><p>A <strong>linear probe</strong> asks how much of a property can be read off a representation by a simple,
-fixed classifier. Everything except the representation is held constant: the same pipeline
-(<code>StandardScaler</code> → <code>LogisticRegression(max_iter=5000)</code>), the same training rows, the same
-5-fold CV, the same metrics. Any difference is due to the representation.</p>
-<p>The four representations:</p>
-<ul>
-<li><strong>length only</strong> (<code>np.log(prot.length)</code>, one column): a baseline that knows nothing about
-the sequence except its size;</li>
-<li><strong>composition</strong> (<code>C</code>, 20 columns): what a biologist would compute first;</li>
-<li><strong>ESM-2</strong> (<code>E</code>, 320 columns): the learned representation;</li>
-<li><strong>ESM-2 on shuffled sequences</strong> (<code>E_shuf</code>, 320 columns): the same model given the same
-residues in random order (Task 9 explains why).</li>
-</ul>
-<p><strong>Predict first.</strong> For each task (transmembrane, signal peptide), rank the four
-representations by the ROC AUC you expect.</p>
+<h2 id="Checkpoint">Checkpoint<a class="anchor-link" href="#Checkpoint">¶</a></h2><p>You have finished the core lab when Tasks 1–9 run top to bottom and every question is answered.
+The extensions are optional.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f760563b">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9a24147f">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><em>(Prediction.)</em></p>
+<h2 id="Extension-A.-Dimensionality-reduction-inside-the-k-NN-pipeline">Extension A. Dimensionality reduction inside the k-NN pipeline<a class="anchor-link" href="#Extension-A.-Dimensionality-reduction-inside-the-k-NN-pipeline">¶</a></h2><p>Put <code>StandardScaler → PCA(n_components=k) → KNeighborsClassifier</code> (using ESM-2's selected
+signal-peptide setting) in one Pipeline and plot cross-validated ROC AUC for k in 2, 5, 10, 20,
+50, 100. If UMAP is available, try <code>StandardScaler → UMAP(2) → KNeighborsClassifier</code> (Euclidean)
+too. Why can t-SNE not be used this way?</p>
 </div>
 </div>
 </div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=33222405">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Your task.</strong> For each task and each representation, run <code>cv_scores</code> on the training
-rows only (<code>M[idx_train]</code>, <code>y[idx_train]</code>). Collect mean ROC AUC, its standard deviation and
-mean average precision into a DataFrame <code>probe</code> with one row per representation and
-columns grouped by task. Print the training prevalence of each label (the average
-precision of a random ranking).</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=70b8e000">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=fc8558b6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8662,22 +8877,7 @@ precision of a random ranking).</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=8e084f40">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Question 8.1.</strong> Describe the table. Which representation wins each task, and by how
-much relative to the fold-to-fold standard deviation? How does each compare with the
-length-only baseline?</p>
-<p><strong>Question 8.2.</strong> Composition does much better on one task than on the other. Using the
-biology at the start of Task 6, explain why.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5ce27558">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a70d81ef">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8688,72 +8888,19 @@ biology at the start of Task 6, explain why.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9c4cef28">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=672cf48e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="Task-9-%E2%80%94-What-is-the-embedding-seeing?-(about-10-minutes)">Task 9 — What is the embedding seeing? (about 10 minutes)<a class="anchor-link" href="#Task-9-%E2%80%94-What-is-the-embedding-seeing?-(about-10-minutes)">¶</a></h2><p>Look again at the fourth row of your table. The shuffled sequences have <strong>exactly</strong> the
-composition of the real ones, so ESM-2 on shuffled sequences can only use composition (and
-length). This is a <strong>control experiment</strong>: it removes one property (residue order) and keeps
-everything else.</p>
-<p>Biochemists have described the order-dependent signals for decades. The provided cell
-builds two engineered features from the Kyte–Doolittle hydropathy scale (1982):</p>
-<ul>
-<li><strong>max window hydropathy</strong>: the highest average hydropathy of any 19 consecutive residues
-(a membrane-spanning helix is a long hydrophobic stretch);</li>
-<li><strong>N-terminal hydropathy</strong>: the average hydropathy of the first 25 residues (where a signal
-peptide's hydrophobic core sits).</li>
-</ul>
+<h2 id="Extension-B.-Choosing-a-threshold-without-touching-the-test-set">Extension B. Choosing a threshold without touching the test set<a class="anchor-link" href="#Extension-B.-Choosing-a-threshold-without-touching-the-test-set">¶</a></h2><p>For the signal-peptide ESM-2 and classical models, get cross-validated probabilities on the
+<strong>training</strong> proteins (<code>cross_val_predict(..., method="predict_proba")</code>), choose the threshold
+that maximises F1 there, and only then apply it to the test probabilities from Task 6c.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=94a4b626">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">KD</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"A"</span><span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span> <span class="s2">"R"</span><span class="p">:</span> <span class="o">-</span><span class="mf">4.5</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.5</span><span class="p">,</span> <span class="s2">"D"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.5</span><span class="p">,</span> <span class="s2">"C"</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span> <span class="s2">"Q"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.5</span><span class="p">,</span> <span class="s2">"E"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.5</span><span class="p">,</span> <span class="s2">"G"</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.4</span><span class="p">,</span>
-      <span class="s2">"H"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.2</span><span class="p">,</span> <span class="s2">"I"</span><span class="p">:</span> <span class="mf">4.5</span><span class="p">,</span> <span class="s2">"L"</span><span class="p">:</span> <span class="mf">3.8</span><span class="p">,</span> <span class="s2">"K"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.9</span><span class="p">,</span> <span class="s2">"M"</span><span class="p">:</span> <span class="mf">1.9</span><span class="p">,</span> <span class="s2">"F"</span><span class="p">:</span> <span class="mf">2.8</span><span class="p">,</span> <span class="s2">"P"</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.6</span><span class="p">,</span> <span class="s2">"S"</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.8</span><span class="p">,</span>
-      <span class="s2">"T"</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.7</span><span class="p">,</span> <span class="s2">"W"</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.9</span><span class="p">,</span> <span class="s2">"Y"</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.3</span><span class="p">,</span> <span class="s2">"V"</span><span class="p">:</span> <span class="mf">4.2</span><span class="p">}</span>          <span class="c1"># Kyte &amp; Doolittle (1982)</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">max_window_hydropathy</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="mi">19</span><span class="p">):</span>
-    <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">KD</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">seq</span><span class="p">])</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">/</span> <span class="n">w</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"valid"</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">nterm_hydropathy</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">25</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">KD</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">seq</span><span class="p">[:</span><span class="n">n</span><span class="p">]])</span>
-
-
-<span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">max_window_hydropathy</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">nterm_hydropathy</span><span class="p">(</span><span class="n">s</span><span class="p">)]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">prot</span><span class="o">.</span><span class="n">sequence</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">"| first protein:"</span><span class="p">,</span> <span class="n">H</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7be09af0">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Your task.</strong> Build <code>CH = np.hstack([C, H])</code> and cross-validate the same probe on <code>CH</code>
-(composition plus the two hydropathy features) for both tasks, exactly as in Task 8, and add the results to <code>probe</code>
-as a fifth row named <code>"composition + 2 hydropathy features (22)"</code>. Display the updated
-table.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=50a10eb2">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=bb3848ea">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8768,25 +8915,7 @@ table.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a1da49c9">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Question 9.1.</strong> What happens to ESM-2's advantage when the residues are shuffled?
-What does that tell you about <em>what</em> the embedding contributes for these two tasks?</p>
-<p><strong>Question 9.2.</strong> How does composition plus two hand-engineered features compare with ESM-2
-on each task? What does this say about the module's question, "what is the simplest
-appropriate approach, and what evidence do you have that it is appropriate"?</p>
-<p><strong>Question 9.3.</strong> Recall Question 6.2. Several of the tools UniProt relies on for predicted
-annotations look for exactly these hydrophobic patterns. How should that change the way you
-describe your results in 9.2?</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d5d565b5">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=aa0d5e04">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8797,21 +8926,20 @@ describe your results in 9.2?</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=39fb8aee">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=eed23cab">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="Task-10-%E2%80%94-One-honest-number-for-Part-B-(about-5-minutes)">Task 10 — One honest number for Part B (about 5 minutes)<a class="anchor-link" href="#Task-10-%E2%80%94-One-honest-number-for-Part-B-(about-5-minutes)">¶</a></h2><p><strong>Your task.</strong> For each task, fit the probe on the training rows for three pre-specified
-representations (composition, ESM-2, composition + 2 hydropathy features) and evaluate
-each <strong>once</strong> on the test rows (<code>idx_test</code>): ROC AUC and average precision. Store the
-results in a DataFrame <code>test_b</code>.</p>
+<h2 id="Extension-C.-Annotation-evidence-and-related-sequences">Extension C. Annotation evidence and related sequences<a class="anchor-link" href="#Extension-C.-Annotation-evidence-and-related-sequences">¶</a></h2><p>(i) For the signal-peptide test proteins, compare the recall of the classical and ESM-2 models
+separately for experimentally supported and for "sequence analysis" labels. (ii) Measure, for
+each test protein, the largest share of its distinct 5-mers found in any single training protein.
+How many test proteins have a close relative in the training set?</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=c5adbd58">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=ec30aba9">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8826,22 +8954,7 @@ results in a DataFrame <code>test_b</code>.</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=6bb405e0">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><strong>Question 10.1.</strong> Do the test results agree with cross-validation? Summarise Part B in
-three sentences that a biologist could act on, including one limitation.</p>
-<p><strong>Question 10.2.</strong> ESM-2 was pretrained on UniRef sequences that almost certainly include
-these 2,000 human proteins, test set included. Is that leakage? What exactly did the model see
-during pretraining, and what did it not see?</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9411b321">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3013fa86">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -8852,167 +8965,29 @@ during pretraining, and what did it not see?</p>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=33576cf2">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e294c331">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<hr/>
-<h2 id="Checkpoint:-end-of-the-core-lab">Checkpoint: end of the core lab<a class="anchor-link" href="#Checkpoint:-end-of-the-core-lab">¶</a></h2><p>You should now have: the explained-variance plots and k for 90% (Task 2); the unscaled-PCA
-result and your loading interpretation (Task 3); the components-versus-ROC-AUC curve and
-<code>k_chosen</code> (Task 4); the Part A test result (Task 5); the anisotropy and PCA results for the
-embedding (Task 7); the five-row representation table (Tasks 8–9); and the Part B test
-result (Task 10), with every question answered.</p>
-<p>The extensions below are optional.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=fefcf8d0">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Extension-E1-%E2%80%94-How-much-of-the-embedding-does-the-probe-need?">Extension E1 — How much of the embedding does the probe need?<a class="anchor-link" href="#Extension-E1-%E2%80%94-How-much-of-the-embedding-does-the-probe-need?">¶</a></h2><p>Put PCA <em>inside</em> the probe: <code>make_pipeline(StandardScaler(), PCA(n_components=k, random_state=SEED), LogisticRegression(max_iter=5000))</code> on <code>E</code> for <code>k</code> in <code>[2, 8, 16, 32, 64, 128]</code>, for both
-tasks (training rows, <code>cv_scores</code>). Plot ROC AUC against <code>k</code>. How many of the 320 dimensions
-does each task need? Compare with your answer to 7.3.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=e9b24102">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># your code here</span>
+<h2 id="Extension-D.-Regenerating-the-embeddings-(instructions-only;-needs-a-network-and-PyTorch)">Extension D. Regenerating the embeddings (instructions only; needs a network and PyTorch)<a class="anchor-link" href="#Extension-D.-Regenerating-the-embeddings-(instructions-only;-needs-a-network-and-PyTorch)">¶</a></h2><p>The embeddings in <code>data/</code> were produced by the module team with the procedure below, recorded
+in <code>data/PROVENANCE.json</code> (model, revision, pooling, library versions, checksums). Running it is
+<strong>not</strong> part of the lab: it needs <code>torch</code> and <code>transformers</code>, downloads the model (about 30 MB),
+and takes about 1–2 minutes on a laptop CPU for 2,000 proteins (a GPU is not needed for the 8M
+model; larger ESM-2 models need much more memory).</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoModel</span><span class="p">,</span> <span class="n">AutoTokenizer</span>
+<span class="n">MODEL</span><span class="p">,</span> <span class="n">REVISION</span> <span class="o">=</span> <span class="s2">"facebook/esm2_t6_8M_UR50D"</span><span class="p">,</span> <span class="s2">"c731040fcd8d73dceaa04b0a8e6329b345b0f5df"</span>
+<span class="n">tok</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">MODEL</span><span class="p">,</span> <span class="n">revision</span><span class="o">=</span><span class="n">REVISION</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">AutoModel</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">MODEL</span><span class="p">,</span> <span class="n">revision</span><span class="o">=</span><span class="n">REVISION</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">enc</span> <span class="o">=</span> <span class="n">tok</span><span class="p">([</span><span class="n">seq</span><span class="p">],</span> <span class="n">return_tensors</span><span class="o">=</span><span class="s2">"pt"</span><span class="p">)</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="o">**</span><span class="n">enc</span><span class="p">)</span><span class="o">.</span><span class="n">last_hidden_state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>          <span class="c1"># (tokens, 320): &lt;cls&gt;, residues, &lt;eos&gt;</span>
+    <span class="n">vector</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>     <span class="c1"># mean over residue positions only</span>
 </pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2f865326">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><em>Your answer here.</em></p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f6fccf02">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Extension-E2-%E2%80%94-Which-membrane-proteins-does-the-embedding-miss?">Extension E2 — Which membrane proteins does the embedding miss?<a class="anchor-link" href="#Extension-E2-%E2%80%94-Which-membrane-proteins-does-the-embedding-miss?">¶</a></h2><p>The lecture showed the probe's most confident <em>false positives</em>. Here you look at the other
-kind of error. Using cross-validated predictions on the training rows
-(<code>sklearn.model_selection.cross_val_predict</code> with <code>method="predict_proba"</code>), list the five
-<strong>transmembrane</strong> proteins with the <em>lowest</em> predicted probability from the ESM-2 probe, with
-their length and evidence. Look one or two up on uniprot.org (Subcellular location and
-Topology). Then compute the same cross-validated predictions with the composition + 2
-hydropathy probe (<code>CH</code>) for those five proteins, and their max window hydropathy (<code>H[:, 0]</code>).
-What do the five have in common, and why might mean pooling miss them?</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=344a47d2">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># your code here</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=752ad50a">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><em>Your answer here.</em></p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bdd521c3">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Extension-E3-%E2%80%94-t-SNE-of-the-embedding,-and-what-its-picture-depends-on">Extension E3 — t-SNE of the embedding, and what its picture depends on<a class="anchor-link" href="#Extension-E3-%E2%80%94-t-SNE-of-the-embedding,-and-what-its-picture-depends-on">¶</a></h2><p>Run t-SNE on the standardised embeddings <code>E</code> at perplexity 30 twice: once with
-<code>init="pca", random_state=SEED</code> and once with <code>init="random", random_state=1</code>. Colour by
-<code>y_sp</code> and compare the two pictures with each other and with the PCA plot from Task 7.
-Which features of the picture survive the change? Would you report "signal-peptide proteins
-form a separate cluster" on this evidence? (About a minute.)</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=353e4b24">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># your code here</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f7999d94">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><em>Your answer here.</em></p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3f2982aa">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Final-reflection">Final reflection<a class="anchor-link" href="#Final-reflection">¶</a></h2><p>Answer in a short paragraph each.</p>
-<p><strong>R1.</strong> You are given a new biological dataset. Describe how you would decide between (a) the
-raw measured features, (b) PCA of those features, and (c) a foundation-model embedding.
-What evidence would you collect before choosing?</p>
-<p><strong>R2.</strong> Week 6 asked what pretraining does not fix. After today, add one thing to that list and
-one thing pretraining <em>did</em> provide here.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2dc941c4">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p><em>Your answer here.</em></p>
+<p>Compare one protein's vector with the frozen one (<code>emb.loc["P29460"]</code>): differences should be
+below about 1e-4 (the frozen values are rounded to 5 decimals).</p>
 </div>
 </div>
 </div>

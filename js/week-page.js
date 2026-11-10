@@ -623,7 +623,7 @@
     },
 
     'pca': {
-      title: 'PCA visualiser',
+      title: 'Exercise 2. PCA visualiser (WDBC)',
       intro: 'Principal components computed in your browser from the real WDBC ' +
              'data, with the downstream cost of the reduction measured properly.',
       banner: 'real',
@@ -648,8 +648,169 @@
       altLabel: 'Read the variance spectrum and accuracy curve as text'
     },
 
+    /* ---- Week 7 (refreshed 2026/27): dimensionality reduction and protein representations.
+       Real data throughout (2,000 human Swiss-Prot proteins, ESM-2 8M); the lecture's
+       "Try this interactively" slides point at these anchors. */
+    'w7-curse': {
+      title: 'Exercise 1. Distances concentrate in high dimensions',
+      intro: 'Points scattered uniformly in a d-dimensional cube: the histogram shows every point\'s distance from one ' +
+             'query, divided by the mean. Predict first: as d grows, what happens to the gap between nearest and farthest?',
+      banner: 'week7-mixed',
+      controls:
+        U.slider({ id: 'w7c-di', label: 'Dimensions', min: 0, max: 11, value: 1 }),
+      readout:
+        U.metric('w7c-d', 'Dimensions', '—', ' ') + U.metric('w7c-ratio', 'Farthest ÷ nearest', '—', ' ') +
+        U.metric('w7c-rc', 'Relative contrast', '—', ' '),
+      explain: '',
+      altLabel: 'Read the distances for every dimension as text'
+    },
+
+    'w7-pca': {
+      title: 'Exercise 3. PCA on protein representations: components, variance and scaling',
+      intro: 'The explained-variance spectrum of the 23 classical descriptors and of the 320-dimensional ESM-2 embedding. ' +
+             'Change the number of components kept, and switch standardisation off. The lower panel shows what k-NN keeps.',
+      banner: 'week7-real',
+      controls:
+        U.segmented({ id: 'w7p-rep', label: 'Representation', value: 'classical',
+          options: [{ value: 'classical', label: 'Classical (23)' }, { value: 'esm2', label: 'ESM-2 (320)' }] }) +
+        U.segmented({ id: 'w7p-scale', label: 'Before PCA', value: 'standard',
+          options: [{ value: 'standard', label: 'Standardise' }, { value: 'none', label: 'Centre only' }] }) +
+        U.slider({ id: 'w7p-k', label: 'Components kept', min: 1, max: 23, value: 2 }) +
+        U.segmented({ id: 'w7p-task', label: 'k-NN task (lower panel)', value: 'signal_peptide',
+          options: [{ value: 'signal_peptide', label: 'Signal peptide' }, { value: 'transmembrane', label: 'Transmembrane' }] }),
+      readout:
+        U.metric('w7p-var', 'Variance kept', '—', ' ') + U.metric('w7p-90', 'For 90%', '—', ' ') +
+        U.metric('w7p-pc1', 'PC1', '—', ' ') + U.metric('w7p-nb', 'Neighbours kept', '—', ' '),
+      explain: '',
+      altLabel: 'Read the spectrum and the k-NN results as text'
+    },
+
+    'w7-map': {
+      title: 'Exercise 6. Protein map explorer: PCA, t-SNE and UMAP of three representations',
+      intro: 'The same 2,000 proteins drawn from composition, classical descriptors or ESM-2, by PCA, t-SNE or UMAP. ' +
+             'Choose a protein: its 10 nearest neighbours in the full space are ringed. Do they stay near it in the picture?',
+      banner: 'week7-real',
+      controls:
+        U.segmented({ id: 'w7m-rep', label: 'Representation', value: 'esm2',
+          options: [{ value: 'composition', label: 'Composition' }, { value: 'classical', label: 'Classical' },
+                    { value: 'esm2', label: 'ESM-2' }] }) +
+        U.segmented({ id: 'w7m-method', label: 'Method', value: 'pca',
+          options: [{ value: 'pca', label: 'PCA' }, { value: 'tsne', label: 't-SNE' }, { value: 'umap', label: 'UMAP' }] }) +
+        U.segmented({ id: 'w7m-colour', label: 'Colour by', value: 'sp',
+          options: [{ value: 'sp', label: 'Signal peptide' }, { value: 'tm', label: 'Transmembrane' },
+                    { value: 'length', label: 'Length' }, { value: 'test', label: 'Split' }] }) +
+        U.select({ id: 'w7m-q', label: 'Protein', value: '', options: [] }),
+      readout:
+        U.metric('w7m-trust', 'Trustworthiness', '—', ' ') + U.metric('w7m-kept', 'Neighbours near in 2-D', '—', ' ') +
+        U.metric('w7m-dims', 'Reduction', '—', ' '),
+      explain: '',
+      altLabel: 'Read the chosen protein\'s neighbours as text'
+    },
+
+    'w7-tsne': {
+      title: 'Exercise 4. t-SNE: perplexity, seed and initialisation',
+      intro: 'Six perplexities, and for perplexity 30 three seeds with PCA initialisation and two with random ' +
+             'initialisation, all of the same ESM-2 embeddings. Which features of the picture survive every setting?',
+      banner: 'week7-real',
+      controls:
+        U.segmented({ id: 'w7t-perp', label: 'Perplexity', value: '30',
+          options: ['2', '5', '15', '30', '50', '100'].map(function (v) { return { value: v, label: v }; }) }) +
+        U.segmented({ id: 'w7t-run', label: 'Initialisation and seed (perplexity 30)', value: 'pca|0',
+          options: [{ value: 'pca|0', label: 'PCA, 0' }, { value: 'pca|1', label: 'PCA, 1' }, { value: 'pca|2', label: 'PCA, 2' },
+                    { value: 'random|1', label: 'Random, 1' }, { value: 'random|2', label: 'Random, 2' }] }) +
+        U.segmented({ id: 'w7t-colour', label: 'Colour by', value: 'sp',
+          options: [{ value: 'sp', label: 'Signal peptide' }, { value: 'tm', label: 'Transmembrane' }, { value: 'length', label: 'Length' }] }),
+      readout:
+        U.metric('w7t-trust', 'Trustworthiness', '—', ' ') + U.metric('w7t-pca', 'PCA 2-D', '—', ' '),
+      explain: '',
+      altLabel: 'Read the trustworthiness of every t-SNE layout as text'
+    },
+
+    'w7-umap': {
+      title: 'Exercise 5. UMAP: n_neighbors and min_dist',
+      intro: 'Sixteen UMAP layouts of the same ESM-2 embeddings. n_neighbors sets how local the view is; min_dist sets ' +
+             'how tightly points may pack. Watch how much the impression of "clusters" depends on the two settings.',
+      banner: 'week7-real',
+      controls:
+        U.segmented({ id: 'w7u-nn', label: 'n_neighbors', value: '15',
+          options: ['5', '15', '50', '200'].map(function (v) { return { value: v, label: v }; }) }) +
+        U.segmented({ id: 'w7u-md', label: 'min_dist', value: '0.1',
+          options: ['0.0', '0.1', '0.5', '0.99'].map(function (v) { return { value: v, label: v }; }) }) +
+        U.segmented({ id: 'w7u-seed', label: 'Seed (15, 0.1 only)', value: '0',
+          options: [{ value: '0', label: '0' }, { value: '1', label: '1' }] }) +
+        U.segmented({ id: 'w7u-colour', label: 'Colour by', value: 'sp',
+          options: [{ value: 'sp', label: 'Signal peptide' }, { value: 'tm', label: 'Transmembrane' }, { value: 'length', label: 'Length' }] }),
+      readout:
+        U.metric('w7u-trust', 'Trustworthiness', '—', ' ') + U.metric('w7u-pca', 'PCA 2-D', '—', ' '),
+      explain: '',
+      altLabel: 'Read the trustworthiness of every UMAP layout as text'
+    },
+
+    'w7-knn': {
+      title: 'Exercise 7. k-NN on classical descriptors versus ESM-2 embeddings',
+      intro: 'The lab\'s controlled comparison: same proteins, split, folds, Pipeline and grid for every representation. ' +
+             'Explore the curves, compare the settings GridSearchCV chose, and only then reveal the test set.',
+      banner: 'week7-real',
+      controls:
+        U.segmented({ id: 'w7k-task', label: 'Task', value: 'signal_peptide',
+          options: [{ value: 'signal_peptide', label: 'Signal peptide' }, { value: 'transmembrane', label: 'Transmembrane' }] }) +
+        U.segmented({ id: 'w7k-scale', label: 'Scaling (in the Pipeline)', value: 'standard',
+          options: [{ value: 'standard', label: 'Standardise' }, { value: 'none', label: 'None' }] }) +
+        U.segmented({ id: 'w7k-metric', label: 'Metric', value: 'euclidean',
+          options: [{ value: 'euclidean', label: 'Euclidean' }, { value: 'manhattan', label: 'Manhattan' }, { value: 'cosine', label: 'Cosine' }] }) +
+        U.segmented({ id: 'w7k-weights', label: 'Voting', value: 'uniform',
+          options: [{ value: 'uniform', label: 'Uniform' }, { value: 'distance', label: 'Distance-weighted' }] }) +
+        U.checkbox({ id: 'w7k-shuffled', label: 'Add ESM-2 of shuffled sequences (control)', checked: false }) +
+        U.checkbox({ id: 'w7k-reveal', label: 'Show the final-test results (look once, after choosing)', checked: false }),
+      readout:
+        U.metric('w7k-cl', 'Classical, best CV', '—', ' ') + U.metric('w7k-es', 'ESM-2, best CV', '—', ' ') +
+        U.metric('w7k-co', 'Composition, best CV', '—', ' ') + U.metric('w7k-test', 'Final test', 'hidden', ' '),
+      explain: '<p><strong>Predict first:</strong> will the 320-dimensional learned embedding beat 23 hand-made ' +
+        'descriptors under k-NN for both tasks? By how much?</p>',
+      altLabel: 'Read every cross-validated value as text'
+    },
+
+    'w7-neighbours': {
+      title: 'Exercise 8. Nearest neighbours before and after dimensionality reduction',
+      intro: 'Pick a protein and compare its 10 nearest neighbours in three spaces side by side: composition, classical ' +
+             'descriptors, ESM-2, or ESM-2 after PCA, UMAP or t-SNE. Which neighbours share its annotations?',
+      banner: 'week7-real',
+      controls:
+        U.select({ id: 'w7n-q', label: 'Protein', value: '', options: [] }) +
+        ['a', 'b', 'c'].map(function (c, i) {
+          return U.select({ id: 'w7n-' + c, label: 'Space ' + (i + 1), value: ['composition', 'esm2', 'esm2_pca10'][i],
+            options: [{ value: 'composition', label: 'Composition (20)' }, { value: 'classical', label: 'Classical (23)' },
+                      { value: 'esm2', label: 'ESM-2 (320)' }, { value: 'esm2_cosine_raw', label: 'ESM-2, cosine, unscaled' },
+                      { value: 'esm2_pca2', label: 'ESM-2 → PCA 2' }, { value: 'esm2_pca10', label: 'ESM-2 → PCA 10' },
+                      { value: 'esm2_pca50', label: 'ESM-2 → PCA 50' }, { value: 'esm2_umap2', label: 'ESM-2 → UMAP 2-D' },
+                      { value: 'esm2_tsne2', label: 'ESM-2 → t-SNE 2-D' }] });
+        }).join(''),
+      readout:
+        U.metric('w7n-cl', 'Classical vs ESM-2', '—', ' ') + U.metric('w7n-sp', 'SP neighbours that are SP', '—', ' ') +
+        U.metric('w7n-p10', 'PCA 10 keeps', '—', ' '),
+      explain: '',
+      altLabel: 'Read the neighbourhood summary as text'
+    },
+
+    'w7-shuffle': {
+      title: 'Exercise 9. The residue-shuffling control',
+      intro: 'Each protein was also embedded after shuffling its residues: same composition, order destroyed. Compare the ' +
+             'hydropathy profiles, see where the shuffled copy lands, and what happens to k-NN.',
+      banner: 'week7-real',
+      controls:
+        U.select({ id: 'w7s-q', label: 'Protein', value: '', options: [] }) +
+        U.segmented({ id: 'w7s-view', label: 'View', value: 'profile',
+          options: [{ value: 'profile', label: 'Hydropathy profile' }, { value: 'map', label: 'Embedding map' },
+                    { value: 'hist', label: 'All distances' }] }),
+      readout:
+        U.metric('w7s-comp', 'Composition', '—', ' ') + U.metric('w7s-hyd', 'Hydropathy peak', '—', ' ') +
+        U.metric('w7s-twin', 'To its shuffled copy', '—', ' ') + U.metric('w7s-near', 'To nearest other', '—', ' '),
+      explain: '',
+      altLabel: 'Read the composition and the k-NN results as text'
+    },
+
     'embeddings': {
-      title: 'Foundation-model embedding explorer',
+      title: 'Exercise 10 (optional). Simulated embedding explorer',
       intro: 'Two representations, two tasks, one classifier held fixed. The ' +
              'two tasks are built to give opposite answers.',
       banner: 'sim-embed',
@@ -1061,6 +1222,18 @@
         'UCI Breast Cancer Wisconsin (Diagnostic), final test set of 171 cases, ' +
         'computed once by data/scripts/08_build_week04_data.py. Real data used for ' +
         'classroom evaluation, not evidence of clinical performance.</span></div></div>';
+    }
+    if (kind === 'week7-real' || kind === 'week7-mixed') {
+      var W7v = window.WEEK07 ? ' ' + U.esc(window.WEEK07.sklearn) : '';
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0">' +
+        '<div class="control"><span class="provenance provenance-real">' +
+        (kind === 'week7-real' ? '● Real data' : '● Mathematical illustration and real data') + '</span></div>' +
+        '<div class="control"><span class="small muted" style="max-width:70ch">' +
+        (kind === 'week7-mixed' ? 'The histogram uses uniform random points (a mathematical fact, not biological data). ' : '') +
+        'Real data: 2,000 human UniProtKB/Swiss-Prot proteins (release 2026_03, one per UniRef50 cluster; CC BY 4.0) with ' +
+        'ESM-2 (8M, 320-d) embeddings, the Week 7 lab\'s files; 1,500 training and 500 test proteins, the lab\'s split. ' +
+        'Measured with scikit-learn' + W7v + ' by data/scripts/20_build_week07_refresh.py. Labels are UniProt keywords, ' +
+        'mostly from sequence analysis: annotations, not ground truth.</span></div></div>';
     }
     if (kind === 'week8-real' || kind === 'week8-mixed') {
       var W8v = window.WEEK08 ? ' ' + U.esc(window.WEEK08.sklearnVersion) : '';

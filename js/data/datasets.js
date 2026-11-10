@@ -220,6 +220,36 @@ window.DATASETS = [
     citation: 'Janosi, A., Steinbrunn, W., Pfisterer, M. & Detrano, R. (1988). Heart Disease [Dataset]. UCI Machine Learning Repository. DOI 10.24432/C52P4X'
   },
   {
+    id: 'uniprotHuman',
+    name: 'Human Swiss-Prot proteins with ESM-2 embeddings',
+    aka: 'UniProtKB/Swiss-Prot release 2026_03, one protein per UniRef50 cluster',
+    domain: 'Protein biology',
+    modality: 'Amino-acid sequences, two curated annotations, 320-dimensional embeddings',
+    inSite: true,
+    weeks: [7],
+    source: 'UniProt REST API (reviewed, human, non-fragment entries) and UniRef50 mapping; embeddings from facebook/esm2_t6_8M_UR50D (pinned revision), computed once by the module team (data/scripts/15_build_week07_data.py)',
+    sourceRef: 'uniprot2025',
+    url: 'https://www.uniprot.org',
+    licence: 'UniProt data CC BY 4.0; ESM-2 weights MIT.',
+    access: 'Frozen in labs/week07/data/ with PROVENANCE.json (query, release, checksums, model revision, pooling). The lab needs no network, GPU or deep-learning package.',
+    samples: '2,000 proteins of 50-1,000 residues, drawn at random (seed 9085) from 16,139 that remain after keeping one per UniRef50 cluster. 1,500 training and 500 test proteins (stratified, seed 42).',
+    features: 'Sequence and a residue-shuffled copy; length; the mean-pooled final-layer ESM-2 (8M) embedding of the real and of the shuffled sequence (320 numbers each). The lab derives 23 classical descriptors: 20 composition fractions, log length, and two Kyte-Doolittle hydropathy summaries.',
+    target: 'Two UniProt keywords: KW-0732 Signal (signal peptide; 350, 17.5%) and KW-0812 Transmembrane (488, 24.4%); 128 proteins have both. The strongest evidence code behind each annotation is recorded.',
+    biology:
+      'A signal peptide is a short hydrophobic N-terminal segment that directs a protein into the secretory ' +
+      'pathway; a transmembrane protein crosses the lipid bilayer, usually through hydrophobic helices of about ' +
+      '20 residues. Both depend on where hydrophobic residues sit in the sequence, not only on how many there are, ' +
+      'which is what makes them a good test of composition-only against order-aware representations [ref:uniprot2025].',
+    limitations: [
+      'Most annotations come from sequence analysis (prediction tools), not experiment: 237 of 350 signal-peptide and 425 of 488 transmembrane labels. Some labels are therefore circular for sequence-based models.',
+      'An unannotated protein is not shown to lack the feature: negatives are "not annotated".',
+      'One protein per UniRef50 cluster reduces but does not remove homology between training and test proteins (Suzek et al. 2015).',
+      'ESM-2 was pretrained on UniRef sequences that almost certainly include these proteins (not their labels): pretraining exposure.',
+      'Human proteins of 50-1,000 residues only; results need not transfer to other organisms or lengths.'
+    ],
+    citation: 'The UniProt Consortium (2025). UniProt: the Universal Protein Knowledgebase in 2025. Nucleic Acids Research 53(D1):D609-D617. Lin, Z. et al. (2023). Science 379:1123-1130 (ESM-2).'
+  },
+  {
     id: 'proteinSim',
     name: 'Protein family teaching set',
     aka: 'Simulated sequences with a simulated embedding',

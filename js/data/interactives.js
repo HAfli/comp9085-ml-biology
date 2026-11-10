@@ -4,7 +4,8 @@
  * its week page (weeks/weekNN.html#viz-<id>); this index only links to it.
  * `slides` gives the lecture slide numbers that send students to the exercise
  * (the Canvas lecture deck for that week), checked against the .pptx files on
- * 2026-11-01 (Weeks 1-7) and 2026-11-03 (Week 8, the refreshed 2026 deck).
+ * 2026-11-01 (Weeks 1-6), 2026-11-03 (Week 8, the refreshed 2026 deck) and 2026-11-10
+ * (Week 7, the refreshed 2026/27 deck).
  * Weeks 9-12 list their interactives without slide numbers: those lectures
  * had not been audited when this index was written.
  *
@@ -76,10 +77,26 @@ window.INTERACTIVES = [
       learn: 'Inject missingness at random or not at random; compare repairs, with and without an indicator.' }
   ] },
   { week: 7, items: [
-    { id: 'pca', kind: 'interactive', title: 'PCA visualiser', slides: '13',
-      learn: 'Project WDBC onto different pairs of components; compare the variance each pair carries with how well the diagnoses separate; switch standardisation off.' },
-    { id: 'embeddings', kind: 'interactive', title: 'Foundation-model embedding explorer', slides: '38',
-      learn: 'A simulated teaching set with two tasks, one solvable by composition and one needing order; compare with the real result in the lecture and lab.' }
+    { id: 'w7-curse', kind: 'interactive', title: '1. Distances concentrate in high dimensions', slides: '11',
+      learn: 'Raise the dimension of random data and watch nearest and farthest converge; compare with the real protein representations.' },
+    { id: 'pca', kind: 'interactive', title: '2. PCA visualiser (WDBC)', slides: '22',
+      learn: 'Project WDBC onto pairs of components; compare variance with separation; switch standardisation off.' },
+    { id: 'w7-pca', kind: 'interactive', title: '3. PCA on protein representations', slides: '22',
+      learn: 'Spectra of 23 classical descriptors and 320 ESM-2 dimensions, scaled and unscaled; what k-NN keeps after reduction.' },
+    { id: 'w7-tsne', kind: 'interactive', title: '4. t-SNE: perplexity, seed and initialisation', slides: '28',
+      learn: 'Real ESM-2 embeddings at six perplexities and five runs; trustworthiness for each.' },
+    { id: 'w7-umap', kind: 'interactive', title: '5. UMAP: n_neighbors and min_dist', slides: '28',
+      learn: 'Sixteen UMAP layouts of the same proteins: how much of a "cluster" is the setting?' },
+    { id: 'w7-map', kind: 'interactive', title: '6. Protein map explorer', slides: '38',
+      learn: 'PCA, t-SNE and UMAP of composition, classical descriptors and ESM-2; do a protein\'s true neighbours stay near it?' },
+    { id: 'w7-knn', kind: 'interactive', title: '7. k-NN on classical descriptors versus ESM-2', slides: '45',
+      learn: 'The lab\'s controlled comparison: same split, folds, pipeline and grid; reveal the test set once.' },
+    { id: 'w7-neighbours', kind: 'interactive', title: '8. Nearest neighbours before and after reduction', slides: '49',
+      learn: 'A protein\'s 10 nearest neighbours in composition, classical, ESM-2 and reduced spaces, with their annotations.' },
+    { id: 'w7-shuffle', kind: 'interactive', title: '9. The residue-shuffling control', slides: '49',
+      learn: 'Same residues, order destroyed: hydropathy profiles, where the shuffled copy lands, and what k-NN loses.' },
+    { id: 'embeddings', kind: 'interactive', title: '10. (Optional) Simulated embedding explorer', slides: '37 (notes)',
+      learn: 'A simulated set built so that one task needs composition and the other order; labelled as simulated.' }
   ] },
   { week: 8, items: [
     { id: 'knn-vote', kind: 'interactive', title: '1. Nearest neighbour and the k-NN vote', slides: '13',

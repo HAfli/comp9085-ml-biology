@@ -200,29 +200,42 @@ window.LABS = {
   },
 
   lab07: {
-    week: 7, title: 'PCA and the geometry of a learned representation',
-    dataset: 'wdbc', duration: '2 hours',
-    goal: 'Reduce a real dataset properly, then compare an engineered representation with a learned one on identical footing.',
+    week: 7, title: 'Protein representations, dimensionality reduction and k-NN: classical features versus ESM-2',
+    dataset: 'uniprotHuman', duration: '2 hours',
+    goal: 'Represent 2,000 real human proteins three ways (classical descriptors, ESM-2 embeddings, reduced versions of both), see what PCA, t-SNE and UMAP keep and lose, and compare classical features with ESM-2 under k-NN in a controlled, reproducible experiment.',
     tasks: [
-      'Standardise WDBC and run PCA. Plot the explained-variance spectrum and the cumulative curve. How many components are needed for 90 per cent?',
-      'Plot PC1 against PC2 coloured by diagnosis. Then inspect the PC1 loadings: which original features dominate it, and what do they have in common biologically?',
-      'Fit logistic regression on the raw 30 features and on 2, 5, 10 and 20 principal components, all inside a Pipeline. Plot accuracy against the number of components. Where is the knee?',
-      'Load the protein teaching set from js/data/sequences.js. Note the simulation warning and record in your notebook what is simulated and what is not.',
-      'For the family label, run k-NN on the engineered representation and on the embedding. For the hasSite label, do the same. Produce one table with four numbers.',
-      'Explain the pattern in that table. Which task favours which representation, and what property of each task explains it?'
+      'Explore the proteins: provenance, sequence lengths, the signal-peptide and transmembrane labels, their evidence codes, missing values and the class balance in the fixed 1,500/500 split.',
+      'Compute classical descriptors: amino-acid composition, log length, and two Kyte-Doolittle hydropathy summaries (the maximum over a 19-residue window, and the first 25 residues). Say what each can and cannot see.',
+      'Standardise the classical features and run PCA: explained variance, the cumulative curve, PC1 against PC2 by label, the loadings, and the same without scaling.',
+      'Run t-SNE (two perplexities) and UMAP (two n_neighbors settings) on the classical features and the embeddings; measure trustworthiness; say what the maps can and cannot show.',
+      'Load the ESM-2 embeddings: check dimensions, missing values and the accession match; describe how they were made; measure anisotropy; compare the PCA spectrum and maps with the classical features.',
+      'The key experiment: k-NN on classical descriptors and on ESM-2 embeddings with the same split, target, 5-fold CV, Pipeline and GridSearchCV grid (k, metric, weighting, scaling); report the selected settings, then evaluate each once on the test set (ROC AUC, confusion matrix, precision, recall, F1) with a bootstrap interval for the difference. Signal peptide, then transmembrane.',
+      'Compare a protein\'s nearest neighbours in composition, classical, ESM-2 and PCA-reduced spaces: overlap, and how often neighbours share the protein\'s annotations.',
+      'The residue-shuffling control: same composition, order destroyed. Compare features, distances and k-NN performance, and explain what the control does and does not show.',
+      'Reflect: which representation did better, for which task and why; what dimensionality reduction did to the neighbours; whether visual clusters matched annotations; the limits of the data and the evaluation; what you would test next.'
     ],
     starter:
-      'from sklearn.decomposition import PCA\n' +
-      'from sklearn.preprocessing import StandardScaler\n\n' +
-      'Z = StandardScaler().fit_transform(d.data)\n' +
-      'p = PCA().fit(Z)\n' +
-      'print(p.explained_variance_ratio_[:5].cumsum())\n' +
-      '# loadings for PC1\n' +
-      'import numpy as np\n' +
-      'order = np.argsort(np.abs(p.components_[0]))[::-1][:6]\n' +
-      'print([d.feature_names[i] for i in order])',
-    deliverable: 'The variance plot, the components-versus-accuracy plot, the four-number table and your explanation of it.',
-    los: ['LO1', 'LO2', 'LO4']
+      'from sklearn.pipeline import Pipeline\n' +
+      'from sklearn.preprocessing import StandardScaler\n' +
+      'from sklearn.neighbors import KNeighborsClassifier\n' +
+      'from sklearn.model_selection import GridSearchCV, StratifiedKFold\n\n' +
+      'pipe = Pipeline([("scale", StandardScaler()), ("knn", KNeighborsClassifier())])\n' +
+      'grid = {"scale": ["passthrough", StandardScaler()], "knn__n_neighbors": K_GRID,\n' +
+      '        "knn__metric": ["euclidean", "manhattan", "cosine"], "knn__weights": ["uniform", "distance"]}\n' +
+      '# the SAME pipe, grid, folds and split for every representation',
+    files: [
+      { label: 'Download the notebook (.ipynb)',
+        href: 'labs/week07/COMP9085_Week07_Lab.ipynb', download: true },
+      { label: 'Read it in the browser (.html)',
+        href: 'labs/week07/COMP9085_Week07_Lab.html' },
+      { label: 'Lab README',
+        href: 'labs/week07/README.md' },
+      { label: 'Data, embeddings and provenance',
+        href: 'labs/week07/data/README.md' }
+    ],
+    deliverable: 'The executed notebook with every question answered: the PCA and map figures with your reading of them, the k-NN comparison table with selected settings, test results and the bootstrap interval, the neighbourhood comparison, the shuffling control, and your reflection.',
+    los: ['LO1', 'LO2', 'LO4'],
+    note: 'Everything runs offline in about two minutes on a laptop: the proteins and their ESM-2 embeddings are precomputed in labs/week07/data, so no GPU or deep-learning package is needed (umap-learn is optional; the notebook falls back if it is missing). Tasks 1 to 9 are the core lab; four extensions are optional.'
   },
 
   lab08: {

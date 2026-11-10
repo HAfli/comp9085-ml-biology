@@ -1391,84 +1391,284 @@ window.COURSE = {
     /* ------------------------------------------------------------------ 7 */
     {
       n: 7,
-      title: 'Dimensionality reduction and foundation-model embeddings',
+      title: 'Dimensionality reduction and protein embeddings',
       strand: 'representation',
-      short: 'The hinge of the module: from features you chose to features a model learned.',
+      short: 'The hinge of the module: from features you chose to features a model learned, and what each does to "nearest".',
       pivot: true,
-      scheduleNote: 'Teaching order 2026/27: this week is taught in the session after Week 8 (k-NN), ' +
-        'which was brought forward. The material is unchanged.',
+      scheduleNote: 'Teaching order 2026/27: this week is taught in the session after Week 8 (k-NN), which was brought ' +
+        'forward. It builds directly on Week 8: k-NN predicts from the nearest stored cases, so everything here asks what ' +
+        '"nearest" means once the features are many, reduced, or learned by a model.',
       los: ['LO1', 'LO2', 'LO4'],
       biology:
-        'Biological data is routinely wider than it is tall. A transcriptome has 20,000 ' +
-        'genes measured in perhaps 200 patients; a protein is a sequence of hundreds of ' +
-        'residues drawn from an alphabet of twenty. Both need to be reduced to something a ' +
-        'model can work with. The classical answer is to project onto directions of maximal ' +
-        'variance. The modern answer is to let a model that has read a great deal of ' +
-        'biological sequence tell you where the sequence sits in a learned space. This week ' +
-        'puts the two side by side.',
+        'Biological data is routinely wider than it is tall. A transcriptome has 20,000 genes measured in perhaps 200 ' +
+        'patients; a protein is a sequence of hundreds of residues drawn from an alphabet of twenty. Before a model can use ' +
+        'either, someone has to decide how to represent it. The classical answer is to choose descriptors (amino-acid ' +
+        'composition, length, hydropathy) or to project measured features onto their directions of greatest variance ' +
+        'with PCA. The modern answer is to let a protein language model that has read millions of sequences place each ' +
+        'protein in a learned space. Last session\'s k-NN makes the stakes concrete: a k-NN prediction is only as good as ' +
+        'the space in which "nearest" is measured. This week uses 2,000 real human proteins from UniProtKB/Swiss-Prot, ' +
+        'with real ESM-2 embeddings, and asks a controlled question: with everything else held fixed, which ' +
+        'representation finds the more useful neighbours, and why?',
       objectives: [
-        'Explain the curse of dimensionality and its practical consequences for biological data.',
-        'Perform and interpret PCA, including the explained-variance spectrum and loadings.',
-        'Distinguish PCA from neighbour-embedding methods such as t-SNE and UMAP, and state what each preserves.',
-        'Explain what a foundation-model embedding is and how it is produced.',
-        'Compare a hand-engineered representation with a learned one on the same data, and identify which task favours which.'
+        'Explain why biological data are often high-dimensional, and how distance concentration and irrelevant features affect distance-based learners such as k-NN.',
+        'Apply PCA to standardised data inside a Pipeline, and interpret the explained-variance spectrum, the cumulative curve and the loadings.',
+        'Distinguish linear (PCA) from nonlinear (t-SNE, UMAP) dimensionality reduction, and state what each preserves.',
+        'Explain how t-SNE and UMAP build a two-dimensional map, the effect of perplexity, n_neighbors, min_dist and the random seed, and what such a map can and cannot show.',
+        'Distinguish a raw protein sequence, a handcrafted feature vector, a learned embedding and a reduced representation, and explain how ESM-2 embeddings are produced.',
+        'Use pretrained protein embeddings in a downstream task (k-NN), with preprocessing fitted inside the cross-validation folds.',
+        'Compare representations with a controlled, reproducible protocol, and interpret the result with its biological and methodological limits (homology, pretraining exposure, annotation uncertainty).'
+      ],
+      sections: [
+        { id: 'bridge', nav: '1. From Week 8 to representations',
+          title: '1. From Week 6 and Week 8 to this week',
+          body:
+            'Week 6 prepared real biological data: missing values, scaling, and pipelines that fit every preprocessing step ' +
+            'on training rows only. Week 8 used that discipline in k-NN, where the choice of features, their scaling and ' +
+            'their relevance decided who the neighbours were: on the heart-disease data, standardising raised ' +
+            'cross-validated accuracy from 63 to 84 per cent, and 100 columns of noise lowered it from 80 to 67. This week ' +
+            'turns that lesson into the central question of representation learning. If the neighbours depend on the ' +
+            'space, which space should we use: features we chose, a compressed version of them, or features a model ' +
+            'learned from millions of sequences? Every exercise below uses the same 2,000 real proteins as the lab.',
+          keypoint: 'k-NN does not learn features; it inherits them. Choosing the representation is choosing the neighbours.' },
+
+        { id: 'curse', nav: '2. High-dimensional data',
+          title: '2. High-dimensional biological data and the curse of dimensionality',
+          body:
+            'With many features, two things go wrong for distance-based methods. First, distances concentrate: for points ' +
+            'scattered at random in 320 dimensions, the farthest point is only about 24 per cent further away than the ' +
+            'nearest, so "nearest" carries little information. Second, every irrelevant feature adds noise to every ' +
+            'distance (Week 8). Real biological features are correlated, so real data keep far more contrast than random ' +
+            'points: on the proteins, the relative contrast is 4.6 in the 320-dimensional ESM-2 space against 0.24 for ' +
+            'random points of the same dimension. That correlation is what dimensionality reduction exploits. Feature ' +
+            'selection keeps a subset of the original features; feature extraction (PCA, t-SNE, UMAP, a learned ' +
+            'embedding) builds new ones from all of them.',
+          viz: ['w7-curse'],
+          keypoint: 'Reduce dimension because the data are correlated and partly irrelevant, not because a number is large.' },
+
+        { id: 'pca', nav: '3. PCA',
+          title: '3. Principal component analysis, by hand and in scikit-learn',
+          html:
+            '<div class="table-scroll"><table class="table-compact"><caption>A complete numerical example: two standardised ' +
+            'features x₁ and x₂ with correlation r. The covariance (here, correlation) matrix is C = [[1, r], [r, 1]].' +
+            '</caption><thead><tr><th scope="col">Step</th><th scope="col">Result</th></tr></thead><tbody>' +
+            '<tr><th scope="row">Eigenvalues of C</th><td>λ₁ = 1 + r and λ₂ = 1 − r (they sum to 2, the total variance)</td></tr>' +
+            '<tr><th scope="row">Eigenvectors</th><td>v₁ = (1, 1)/√2 and v₂ = (1, −1)/√2, whatever the value of r</td></tr>' +
+            '<tr><th scope="row">PC1 share of variance</th><td>λ₁ / (λ₁ + λ₂) = (1 + r)/2</td></tr>' +
+            '<tr><th scope="row">WDBC: mean radius and mean perimeter</th><td>r = 0.998: PC1 carries 99.9%; one direction suffices</td></tr>' +
+            '<tr><th scope="row">WDBC: mean radius and mean texture</th><td>r = 0.324: PC1 carries 66.2%; both directions matter</td></tr>' +
+            '</tbody></table></div>',
+          body:
+            'PCA finds new axes, ordered by how much of the data\'s variance lies along each. In four steps: standardise ' +
+            'each feature; form the covariance matrix C = ZᵀZ / (n − 1); find its eigenvectors (the directions, or ' +
+            'loadings) and eigenvalues (the variance along each); project the data onto the first k eigenvectors. The ' +
+            'explained-variance ratio of a component is its eigenvalue divided by the sum of all eigenvalues. On WDBC, ' +
+            'two components carry 63.2 per cent of the variance and seven are needed for 90 per cent. Scaling decides ' +
+            'what PCA finds: without standardisation, PC1 takes 98.2 per cent of the variance and is simply the feature ' +
+            'with the largest units (worst area). Inside a Pipeline, PCA is refitted in every training fold, like the ' +
+            'scaler. Variance is not relevance: the direction of greatest variance need not be the one that separates ' +
+            'the classes.',
+          viz: ['pca'],
+          keypoint: 'Standardise, read the spectrum and the loadings, and fit PCA inside the pipeline.' },
+
+        { id: 'pca-proteins', nav: '4. PCA on proteins',
+          title: '4. PCA on protein representations',
+          body:
+            'The lab\'s classical descriptors are 23 numbers per protein: the 20 amino-acid fractions, log length, the ' +
+            'highest mean Kyte–Doolittle hydropathy over any 19-residue window, and the mean hydropathy of the first 25 ' +
+            'residues. Standardised, their spectrum is flat (PC1 15.7 per cent; 17 of 23 components for 90 per cent): ' +
+            'they are not very redundant. Unstandardised, PC1 takes 55.2 per cent and three components "explain" 90 per ' +
+            'cent, but only because the hydropathy and length features are measured in larger units than fractions. The ' +
+            '320-dimensional ESM-2 embedding needs 60 components (standardised) for 90 per cent. Reducing it changes the ' +
+            'neighbours far more than the k-NN score: 10 components keep only 45 per cent of each protein\'s 10 nearest ' +
+            'neighbours, yet k-NN on them still reaches a cross-validated ROC AUC of 0.935 for signal peptides (all 320: 0.950).',
+          viz: ['w7-pca'] },
+
+        { id: 'nonlinear', nav: '5. t-SNE and UMAP',
+          title: '5. Nonlinear maps: t-SNE and UMAP',
+          body:
+            'PCA is a linear projection: it can only rotate and drop axes. If the data lie on a curved surface, or if the ' +
+            'structure of interest is local, two linear components can hide it. t-SNE converts distances into ' +
+            'neighbour probabilities (each point\'s neighbourhood width set so that its perplexity, roughly the number of ' +
+            'neighbours it considers, matches the value you choose) and arranges points in two dimensions so that the ' +
+            'same neighbours stay likely. UMAP builds a weighted graph of each point\'s n_neighbors nearest neighbours ' +
+            'and lays it out so that connected points stay close; min_dist sets how tightly points may pack. Both are ' +
+            'stochastic, both have settings that change the picture, and neither preserves global distances: the size ' +
+            'of a cluster, the gap between clusters and their positions on the page carry no reliable meaning. On the ' +
+            'ESM-2 embeddings, trustworthiness (how many 2-D neighbours are true neighbours) is 0.94 for t-SNE and 0.92 ' +
+            'for UMAP, against 0.74 for PCA to two components; but PCA to 10 components scores 0.97.',
+          viz: ['w7-tsne', 'w7-umap'],
+          keypoint: 'A 2-D map is an approximation for looking. A separated cluster is a hypothesis about biology, not evidence for it.' },
+
+        { id: 'representations', nav: '6. Representations of a protein',
+          title: '6. Four representations of one protein',
+          html:
+            '<div class="table-scroll"><table class="table-compact"><caption>The same protein, four ways. Only the first ' +
+            'is the data; the others are choices.</caption><thead><tr><th scope="col">Representation</th><th scope="col">' +
+            'What it is</th><th scope="col">Dimensions</th><th scope="col">What it can see</th></tr></thead><tbody>' +
+            '<tr><th scope="row">Raw sequence</th><td>The residues in order, e.g. MKTLLV…</td><td>Variable length</td>' +
+            '<td>Everything, but no model can use it directly as a fixed-length vector</td></tr>' +
+            '<tr><th scope="row">Handcrafted vector</th><td>Composition, length, hydropathy summaries</td><td>23</td>' +
+            '<td>What the designer chose; composition is blind to order, the hydropathy windows are not</td></tr>' +
+            '<tr><th scope="row">Learned embedding</th><td>ESM-2 (8M parameters), final layer mean-pooled over residues</td>' +
+            '<td>320</td><td>Whatever helped the model predict masked residues across millions of sequences</td></tr>' +
+            '<tr><th scope="row">Reduced representation</th><td>PCA, t-SNE or UMAP of one of the above</td><td>2 to 100</td>' +
+            '<td>Less than its source; what is lost depends on the method</td></tr></tbody></table></div>',
+          body:
+            'ESM-2 was pretrained by masked language modelling: hide some residues and predict them from the rest, so the ' +
+            'sequences themselves are the labels and no annotation is used. Each residue gets a 320-dimensional vector ' +
+            'from the final layer; averaging over the residues (mean pooling) gives one vector per protein, whatever its ' +
+            'length. The embeddings were computed once by the module team with a pinned model version. Because the step ' +
+            'never sees our labels, computing it before the train/test split is not leakage; anything fitted with labels, ' +
+            'and the scaler, still belongs inside the folds. Raw ESM-2 vectors all point in nearly the same direction ' +
+            '(mean cosine similarity 0.84 between unrelated proteins), so centring or standardising matters before cosine ' +
+            'or Euclidean distance.',
+          viz: ['w7-map'] },
+
+        { id: 'knn-compare', nav: '7. k-NN: classical vs ESM-2',
+          title: '7. The controlled comparison: k-NN on classical descriptors versus ESM-2',
+          body:
+            'Everything is held fixed except the representation: the same 1,500 training and 500 test proteins, the same ' +
+            'target, the same 5-fold cross-validation, the same Pipeline (optional standardisation, then k-NN) and the ' +
+            'same grid of 192 settings (16 values of k, three metrics, two weightings, with or without scaling), chosen by ' +
+            'mean cross-validated ROC AUC. The test set is used once per representation. For signal peptides, ESM-2 and ' +
+            'the classical descriptors rank proteins about equally well (test ROC AUC 0.942 and 0.936; bootstrap 95 per ' +
+            'cent interval for the difference −0.026 to 0.037), and both are far ahead of composition alone (0.761). At ' +
+            'the default threshold, though, the ESM-2 model recovers about half of the signal-peptide proteins and the ' +
+            'classical one about a quarter (recall 0.51 and 0.26). For membrane proteins, the classical descriptors win ' +
+            '(0.972 against 0.940; interval −0.064 to −0.003): a 19-residue hydropathy window is close to the biology of a ' +
+            'membrane-spanning helix. ESM-2 is not automatically better; what matters is whether a representation encodes ' +
+            'the property you need.',
+          viz: ['w7-knn'],
+          keypoint: 'Report the comparison you ran, with its uncertainty. "Learned beats handcrafted" is a hypothesis to test, task by task.' },
+
+        { id: 'neighbours', nav: '8. Who are the neighbours?',
+          title: '8. Representation and reduction change the neighbours',
+          body:
+            'Across all 2,000 proteins, a protein\'s 10 nearest neighbours by classical descriptors and by ESM-2 overlap by ' +
+            'only 20 per cent (chance: 0.5 per cent). Representation choice changes the meaning of "similar". Among a ' +
+            'signal-peptide protein\'s ESM-2 neighbours, 64 per cent also carry a signal peptide; by classical ' +
+            'descriptors 50 per cent; by composition 34 per cent (base rate 17.5 per cent). Dimensionality reduction ' +
+            'changes neighbours too: PCA to 2 components keeps 9 per cent of the ESM-2 neighbours, to 50 components 85 ' +
+            'per cent. t-SNE and UMAP maps keep more local neighbours than 2 PCs (46 and 37 per cent), but they are fitted ' +
+            'to all points at once and their distances are not to be read, so they are not a faithful substitute for the ' +
+            'original space in a downstream model: UMAP to 2 dimensions inside the k-NN Pipeline lowers the ' +
+            'cross-validated ROC AUC for signal peptides from 0.950 to 0.827.',
+          viz: ['w7-neighbours'] },
+
+        { id: 'shuffle', nav: '9. The shuffling control',
+          title: '9. The residue-shuffling control: does order matter?',
+          body:
+            'Each protein was also embedded after shuffling its residues: same composition and length, order destroyed. ' +
+            'k-NN on the shuffled embeddings falls to about the level of composition (signal peptide 0.807, ' +
+            'transmembrane 0.855 cross-validated ROC AUC), and the shuffled copy of a protein is nearer to its original ' +
+            'than to any other real protein for only 18 per cent of proteins. The ESM-2 signal-peptide model, applied to ' +
+            'shuffled test sequences, drops from 0.942 to 0.658. The classical hydropathy features change too, because ' +
+            'they are position-aware: the mean N-terminal hydropathy of signal-peptide proteins falls from 0.93 to −0.21. ' +
+            'The control shows that the embedding\'s advantage over composition depends on residue order. It does not ' +
+            'show which biological mechanism the model has captured.',
+          viz: ['w7-shuffle'] },
+
+        { id: 'limits', nav: '10. Structure is not biology',
+          title: '10. Observing structure versus demonstrating biology',
+          body:
+            'Four limits apply to every result on this page. Homology: one protein per UniRef50 cluster removes close ' +
+            'relatives but not families; by shared 5-mers, 10 of the 500 test proteins share more than 20 per cent with ' +
+            'some training protein (the highest: Ras-related protein Rap-1A and a Rap-1b-like protein, 79 per cent). ' +
+            'Pretraining exposure: ESM-2 was trained on UniRef50 sequences that almost certainly include these proteins; ' +
+            'it never saw our labels, but "unseen" proteins are not unseen sequences. Annotation uncertainty: 237 of 350 ' +
+            'signal-peptide labels and 425 of 488 transmembrane labels rest on sequence analysis (prediction tools such ' +
+            'as SignalP), not experiment, and an unannotated protein is not shown to lack the feature. Scope: human ' +
+            'proteins of 50 to 1,000 residues. A good score or a clean cluster shows that a representation separates ' +
+            'these annotations; it does not demonstrate a mechanism. The optional explorer below uses a simulated set ' +
+            'built to isolate the composition-versus-order contrast; it is labelled as simulated.',
+          viz: ['embeddings'],
+          keypoint: 'Say what the evidence supports, and no more: separation, under this protocol, for these labels.' },
+
+        { id: 'using', nav: '11. Using this page with the lab',
+          title: '11. Using this page with the lab',
+          html:
+            '<div class="table-scroll"><table class="table-compact"><thead><tr><th scope="col">Lab task</th>' +
+            '<th scope="col">Exercise on this page</th></tr></thead><tbody>' +
+            '<tr><th scope="row">1. Explore the protein dataset</th><td><a href="#viz-w7-map">6. Protein map explorer</a> (colour by split, length)</td></tr>' +
+            '<tr><th scope="row">2. Classical protein features</th><td><a href="#viz-w7-shuffle">9. Shuffling control</a> (hydropathy profiles)</td></tr>' +
+            '<tr><th scope="row">3. PCA on classical features</th><td><a href="#viz-w7-pca">3. PCA on protein representations</a> and <a href="#viz-pca">2. PCA visualiser</a></td></tr>' +
+            '<tr><th scope="row">4. t-SNE and UMAP</th><td><a href="#viz-w7-tsne">4. t-SNE</a>, <a href="#viz-w7-umap">5. UMAP</a></td></tr>' +
+            '<tr><th scope="row">5. ESM-2 embeddings</th><td><a href="#viz-w7-map">6. Protein map explorer</a>, <a href="#viz-w7-pca">3</a></td></tr>' +
+            '<tr><th scope="row">6. k-NN: classical vs ESM-2</th><td><a href="#viz-w7-knn">7. k-NN comparison</a></td></tr>' +
+            '<tr><th scope="row">7. Neighbourhood comparison</th><td><a href="#viz-w7-neighbours">8. Nearest neighbours before and after reduction</a></td></tr>' +
+            '<tr><th scope="row">8. Residue shuffling</th><td><a href="#viz-w7-shuffle">9. The residue-shuffling control</a></td></tr>' +
+            '<tr><th scope="row">9. Reflection</th><td><a href="#viz-w7-curse">1. Distance concentration</a> and section 10</td></tr>' +
+            '</tbody></table></div>' }
+      ],
+      interactiveIntro:
+        'Nine exercises, each inside the section it belongs to; the lecture\'s "Try this interactively" slides send you to ' +
+        'them. Exercise 1 uses random points to show a mathematical fact; Exercise 2 uses WDBC (the PCA worked example); ' +
+        'Exercises 3 to 9 use the lab\'s 2,000 real proteins and its split and protocol, so the numbers here and in your ' +
+        'notebook agree. Exercise 10 is an optional, simulated explorer and says so.',
+      interactiveIndex: [
+        { id: 'w7-curse', label: '1. Distances concentrate in high dimensions', note: 'section 2; lab Task 9; lecture slide 11' },
+        { id: 'pca', label: '2. PCA visualiser (WDBC)', note: 'section 3; lecture slide 22' },
+        { id: 'w7-pca', label: '3. PCA on protein representations', note: 'section 4; lab Tasks 3 and 5; lecture slide 22' },
+        { id: 'w7-tsne', label: '4. t-SNE: perplexity, seed and initialisation', note: 'section 5; lab Task 4; lecture slide 28' },
+        { id: 'w7-umap', label: '5. UMAP: n_neighbors and min_dist', note: 'section 5; lab Task 4; lecture slide 28' },
+        { id: 'w7-map', label: '6. Protein map explorer', note: 'section 6; lab Tasks 1, 4 and 5; lecture slide 38' },
+        { id: 'w7-knn', label: '7. k-NN on classical descriptors versus ESM-2', note: 'section 7; lab Task 6; lecture slide 45' },
+        { id: 'w7-neighbours', label: '8. Nearest neighbours before and after reduction', note: 'section 8; lab Task 7; lecture slide 49' },
+        { id: 'w7-shuffle', label: '9. The residue-shuffling control', note: 'section 9; lab Task 8; lecture slide 49' },
+        { id: 'embeddings', label: '10. (Optional) Simulated embedding explorer', note: 'section 10; lecture slide 37 notes' }
       ],
       concepts: [
-        { term: 'The curse of dimensionality', body: 'As dimension grows, distances between points concentrate and the volume of space grows faster than any feasible sample. Nearest neighbours stop being near.' },
-        { term: 'Principal component analysis', body: 'An orthogonal linear projection onto the directions of greatest variance. It is deterministic, invertible, and its components are interpretable through their loadings. On WDBC, the first two components carry 63.2 per cent of the variance and the first six carry 88.8 per cent.' },
-        { term: 'Explained variance', body: 'How much of the total variance each component captures. A slowly decaying spectrum means the data genuinely is high-dimensional and no small projection will be faithful.' },
-        { term: 't-SNE and UMAP', body: 'Non-linear neighbour-embedding methods that preserve local neighbourhoods. They are excellent for seeing structure and dangerous for measuring it: distances between clusters, cluster sizes and empty space in the plot are not interpretable.' },
-        { term: 'Representation learning', body: 'Instead of choosing features, learn a mapping from raw input to a vector space in which the geometry is useful.' },
-        { term: 'Embedding', body: 'The vector a model produces for an input. For a protein language model, mean-pooling the final hidden layer over residues gives one fixed-length vector per protein, whatever its length.' },
-        { term: 'Self-supervised pretraining', body: 'Training by predicting masked parts of the input. No labels, so the corpus can be enormous: DNABERT-2 used 32.49 billion bases from 135 species [ref:dnabert2].' },
-        { term: 'Anisotropy', body: 'Language-model embedding spaces are dominated by a few directions. This affects nearest-neighbour search and often makes centring or whitening worthwhile before using the embeddings downstream.' }
+        { term: 'The curse of dimensionality', body: 'As dimension grows, distances between random points concentrate and the volume of space outgrows any feasible sample. Nearest neighbours stop being near; correlated real data suffer less, which is why reduction helps.' },
+        { term: 'Feature selection versus extraction', body: 'Selection keeps a subset of the original features (interpretable, may discard signal spread across many). Extraction builds new features from all of them: PCA, t-SNE, UMAP, a learned embedding.' },
+        { term: 'Principal component analysis', body: 'An orthogonal linear projection onto the eigenvectors of the covariance matrix, ordered by eigenvalue (variance). Deterministic, linear, interpretable through its loadings, sensitive to scaling.' },
+        { term: 'Explained variance', body: 'A component\'s eigenvalue divided by the total. The cumulative curve says how many components a given share needs; a flat spectrum means no small projection is faithful.' },
+        { term: 't-SNE', body: 'Matches neighbour probabilities in the original space and in 2-D. Perplexity sets the effective number of neighbours. Stochastic; preserves local structure; cluster sizes and gaps are not interpretable; no transform for new points in the standard algorithm.' },
+        { term: 'UMAP', body: 'Lays out a graph of each point\'s n_neighbors nearest neighbours; min_dist controls packing. Faster than t-SNE, has a transform for new points, and shares t-SNE\'s limits on reading global distances.' },
+        { term: 'Trustworthiness', body: 'The extent to which a point\'s nearest neighbours in the 2-D map are also its neighbours in the original space (1 = all). A way to measure, rather than admire, a projection.' },
+        { term: 'Handcrafted features', body: 'Descriptors a person chose: composition, length, hydropathy. Interpretable and cheap; they see only what was designed into them.' },
+        { term: 'Protein language model embedding', body: 'ESM-2 is pretrained to predict masked residues. Mean-pooling its final layer over residues gives one fixed-length vector per protein (320 numbers for the 8M-parameter model).' },
+        { term: 'Anisotropy', body: 'Raw embedding vectors share a dominant direction (mean cosine 0.84 here). Centre or standardise before measuring distances.' },
+        { term: 'Linear probe', body: 'A simple classifier (logistic regression) trained on frozen embeddings, used to ask what information they contain. k-NN asks a related but different question: are similar proteins near each other?' },
+        { term: 'Homology leakage and pretraining exposure', body: 'Related sequences on both sides of a split inflate scores; one per UniRef50 cluster reduces but does not remove this. A pretrained model may have seen the test sequences (not the labels).' }
       ],
-      viz: 'pca',
-      viz2: 'embeddings',
-      interactiveIntro:
-        'The lecture uses both of these: the PCA visualiser (lecture slide 13) and the ' +
-        'embedding explorer (slide 38). The embedding explorer runs on a simulated teaching ' +
-        'set, labelled as such; the lecture and the lab test the same idea on 2,000 real ' +
-        'human proteins with real ESM-2 embeddings.',
       worked: {
-        title: 'The pipeline, stated concretely',
+        title: 'One protein, three sets of neighbours',
         body:
-          'Biological sequence, for instance a 260-residue protein.\n\n' +
-          'Into a foundation model: tokenise (single residues for ESM-2, byte-pair-encoded ' +
-          'fragments for DNABERT-2, six-mers for the Nucleotide Transformer) and run a ' +
-          'forward pass. No training happens, and your labels are never used.\n\n' +
-          'Out comes a high-dimensional embedding: one vector per token, mean-pooled over ' +
-          'real residue positions into a single vector per sequence. ESM-2 at 8 million ' +
-          'parameters gives 320 dimensions; the 650-million-parameter model gives more.\n\n' +
-          'Then PCA or UMAP down to two dimensions, purely so a human can look at it.\n\n' +
-          'Then the plot, coloured by biological class. And here is the discipline: the plot ' +
-          'is a diagnostic, not a result. If classes separate, that is a hypothesis worth ' +
-          'testing with a classifier and a held-out set. If they do not, the signal may still ' +
-          'be there in the full-dimensional space, since a two-dimensional projection of a ' +
-          '320-dimensional space discards a great deal.',
-        keypoint: 'You look at two dimensions. You should model in all of them.'
+          'Interleukin-12 subunit beta (IL12B, UniProt P29460, 328 residues) is a secreted cytokine subunit with an ' +
+          'experimentally supported signal peptide, and it is in the test set.\n\n' +
+          'By amino-acid composition, its 10 nearest proteins are mostly intracellular: WD-repeat proteins, a centromere ' +
+          'protein, a chromatin-assembly factor. None has a signal peptide. Composition says only that their residue ' +
+          'usage is similar.\n\n' +
+          'By the classical descriptors, which add length and the two hydropathy summaries, two of the ten have a ' +
+          'signal peptide (two immunoglobulin-like receptors).\n\n' +
+          'By the ESM-2 embedding, all ten neighbours have a signal peptide, and most are cytokines, cytokine receptors ' +
+          'and other immune-system proteins (IL-40, the IL-5 receptor alpha chain, the common gamma chain, IL-1 ' +
+          'receptor-like 2, an HLA class II beta chain). The embedding was never given a label; whether this reflects shared ' +
+          'domains, shared signal sequences or something else, it cannot tell us by itself.\n\n' +
+          'Then reduce the embedding to two principal components: none of those ten neighbours survives, although 8 of ' +
+          'the 10 new neighbours still carry a signal peptide. Exercise 8 shows every list.',
+        keypoint: 'The same protein has different neighbours in different spaces. k-NN can only be as good as the space you give it.'
       },
       fm: {
-        title: 'Two tasks, two answers',
+        title: 'What the embedding adds, measured',
         body:
-          'The embedding explorer on this page carries two different labels for the same ' +
-          'sequences, and they behave in opposite ways.\n\n' +
-          'The family label is driven by amino-acid usage. A twenty-dimensional composition ' +
-          'vector describes it almost perfectly, and hand-engineered features match or beat ' +
-          'the embedding. The right answer here is to use the simple thing.\n\n' +
-          'The ordered-triad label is driven by residue order alone: both classes contain ' +
-          'exactly the same residues at the same positions, differing only in their N-to-C ' +
-          'arrangement. Composition is identical by construction, so any bag-of-residues ' +
-          'method must sit at chance. Only a representation that encodes order can do better.\n\n' +
-          'That is the whole argument for learned representations, in one dataset. Not "the ' +
-          'embedding is better", but "the embedding can see something composition cannot, ' +
-          'and whether that matters depends entirely on your task".',
+          'On the 2,000 real proteins, the learned representation adds most where the property depends on residue order ' +
+          'and the handcrafted descriptors do not encode it. Composition alone cannot see a signal peptide; ESM-2 can ' +
+          '(k-NN test ROC AUC 0.761 against 0.942). But two order-aware classical features (a 19-residue hydropathy window ' +
+          'and N-terminal hydropathy) recover almost all of that gap for signal peptides, and beat the embedding for ' +
+          'membrane proteins.\n\n' +
+          'Shuffling the residues removes the embedding\'s advantage, which shows that it depends on order. A linear ' +
+          'probe (logistic regression) on the same embeddings, used in the 2026/27 lab\'s earlier version, gives the same ' +
+          'qualitative pattern with higher scores for ESM-2 (0.966 and 0.974 cross-validated): how much a representation ' +
+          '"contains" depends on how you read it out.\n\n' +
+          'The useful conclusion is not "the embedding is better", but "the embedding can see some things the simple ' +
+          'features cannot, and whether that matters depends on your task".',
         models: ['esm2', 'nucleotideTransformer', 'dnabert2', 'prottrans', 'hyenadna']
       },
       scientist:
-        'Your UMAP of patient embeddings shows two well-separated blobs. Before you write ' +
-        'that you have found two disease subtypes, list three non-biological explanations ' +
-        'that would produce exactly the same picture, and say how you would rule each out.',
+        'Your UMAP of protein embeddings shows a tight, isolated island of 20 proteins. Before you write that ESM-2 has ' +
+        'discovered a functional class, list three other explanations (think: homology, pretraining data, the UMAP ' +
+        'settings, the labels you coloured by) and say how you would test each.',
       quiz: [
         { q: 'On the WDBC data, the first two principal components explain 63.2 per cent of the variance. What does the remaining 36.8 per cent tell you?',
           options: ['The PCA failed', 'A two-dimensional plot is a substantial simplification and structure may be present in the discarded directions', 'The data should be scaled differently', 'Two components are sufficient'],
@@ -1481,18 +1681,28 @@ window.COURSE = {
         { q: 'A foundation model produces embeddings for your 300 labelled proteins. Does computing those embeddings on all 300 before splitting constitute leakage?',
           options: ['Yes, always', 'No, provided the model was pretrained without your labels and you do no label-aware processing of the embeddings outside the fold', 'Yes, unless you use cross-validation', 'Only if the model is large'],
           answer: 1,
-          why: 'The embedding step never sees your target, so it is a fixed transformation, like reading the sequence. The care is needed afterwards: any selection or scaling that uses the labels must be refitted inside each fold. Separately, check that your test sequences were not in the pretraining corpus.' }
+          why: 'The embedding step never sees your target, so it is a fixed transformation, like reading the sequence. The care is needed afterwards: any scaling, selection or reduction must be refitted inside each fold. Separately, check whether your test sequences were in the pretraining corpus.' },
+        { q: 'With identical split, folds, pipeline and grid, k-NN on ESM-2 embeddings scores test ROC AUC 0.942 for signal peptides and the classical descriptors 0.936 (bootstrap 95% interval for the difference −0.026 to 0.037). What is the best summary?',
+          options: ['ESM-2 is better', 'The classical descriptors are better', 'On this data and protocol the two rank proteins about equally well; the difference is within the uncertainty', 'The test set is too small to say anything'],
+          answer: 2,
+          why: 'The interval includes zero, so the data do not distinguish the two rankings. That is a result, and worth reporting; other measures (recall at the default threshold, neighbour purity) can still differ.' },
+        { q: 'Why is a 2-D UMAP layout a poor input to the k-NN Pipeline compared with the full embedding?',
+          options: ['UMAP is too slow', 'It keeps only part of the neighbourhood structure and its distances are not designed to be measured, so the classifier loses information', 'k-NN cannot take two features', 'UMAP uses the labels'],
+          answer: 1,
+          why: 'On the proteins, UMAP to 2-D inside the Pipeline lowered cross-validated ROC AUC for signal peptides from 0.950 to 0.827. Plot in two dimensions; model in all of them.' }
       ],
       lab: 'lab07',
-      datasets: ['wdbc', 'proteinSim'],
+      datasets: ['uniprotHuman', 'wdbc', 'proteinSim'],
       reading: [
-        { ref: 'esm2', note: 'For how a protein language model is trained and what the released checkpoints are.' },
-        { ref: 'nucleotideTransformer', note: 'For genomic foundation models, tokenisation and the benchmark suite.' },
+        { ref: 'esm2', note: 'How a protein language model is trained, and the released checkpoints.' },
+        { ref: 'kobak2019', note: 'How to use t-SNE well, and how not to read it.' },
+        { ref: 'mcinnes2018', note: 'The UMAP paper; section 6 discusses its limitations.' },
+        { ref: 'beyer1999', note: 'When is "nearest neighbour" meaningful? The original analysis of distance concentration.' },
         { ref: 'greener2022', note: 'Section on dimensionality reduction.' }
       ],
       provenance: {
-        kept: 'The PCA material and dimensionality-reduction motivation from the 2025/26 Week 7 deck.',
-        changed: 'This is the week that changes most. PCA is retained and extended; embeddings, self-supervised pretraining and the engineered-versus-learned comparison are new. This becomes the structural pivot of the module.'
+        kept: 'The 2026-11-01 Week 7 lecture (curse of dimensionality, PCA with worked example, spectrum, loadings and scaling, t-SNE/UMAP reading rules, ESM-2 pipeline, anisotropy, label provenance, the residue-shuffling control and the linear-probe result), its real protein data and embeddings, and the PCA material of the 2025/26 deck.',
+        changed: 'Refreshed for 2026/27, taught after Week 8: the controlled comparison is now k-NN on classical descriptors versus ESM-2 (same split, folds, pipeline and grid), with neighbourhood analysis before and after PCA, t-SNE and UMAP; UMAP parameters, trustworthiness, homology and pretraining-exposure checks are new; nine interactive exercises on real data replace the two previous ones (the simulated explorer is kept as optional).'
       }
     },
 

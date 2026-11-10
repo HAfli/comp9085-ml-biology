@@ -136,6 +136,68 @@ window.REFERENCES = {
     url: 'https://www.nature.com/articles/s41580-019-0176-5',
     checked: '2026-09'
   },
+  uniprot2025: {
+    tag: 'UniProt 2025',
+    cite: 'The UniProt Consortium (2025). UniProt: the Universal Protein Knowledgebase in 2025. Nucleic Acids Research 53(D1):D609-D617.',
+    doi: '10.1093/nar/gkae1010',
+    url: 'https://www.uniprot.org',
+    checked: '2026-11'
+  },
+  suzek2015: {
+    tag: 'Suzek et al. 2015 (UniRef)',
+    cite: 'Suzek, B. E. et al. (2015). UniRef clusters: a comprehensive and scalable alternative for improving sequence similarity searches. Bioinformatics 31(6):926-932.',
+    doi: '10.1093/bioinformatics/btu739',
+    url: 'https://doi.org/10.1093/bioinformatics/btu739',
+    checked: '2026-11'
+  },
+  rives2021: {
+    tag: 'Rives et al. 2021',
+    cite: 'Rives, A. et al. (2021). Biological structure and function emerge from scaling unsupervised learning to 250 million protein sequences. PNAS 118(15):e2016239118.',
+    doi: '10.1073/pnas.2016239118',
+    url: 'https://doi.org/10.1073/pnas.2016239118',
+    checked: '2026-11'
+  },
+  jolliffe2016: {
+    tag: 'Jolliffe and Cadima 2016',
+    cite: 'Jolliffe, I. T. & Cadima, J. (2016). Principal component analysis: a review and recent developments. Philosophical Transactions of the Royal Society A 374:20150202.',
+    doi: '10.1098/rsta.2015.0202',
+    url: 'https://doi.org/10.1098/rsta.2015.0202',
+    checked: '2026-11'
+  },
+  vandermaaten2008: {
+    tag: 'van der Maaten and Hinton 2008',
+    cite: 'van der Maaten, L. & Hinton, G. (2008). Visualizing data using t-SNE. Journal of Machine Learning Research 9:2579-2605.',
+    url: 'https://www.jmlr.org/papers/v9/vandermaaten08a.html',
+    checked: '2026-11'
+  },
+  mcinnes2018: {
+    tag: 'McInnes et al. 2018 (UMAP)',
+    cite: 'McInnes, L., Healy, J. & Melville, J. (2018). UMAP: Uniform Manifold Approximation and Projection for Dimension Reduction. arXiv:1802.03426.',
+    doi: '10.48550/arXiv.1802.03426',
+    url: 'https://arxiv.org/abs/1802.03426',
+    checked: '2026-11'
+  },
+  kobak2019: {
+    tag: 'Kobak and Berens 2019',
+    cite: 'Kobak, D. & Berens, P. (2019). The art of using t-SNE for single-cell transcriptomics. Nature Communications 10:5416.',
+    doi: '10.1038/s41467-019-13056-x',
+    url: 'https://doi.org/10.1038/s41467-019-13056-x',
+    checked: '2026-11'
+  },
+  beyer1999: {
+    tag: 'Beyer et al. 1999',
+    cite: 'Beyer, K., Goldstein, J., Ramakrishnan, R. & Shaft, U. (1999). When is "nearest neighbor" meaningful? ICDT 1999, Lecture Notes in Computer Science 1540:217-235.',
+    doi: '10.1007/3-540-49257-7_15',
+    url: 'https://doi.org/10.1007/3-540-49257-7_15',
+    checked: '2026-11'
+  },
+  venna2001: {
+    tag: 'Venna and Kaski 2001 (trustworthiness)',
+    cite: 'Venna, J. & Kaski, S. (2001). Neighborhood preservation in nonlinear projection methods: an experimental study. ICANN 2001, Lecture Notes in Computer Science 2130:485-491.',
+    doi: '10.1007/3-540-44668-0_68',
+    url: 'https://doi.org/10.1007/3-540-44668-0_68',
+    checked: '2026-11'
+  },
   janosi1988: {
     tag: 'Janosi et al. 1988',
     cite: 'Janosi, A., Steinbrunn, W., Pfisterer, M. & Detrano, R. (1988). Heart Disease [Dataset]. UCI Machine Learning Repository.',
