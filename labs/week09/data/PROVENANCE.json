@@ -1,0 +1,19 @@
+{
+ "created": "2026-11-11",
+ "by": "data/scripts/22_build_week09_data.py companion step (see labs/week09/data/README.md)",
+ "files": {
+  "proteins_classical_features.csv": {
+   "sha256": "f56828ee7f9f7ca1bc37704d3ba80877d191fff06ad8f68454e58df3f574a12d",
+   "bytes": 1204331
+  },
+  "esm2_t6_8M_embeddings.csv.gz": {
+   "sha256": "4ecd8f754a93a3ea044ec340f80c796fc83f6fe3e09a033a4ffa3d0d6c5e5a83",
+   "bytes": 1814605
+  }
+ },
+ "derived_from": {
+  "swissprot_human_2000.csv": "b1cfd339339e9b48c7f68958f774aa6f357441973f3768d4cf26f1d51875191f",
+  "esm2_t6_8M_embeddings.csv.gz": "4ecd8f754a93a3ea044ec340f80c796fc83f6fe3e09a033a4ffa3d0d6c5e5a83"
+ },
+ "wdbc": "scikit-learn load_breast_cancer() (UCI WDBC, doi:10.24432/C5DW2B, CC BY 4.0), shipped with scikit-learn 1.9.1"
+}

@@ -1983,10 +1983,132 @@ window.COURSE = {
         'the skill this week is about.',
       objectives: [
         'Apply k-means, DBSCAN and agglomerative clustering, and state the assumptions each makes.',
-        'Select the number of clusters using the elbow method and silhouette analysis, and explain the limits of both.',
-        'Read a dendrogram and choose a cut height defensibly.',
+        'Carry out k-means and a silhouette calculation by hand on a small example.',
+        'Select the number of clusters using the elbow method, silhouette analysis and bootstrap stability, and explain the limits of each.',
+        'Read a dendrogram, compare linkage criteria and choose a cut height defensibly.',
         'Validate a clustering: stability under resampling, external validation, and biological coherence.',
+        'Recognise batch effects and confounding, and explain why correction cannot rescue a confounded design.',
         'Explain why a computational cluster is not by itself a biological discovery.'
+      ],
+      sections: [
+        { id: 'bridge', nav: '1. From labels to no labels',
+          title: '1. From Weeks 7 and 8 to clustering',
+          body:
+            'For eight weeks every problem had a label, so a held-out test set could score the model. Clustering has no ' +
+            'label: it groups samples by similarity alone, and nothing arbitrates automatically. It shares everything else ' +
+            'with Week 8\'s k-NN: the representation (Week 7), the scaling and the distance decide who is near whom, and so ' +
+            'decide the clusters. The difference is how failure looks. A classifier without signal gets a poor test score; ' +
+            'a clustering algorithm without signal returns clusters anyway, with centroids, sizes and colours. Every ' +
+            'exercise below uses real data: the WDBC tumours (with their diagnosis used only to check clusters after the ' +
+            'fact) and the 2,000 Week 7 proteins. One exercise adds a simulated batch effect to the real tumours, and says so.',
+          keypoint: 'A clustering result is a chain of decisions: samples, representation, scaling, distance, algorithm, parameters, validation.' },
+
+        { id: 'kmeans', nav: '2. k-means',
+          title: '2. k-means: objective, algorithm and initialisation',
+          html:
+            '<div class="table-scroll"><table class="table-compact"><caption>Worked example from the lecture: six expression ' +
+            'values, k = 2, starting (badly) from centroids 1 and 2.</caption><thead><tr><th scope="col">Step</th>' +
+            '<th scope="col">Assignment</th><th scope="col">Centroids after update</th><th scope="col">SSE</th></tr></thead><tbody>' +
+            '<tr><th scope="row">1</th><td>{1} | {2, 3, 8, 9, 12}</td><td>1, 6.8</td><td>70.8</td></tr>' +
+            '<tr><th scope="row">2</th><td>{1, 2, 3} | {8, 9, 12}</td><td>2, 9.67</td><td>10.67</td></tr>' +
+            '<tr><th scope="row">3</th><td>no change: converged</td><td>2, 9.67</td><td>10.67</td></tr>' +
+            '</tbody></table></div>',
+          body:
+            'k-means chooses an assignment of every sample to one of k clusters, and the k centroids, to minimise the ' +
+            'within-cluster sum of squares J = Σ ‖x_i − μ_c(i)‖². Lloyd\'s algorithm alternates two steps: assign each ' +
+            'sample to its nearest centroid; move each centroid to the mean of its members. Neither step can increase J, ' +
+            'so it converges, but to a local optimum. On standardised WDBC with k = 4, only 14% of 300 single random starts ' +
+            'reach the best solution found (15% with k-means++), so run many starts (n_init) and keep the best. Because ' +
+            'distances are squared and Euclidean, scaling decides the result: on raw WDBC the two area features hold 99% of ' +
+            'the variance, the silhouette is a flattering 0.697, and agreement with diagnosis is ARI 0.491; standardised, ' +
+            'the silhouette is 0.343 but the ARI is 0.654.',
+          viz: ['w9-kmeans'],
+          keypoint: 'k-means always returns k clusters. Restarts, scaling and k are your decisions, and they must be reported.' },
+
+        { id: 'choosek', nav: '3. Choosing k',
+          title: '3. How many clusters? Elbow, silhouette, stability',
+          body:
+            'The silhouette of a sample is s(i) = (b − a) / max(a, b), where a is its mean distance to its own cluster and ' +
+            'b its mean distance to the nearest other cluster. On standardised WDBC, k-means silhouettes are 0.343 at ' +
+            'k = 2, 0.314 at 3, 0.283 at 4 and 0.158 at 5. Bootstrap stability (fit on a resample, assign every tumour, ' +
+            'compare with the full-data clustering by adjusted Rand index) is 0.947 at k = 2, 0.891 at 3 and 0.749 at 4. ' +
+            'The elbow is gentle. All three point to k = 2, and the moderate silhouette says the two groups overlap. Only ' +
+            'because WDBC has a diagnosis can we also say that two clusters agree with it at ARI 0.654 (about 91% of ' +
+            'tumours on the expected side); in a discovery study that column would be empty.',
+          viz: ['w9-choosek'],
+          keypoint: 'Use several criteria together. None of them can tell you that the groups are biology.' },
+
+        { id: 'dbscan', nav: '4. DBSCAN',
+          title: '4. Density-based clustering: DBSCAN',
+          body:
+            'DBSCAN calls a sample a core point if at least min_samples samples lie within eps of it, joins core points ' +
+            'that are within eps of each other into clusters, attaches border points, and labels everything else as noise. ' +
+            'The number of clusters is an output, it finds arbitrary shapes, and it can decline to cluster a sample. It ' +
+            'struggles when densities differ and in high dimensions: on all 30 standardised WDBC features no eps gives a ' +
+            'useful partition (eps 2.0 leaves 371 tumours as noise; eps 3.0 gives one cluster). On the first two principal ' +
+            'components, eps 0.5 gives 7 clusters and 179 noise points. Choose eps from a k-distance plot, not by trial ' +
+            'and error, and inspect the noise rather than discarding it.',
+          viz: ['w9-dbscan'],
+          keypoint: 'DBSCAN suits genuinely dense groups in a low-dimensional space; noise is a label to inspect, not to delete.' },
+
+        { id: 'hier', nav: '5. Hierarchical clustering',
+          title: '5. Agglomerative clustering, linkage and dendrograms',
+          body:
+            'Agglomerative clustering starts with every sample alone and repeatedly merges the two closest clusters. ' +
+            'Linkage defines "closest": single (nearest members), complete (farthest members), average (mean of all pairs) ' +
+            'or Ward (smallest increase in within-cluster sum of squares). A dendrogram records every merge height; cutting ' +
+            'it gives a flat clustering. The linkage trap: on standardised WDBC with two clusters, single and complete ' +
+            'linkage split off two extreme tumours (567 / 2), with a silhouette of 0.661 and an ARI with diagnosis of 0.005; ' +
+            'Ward gives 385 / 184, silhouette 0.339 and ARI 0.575. The highest silhouette was the least useful answer.',
+          viz: ['w9-hier'],
+          keypoint: 'Always print the cluster sizes and look at the members. A high silhouette can be two outliers.' },
+
+        { id: 'batch', nav: '6. Batch effects',
+          title: '6. Is it real? Batch effects and confounding',
+          body:
+            'Samples processed together share technical shifts, and clustering finds the largest structure whatever its ' +
+            'cause (Leek et al. 2010). In a simulation on the real tumours, a shift added to every feature of a random half ' +
+            'of the samples leaves the clusters following diagnosis up to 1.0 SD; at 1.25 SD they follow the batch ' +
+            'completely (ARI with batch 0.993, with diagnosis 0.000), and at 1.5 SD the silhouette (0.371) is higher than ' +
+            'with no batch (0.343). Centring each batch recovers the biology when batches are random (ARI 0.677). When the ' +
+            'batch is confounded with diagnosis (82% of malignant and 20% of benign tumours in batch B), centring removes ' +
+            'biology with the batch and the ARI with diagnosis falls to 0.330. Balance biological groups across batches ' +
+            'when samples are collected; no analysis can undo confounding.',
+          viz: ['w9-batch', 'clustering'],
+          keypoint: 'When clusters align with a technical variable, the technical explanation is the default.' },
+
+        { id: 'embeddings', nav: '7. Embeddings',
+          title: '7. Clustering protein embeddings',
+          body:
+            'In Week 7, k-NN on ESM-2 embeddings predicted signal peptides and membrane proteins with test ROC AUC 0.94. ' +
+            'k-means on the same embeddings, which never sees the labels, gives clusters that barely follow them: the ' +
+            'best ARI over k = 2 to 8 is 0.052 for membrane proteins and 0.028 for signal peptides (Euclidean), and 0.095 ' +
+            'and 0.046 with cosine distance. Cluster membership explains up to 14% of the variance in log length. The ' +
+            'classical descriptors, which include hydropathy, do better for membrane proteins (ARI 0.221 at k = 3). ' +
+            'Clustering finds the largest structure in a representation, which need not be the property you care about.',
+          viz: ['w9-proteins'],
+          keypoint: 'A representation can contain a property (k-NN finds it) without that property being its main cluster structure.' },
+
+        { id: 'validate', nav: '8. Validation',
+          title: '8. Before you call a cluster biology',
+          body:
+            'A checklist. Is it in the data? Cross-tabulate clusters with every technical variable (batch, site, date, ' +
+            'depth); check robustness to scaling, metric and algorithm; check stability under resampling. Is it biology? ' +
+            'Look for differences in something not used to cluster (survival, treatment response), coherent biology ' +
+            '(pathways, known markers), and replication in an independent cohort. Can it be used? The breast-cancer ' +
+            'intrinsic subtypes (Perou 2000; Sørlie 2001) became clinically useful only after validation on outcomes and ' +
+            'conversion into a fixed, supervised classifier (PAM50; Parker 2009). Internal scores are necessary and never ' +
+            'sufficient.',
+          keypoint: 'A cluster is a hypothesis. Validation is how you test it.' }
+      ],
+      interactiveIndex: [
+        { id: 'w9-kmeans', label: '1. k-means step by step', note: 'section 2; lab Tasks 1–2; lecture slide 16' },
+        { id: 'w9-choosek', label: '2. Choosing k: elbow, silhouette and stability', note: 'section 3; lab Tasks 3–4; lecture slide 29' },
+        { id: 'w9-dbscan', label: '3. DBSCAN: eps, min_samples and the k-distance plot', note: 'section 4; lab Task 5; lecture slide 33' },
+        { id: 'w9-hier', label: '4. Linkage and the dendrogram cut', note: 'section 5; lab Task 6; lecture slide 39' },
+        { id: 'w9-batch', label: '5. Manufacture a batch effect', note: 'section 6; lab Task 7; lecture slide 46' },
+        { id: 'w9-proteins', label: '6. Clusters in protein embedding space', note: 'section 7; lab Task 8; lecture slide 48' },
+        { id: 'clustering', label: '7. Biological subgroup explorer', note: 'section 6; lab extensions; lecture slide 48' }
       ],
       concepts: [
         { term: 'k-means', body: 'Alternates assignment and centroid update to minimise within-cluster sum of squares. It assumes roughly spherical, similarly sized clusters, requires k in advance, and converges to a local optimum, so initialisation matters. k-means++ improves the initialisation.' },
@@ -2046,10 +2168,18 @@ window.COURSE = {
         { q: 'Samples processed in two batches cluster into two groups. What is the most likely explanation you must exclude first?',
           options: ['Two biological subtypes', 'A technical batch effect', 'Poor choice of k', 'Insufficient scaling'],
           answer: 1,
-          why: 'When cluster membership aligns with a technical variable, the technical explanation is the default and the biological one carries the burden of proof. Check the alignment before interpreting anything.' }
+          why: 'When cluster membership aligns with a technical variable, the technical explanation is the default and the biological one carries the burden of proof. Check the alignment before interpreting anything.' },
+        { q: 'On standardised WDBC, single linkage with two clusters has silhouette 0.661 and Ward has 0.339. What should you conclude?',
+          options: ['Single linkage is the better clustering', 'Look at the clusters: single linkage split off two outliers (567 / 2) and has ARI 0.005 with diagnosis', 'The two are equivalent', 'Silhouettes cannot be computed for hierarchical clustering'],
+          answer: 1,
+          why: 'The silhouette rewards separation, not usefulness. Two extreme tumours far from everything give a high mean silhouette. Always print the cluster sizes.' },
+        { q: 'Most malignant samples were processed in batch B and most benign ones in batch A. You centre each batch on its own mean. What happens?',
+          options: ['The batch effect is removed and the biology is preserved', 'Part of the biological difference is removed along with the batch', 'Nothing changes', 'The clusters become more significant'],
+          answer: 1,
+          why: 'With a confounded design the batch means contain the biology. In the lecture\'s simulation the agreement with diagnosis fell from 0.654 to 0.330. Balance groups across batches when collecting samples.' }
       ],
       lab: 'lab09',
-      datasets: ['wdbc', 'tcga', 'proteinSim'],
+      datasets: ['wdbc', 'uniprotHuman', 'tcga'],
       reading: [
         { ref: 'greener2022', note: 'Section on unsupervised methods.' },
         { ref: 'jones2019', note: 'On the standard of evidence for a biological claim.' },
@@ -2057,7 +2187,7 @@ window.COURSE = {
       ],
       provenance: {
         kept: 'The complete unsupervised-learning treatment from the 2025/26 Week 9/10 deck: k-means with the assignment and centroid steps, the distortion cost function, local optima, k-means++, the elbow method, DBSCAN, silhouette plots, hierarchical clustering, dendrograms and linkage criteria. This is thorough material and is retained.',
-        changed: 'The lab moves from customer segmentation to biological data. Cluster validation, stability, batch effects and the "a cluster is not a discovery" material are new, as is clustering in embedding space.'
+        changed: 'The lab moves from customer segmentation to biological data (WDBC and the Week 7 proteins). New in 2026/27: a worked k-means example and worked silhouette and linkage calculations, scaling, bootstrap stability, external validation (ARI), the linkage trap, a simulated batch effect on real data with random and confounded designs, clustering protein embeddings, and the validation checklist. Every "Try this interactively" slide has a working exercise on this page.'
       }
     },
 

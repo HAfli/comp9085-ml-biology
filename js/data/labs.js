@@ -282,13 +282,15 @@ window.LABS = {
     dataset: 'wdbc', duration: '2 hours',
     goal: 'Cluster real data, choose k defensibly, and then try seriously to disprove your own result.',
     tasks: [
-      'Standardise WDBC and run k-means for k = 2 to 10. Plot inertia (the elbow) and silhouette against k. Choose k and justify it in one sentence.',
-      'Compare your clusters with the true diagnosis using the adjusted Rand index. Note that in a real discovery setting you would not have this label.',
-      'Run DBSCAN. Tune eps using a k-distance plot rather than by trial and error. Report how many points it labels as noise, and inspect several of them.',
-      'Run agglomerative clustering with single, complete and Ward linkage. Plot the three dendrograms side by side and comment on how differently they partition the same data.',
-      'Stability test: bootstrap the data 50 times, recluster, and measure how often pairs of samples land together. Report the mean pairwise co-assignment for your chosen k, and for k plus one.',
-      'Now the important part. Add a fake "batch" variable that is correlated with two of the features, recluster, and show that you can manufacture a convincing cluster structure that has no biological content.',
-      'Write the two sentences you would need in a paper to justify claiming these clusters are biologically meaningful, and say honestly whether your analysis supports them.'
+      'Carry out k-means and a silhouette calculation by hand on six expression values, and check both against scikit-learn.',
+      'Cluster WDBC raw and standardised; explain why the raw clustering has the higher silhouette but the worse agreement with diagnosis.',
+      'Sweep k from 1 to 10: elbow, silhouette and silhouette plots; run 50 single starts at k = 4. Choose k before seeing the label.',
+      'Measure bootstrap stability for k = 2 to 6, then reveal the agreement with diagnosis (adjusted Rand index).',
+      'Tune DBSCAN with a k-distance plot in 30 dimensions and on two principal components; inspect the noise points.',
+      'Compare single, complete, average and Ward linkage; draw dendrograms and explain the linkage trap.',
+      'Manufacture a batch effect on the real tumours (random and confounded designs), find the tipping point, and show why per-batch centring fails under confounding.',
+      'Cluster the Week 7 proteins in classical-descriptor and ESM-2 space; compare clusters with the signal-peptide and membrane labels and with length.',
+      'Write the two sentences you would need to claim the clusters are biology, and say honestly whether your analysis supports them.'
     ],
     starter:
       'from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering\n' +
@@ -296,7 +298,20 @@ window.LABS = {
       'for k in range(2, 11):\n' +
       '    km = KMeans(k, n_init=10, random_state=42).fit(Z)\n' +
       '    print(k, round(km.inertia_), round(silhouette_score(Z, km.labels_), 3))',
-    deliverable: 'The elbow and silhouette plots, the stability numbers, the manufactured-batch demonstration, and your two sentences from task 7.',
+    files: [
+      { label: 'Download the notebook (.ipynb)',
+        href: 'labs/week09/COMP9085_Week09_Lab.ipynb', download: true },
+      { label: 'Read it in the browser (.html)',
+        href: 'labs/week09/COMP9085_Week09_Lab.html' },
+      { label: 'Protein descriptors (.csv)',
+        href: 'labs/week09/data/proteins_classical_features.csv', download: true },
+      { label: 'ESM-2 embeddings (.csv.gz)',
+        href: 'labs/week09/data/esm2_t6_8M_embeddings.csv.gz', download: true },
+      { label: 'Data dictionary and provenance',
+        href: 'labs/week09/data/README.md' }
+    ],
+    deliverable: 'The executed notebook with every question answered from your own numbers: the hand calculation, the scaling comparison, your choice of k with its evidence, the stability numbers, the DBSCAN and linkage comparisons, the manufactured-batch demonstration, the protein clusters and your two sentences from Task 9.',
+    note: 'WDBC ships with scikit-learn. Keep the data folder next to the notebook; in Google Colab the notebook downloads the two protein files from this site. No GPU is needed and it runs in about a minute. Extensions A to C (other algorithms, cluster-wise stability, PCA before clustering proteins) are optional.',
     los: ['LO1', 'LO4', 'LO5']
   },
 

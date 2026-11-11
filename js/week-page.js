@@ -1022,8 +1022,109 @@
       altLabel: 'Read the k curve and every representation compared, as text'
     },
 
+    'w9-kmeans': {
+      title: 'Exercise 1. k-means step by step',
+      intro: 'The 569 WDBC tumours on their first two principal components. Choose k, a starting rule and a seed, then ' +
+             'alternate the two steps of Lloyd\'s algorithm yourself. Predict first: will every seed reach the same answer?',
+      banner: 'week9-real',
+      controls:
+        U.slider({ id: 'w9k-k', label: 'Number of clusters k =', min: 2, max: 6, value: 2 }) +
+        U.segmented({ id: 'w9k-init', label: 'Starting centroids', value: 'random',
+          options: [{ value: 'random', label: 'Random tumours' }, { value: 'plusplus', label: 'k-means++' }] }) +
+        U.slider({ id: 'w9k-seed', label: 'Seed', min: 1, max: 20, value: 1 }) +
+        '<div class="control w9-btns"><button type="button" class="btn" id="w9k-assign">Assign</button>' +
+        '<button type="button" class="btn" id="w9k-update">Update</button>' +
+        '<button type="button" class="btn" id="w9k-run">Run to convergence</button></div>',
+      readout:
+        U.metric('w9k-step', 'Steps', '—', ' ') + U.metric('w9k-wcss', 'WCSS', '—', ' ') +
+        U.metric('w9k-next', 'Next', '—', ' ') + U.metric('w9k-ari', 'ARI with diagnosis', '—', ' '),
+      explain: '',
+      altLabel: 'Read the WCSS after every step as text'
+    },
+
+    'w9-choosek': {
+      title: 'Exercise 2. Choosing k: elbow, silhouette and stability',
+      intro: 'k-means on all 30 standardised WDBC features for k = 2 to 10. Read the three curves and the silhouette ' +
+             'plot, commit to a k, and only then reveal how the clusters relate to the diagnosis.',
+      banner: 'week9-real',
+      controls:
+        U.slider({ id: 'w9c-k', label: 'k =', min: 2, max: 10, value: 2 }) +
+        U.checkbox({ id: 'w9c-reveal', label: 'Reveal the diagnosis (ARI)' }),
+      readout:
+        U.metric('w9c-sil', 'Silhouette', '—', ' ') + U.metric('w9c-stab', 'Stability', '—', ' ') +
+        U.metric('w9c-neg', 'Negative s(i)', '—', ' ') + U.metric('w9c-ari', 'ARI with diagnosis', '—', ' '),
+      explain: '',
+      altLabel: 'Read every k as text'
+    },
+
+    'w9-dbscan': {
+      title: 'Exercise 3. DBSCAN: eps, min_samples and the k-distance plot',
+      intro: 'DBSCAN runs in your browser on the tumours\' first two principal components. Drag eps and min_samples: ' +
+             'how many clusters, how much noise, and is there a stable range?',
+      banner: 'week9-real',
+      controls:
+        U.slider({ id: 'w9d-eps', label: 'eps =', min: 0.1, max: 2, step: 0.05, value: 0.5 }) +
+        U.slider({ id: 'w9d-ms', label: 'min_samples', min: 3, max: 15, value: 5 }),
+      readout:
+        U.metric('w9d-k', 'Clusters', '—', ' ') + U.metric('w9d-noise', 'Noise', '—', ' ') +
+        U.metric('w9d-big', 'Largest', '—', ' ') + U.metric('w9d-ari', 'ARI with diagnosis', '—', ' '),
+      explain: '',
+      altLabel: 'Read the precomputed eps sweep as text'
+    },
+
+    'w9-hier': {
+      title: 'Exercise 4. Linkage and the dendrogram cut',
+      intro: 'Agglomerative clustering of 60 tumours (all 30 standardised features), computed in your browser. Choose a ' +
+             'linkage and the number of clusters; the dashed line is the cut. Can you reproduce the linkage trap?',
+      banner: 'week9-real',
+      controls:
+        U.segmented({ id: 'w9h-m', label: 'Linkage', value: 'ward',
+          options: [{ value: 'single', label: 'Single' }, { value: 'complete', label: 'Complete' },
+                    { value: 'average', label: 'Average' }, { value: 'ward', label: 'Ward' }] }) +
+        U.slider({ id: 'w9h-k', label: 'Cut into', min: 1, max: 8, value: 2 }),
+      readout:
+        U.metric('w9h-sizes', 'Sizes', '—', ' ') + U.metric('w9h-sil', 'Silhouette', '—', ' ') +
+        U.metric('w9h-ari', 'ARI with diagnosis', '—', ' ') + U.metric('w9h-h', 'Cut height', '—', ' '),
+      explain: '',
+      altLabel: 'Read the last ten merges as text'
+    },
+
+    'w9-batch': {
+      title: 'Exercise 5. Manufacture a batch effect',
+      intro: 'A simulated technical shift is added to every feature of half the real tumours ("batch B"). k-means (k = 2) ' +
+             'on all 30 features, precomputed for every setting. When do the clusters stop being about biology?',
+      banner: 'week9-sim',
+      controls:
+        U.segmented({ id: 'w9b-design', label: 'Who is in batch B?', value: 'random',
+          options: [{ value: 'random', label: 'Random (coin toss)' }, { value: 'confounded', label: 'Confounded with diagnosis' }] }) +
+        U.slider({ id: 'w9b-shift', label: 'Batch shift', min: 0, max: 10, value: 0 }) +
+        U.checkbox({ id: 'w9b-corr', label: 'Centre each batch on its own mean (correction)' }),
+      readout:
+        U.metric('w9b-sil', 'Silhouette', '—', ' ') + U.metric('w9b-dx', 'ARI diagnosis', '—', ' ') +
+        U.metric('w9b-batch', 'ARI batch', '—', ' ') + U.metric('w9b-follow', 'Clusters follow', '—', ' '),
+      explain: '',
+      altLabel: 'Read every shift as text'
+    },
+
+    'w9-proteins': {
+      title: 'Exercise 6. Clusters in protein embedding space',
+      intro: 'k-means on the 2,000 Week 7 proteins, using the classical descriptors or the ESM-2 embedding (Euclidean ' +
+             'or cosine). Each bar pair shows one cluster: how many have a signal peptide, how many are membrane proteins.',
+      banner: 'week9-real',
+      controls:
+        U.segmented({ id: 'w9p-rep', label: 'Representation', value: 'esm2',
+          options: [{ value: 'classical', label: 'Classical (23)' }, { value: 'esm2', label: 'ESM-2, Euclidean' },
+                    { value: 'esm2_cosine', label: 'ESM-2, cosine' }] }) +
+        U.slider({ id: 'w9p-k', label: 'k =', min: 2, max: 8, value: 4 }),
+      readout:
+        U.metric('w9p-sil', 'Silhouette', '—', ' ') + U.metric('w9p-sp', 'ARI signal peptide', '—', ' ') +
+        U.metric('w9p-tm', 'ARI membrane', '—', ' ') + U.metric('w9p-len', 'η² length', '—', ' '),
+      explain: '',
+      altLabel: 'Read every k as text'
+    },
+
     'clustering': {
-      title: 'Biological subgroup explorer',
+      title: 'Exercise 7. Biological subgroup explorer',
       intro: 'Three clustering algorithms on real data, with an injectable ' +
              'batch effect. Watch what the silhouette score does and does not ' +
              'tell you.',
@@ -1234,6 +1335,19 @@
         'ESM-2 (8M, 320-d) embeddings, the Week 7 lab\'s files; 1,500 training and 500 test proteins, the lab\'s split. ' +
         'Measured with scikit-learn' + W7v + ' by data/scripts/20_build_week07_refresh.py. Labels are UniProt keywords, ' +
         'mostly from sequence analysis: annotations, not ground truth.</span></div></div>';
+    }
+    if (kind === 'week9-real' || kind === 'week9-sim') {
+      var W9v = window.WEEK09 ? ' ' + U.esc(window.WEEK09.sklearn) : '';
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0">' +
+        '<div class="control"><span class="provenance provenance-real">' +
+        (kind === 'week9-real' ? '● Real data' : '● Real data with a simulated batch effect') + '</span></div>' +
+        '<div class="control"><span class="small muted" style="max-width:70ch">' +
+        (kind === 'week9-sim' ? 'The batch shift is SIMULATED (seeded) and added to real measurements, to show what a ' +
+          'technical artefact does; it is not an observed batch effect. ' : '') +
+        'Real data: UCI Breast Cancer Wisconsin (Diagnostic), 569 tumours, 30 features, CC BY 4.0; and the Week 7 ' +
+        'proteins (2,000 human Swiss-Prot entries with ESM-2 8M embeddings). Computed with scikit-learn' + W9v +
+        ' by data/scripts/22_build_week09_data.py, or in your browser where stated. The diagnosis is used only to check ' +
+        'clusters after the fact.</span></div></div>';
     }
     if (kind === 'week8-real' || kind === 'week8-mixed') {
       var W8v = window.WEEK08 ? ' ' + U.esc(window.WEEK08.sklearnVersion) : '';
