@@ -44,3 +44,8 @@ slides/week*/*.pdf
 slides/template/*.pptx
 slides/*.png
 slides/**/*.png
+
+# Week 10 lab builder: it contains the solution code and worked answers inline, and this repository is the public
+# site, so it stays local (a copy is kept with the Canvas materials in Week10/COMP9085_Week10_Enhanced/generator/).
+data/scripts/25_build_week10_lab.py
+data/scripts/week10_lab_fills.json

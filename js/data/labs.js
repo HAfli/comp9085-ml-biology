@@ -316,24 +316,42 @@ window.LABS = {
   },
 
   lab10: {
-    week: 10, title: 'Ensembles and the limits of feature importance',
+    week: 10, title: 'Random forests, honest importances, and a pretrained protein embedding',
     dataset: 'wdbc', duration: '2 hours',
-    goal: 'Fit a strong ensemble, then establish how much its feature importances can bear.',
+    goal: 'Reproduce the lecture\'s forest results on real data, expose the limits of feature importance, and compare designed protein features with a frozen ESM-2 embedding under one protocol.',
     tasks: [
-      'Fit a single decision tree, bagged trees and a random forest with matched settings. Report cross-validated accuracy for all three and explain the ordering you observe.',
-      'Sweep n_estimators from 1 to 500 and plot out-of-bag error. Where does it plateau? What does that tell you about the marginal value of more trees?',
-      'Extract impurity-based feature importances and rank them. Then compute permutation importance on held-out data. Compare the two rankings and account for any disagreement.',
-      'Find the most correlated pair of features in the data. Drop one and refit. What happened to the importance of the survivor, and what does that tell you about reading importances as biological significance?',
-      'Fit logistic regression on the same data. Compare its accuracy with the forest. Discuss what you would report if the simpler model were within one standard deviation of the complex one.',
-      'Build the full comparison table for this dataset: accuracy, F1, ROC-AUC, training time, whether a GPU is needed, and how interpretable each model is. Recommend one model to a clinical collaborator and justify the recommendation on more than accuracy.'
+      'Derive the share of samples in a bootstrap sample and check it by simulating 2,000 bootstrap samples of the 569 tumours.',
+      'Compare one tree, bagged trees, a random forest and logistic regression on WDBC under 5-fold stratified cross-validation (accuracy and ROC AUC).',
+      'Plot out-of-bag error against the number of trees for 1, 5 and 30 features per split; compare OOB with cross-validated accuracy.',
+      'Measure training and cross-validated accuracy against depth for a single tree and a forest.',
+      'Add 100 pure-noise features and switch scaling off: which of forest, k-NN and logistic regression suffers, and why?',
+      'Compute impurity and permutation importance; permute the nine correlated size features as a group, keep only worst area, and add noise columns.',
+      'Refit with ten seeds and measure how stable the top of the importance ranking is.',
+      'On the Week 7 proteins and split, compare forests and logistic regression on the classical descriptors and on ESM-2 embeddings, with a paired-bootstrap interval.',
+      'Fill in the comparison table (accuracy, labels, compute, interpretability, validation burden) and write a recommendation for a collaborator.'
     ],
     starter:
       'from sklearn.ensemble import RandomForestClassifier\n' +
       'from sklearn.inspection import permutation_importance\n\n' +
-      'rf = RandomForestClassifier(500, oob_score=True, random_state=42).fit(X_tr, y_tr)\n' +
-      'print("OOB", rf.oob_score_)\n' +
-      'pi = permutation_importance(rf, X_te, y_te, n_repeats=30, random_state=42)',
-    deliverable: 'The OOB curve, the two importance rankings with your account of their disagreement, and the full comparison table with your recommendation.',
+      'rf = RandomForestClassifier(500, oob_score=True, random_state=42, n_jobs=-1).fit(X_tr, y_tr)\n' +
+      'print("OOB accuracy", rf.oob_score_)\n' +
+      'pi = permutation_importance(rf, X_te, y_te, n_repeats=30, random_state=42, scoring="roc_auc")',
+    files: [
+      { label: 'Download the notebook (.ipynb)',
+        href: 'labs/week10/COMP9085_Week10_Lab.ipynb', download: true },
+      { label: 'Read it in the browser (.html)',
+        href: 'labs/week10/COMP9085_Week10_Lab.html' },
+      { label: 'Protein descriptors and labels (.csv)',
+        href: 'labs/week10/data/proteins_classical_features.csv', download: true },
+      { label: 'ESM-2 embeddings (.csv.gz)',
+        href: 'labs/week10/data/esm2_t6_8M_embeddings.csv.gz', download: true },
+      { label: 'Shuffled-sequence ESM-2 embeddings (.csv.gz, Extension C)',
+        href: 'labs/week10/data/esm2_t6_8M_embeddings_shuffled.csv.gz', download: true },
+      { label: 'Data dictionary and provenance',
+        href: 'labs/week10/data/README.md' }
+    ],
+    deliverable: 'The executed notebook with every question answered from your own numbers: the bootstrap check, the model ladder, the OOB and depth curves, the robustness results, the importance analysis with its correlated group and noise columns, the seed-stability count, the protein comparison with its bootstrap interval, and your recommendation.',
+    note: 'WDBC ships with scikit-learn. Keep the data folder next to the notebook; in Google Colab the notebook downloads the protein files from this site. No GPU is needed; the embeddings are precomputed. It runs in two to four minutes on a laptop, mostly Task 8. Extensions A to C (a rotation test of why forests underuse embeddings, nested cross-validation, the shuffled-sequence control) are optional.',
     los: ['LO1', 'LO2', 'LO3', 'LO5']
   },
 

@@ -1,0 +1,24 @@
+{
+ "created": "2026-11-17",
+ "by": "copied unchanged: the first two from labs/week09/data/, the third from labs/week07/data/",
+ "files": {
+  "proteins_classical_features.csv": {
+   "sha256": "f56828ee7f9f7ca1bc37704d3ba80877d191fff06ad8f68454e58df3f574a12d",
+   "bytes": 1204331
+  },
+  "esm2_t6_8M_embeddings.csv.gz": {
+   "sha256": "4ecd8f754a93a3ea044ec340f80c796fc83f6fe3e09a033a4ffa3d0d6c5e5a83",
+   "bytes": 1814605
+  },
+  "esm2_t6_8M_embeddings_shuffled.csv.gz": {
+   "sha256": "1568c87b65d2e67e5f555ef0cd0bd7338105ff287a8fc12f05b60910d1c73b9d",
+   "bytes": 1806984
+  }
+ },
+ "derived_from": {
+  "labs/week09/data/proteins_classical_features.csv": "f56828ee7f9f7ca1bc37704d3ba80877d191fff06ad8f68454e58df3f574a12d",
+  "labs/week07/data/esm2_t6_8M_embeddings.csv.gz": "4ecd8f754a93a3ea044ec340f80c796fc83f6fe3e09a033a4ffa3d0d6c5e5a83",
+  "labs/week07/data/esm2_t6_8M_embeddings_shuffled.csv.gz": "1568c87b65d2e67e5f555ef0cd0bd7338105ff287a8fc12f05b60910d1c73b9d"
+ },
+ "wdbc": "scikit-learn load_breast_cancer() (UCI WDBC, doi:10.24432/C5DW2B, CC BY 4.0), shipped with scikit-learn 1.9.1"
+}

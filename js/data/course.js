@@ -2108,7 +2108,7 @@ window.COURSE = {
         { id: 'w9-hier', label: '4. Linkage and the dendrogram cut', note: 'section 5; lab Task 6; lecture slide 39' },
         { id: 'w9-batch', label: '5. Manufacture a batch effect', note: 'section 6; lab Task 7; lecture slide 46' },
         { id: 'w9-proteins', label: '6. Clusters in protein embedding space', note: 'section 7; lab Task 8; lecture slide 48' },
-        { id: 'clustering', label: '7. Biological subgroup explorer', note: 'section 6; lab extensions; lecture slide 48' }
+        { id: 'clustering', label: '7. Biological subgroup explorer (clustering simulator)', note: 'section 6; lab extensions; lecture slide 48' }
       ],
       concepts: [
         { term: 'k-means', body: 'Alternates assignment and centroid update to minimise within-cluster sum of squares. It assumes roughly spherical, similarly sized clusters, requires k in advance, and converges to a local optimum, so initialisation matters. k-means++ improves the initialisation.' },
@@ -2205,18 +2205,110 @@ window.COURSE = {
         'and provide a feature-importance ranking. That last property is what makes them ' +
         'attractive to biologists, and also what most often gets over-interpreted.',
       objectives: [
-        'Explain bagging and why averaging decorrelated trees reduces variance.',
-        'Describe how random feature subsetting at each split further decorrelates the ensemble.',
-        'Compute and interpret out-of-bag error.',
-        'Interpret feature importances correctly, including the correlated-feature and cardinality caveats.',
-        'Compare engineered features, foundation-model embeddings and a fine-tuned model on a shared task, on more than accuracy.'
+        'Explain why a deep decision tree has high variance and how averaging reduces it, using Var = ρσ² + (1 − ρ)σ²/B.',
+        'Describe bootstrap sampling and bagging, derive the 63.2% in-bag share, and compute and interpret out-of-bag error.',
+        'Explain how random feature subsetting at each split decorrelates the trees, and choose forest hyperparameters defensibly.',
+        'Compute and interpret impurity and permutation importance, including the correlated-feature and cardinality caveats.',
+        'Explain why a feature importance is neither a causal nor a biological claim.',
+        'Compare engineered features with a frozen foundation-model embedding under one protocol, with an uncertainty interval.',
+        'Compare models on more than accuracy: labels, compute, interpretability and validation burden.'
+      ],
+      sections: [
+        { id: 'bridge', nav: '1. From one tree to many',
+          title: '1. Why one tree is not enough',
+          body:
+            'Week 2\'s decision trees are readable but unstable: resample the tumours and the tree changes. On WDBC an unpruned ' +
+            'tree reaches 100% training accuracy but 91.0% with 5-fold cross-validation. Averaging B trees whose ' +
+            'predictions have variance σ² and pairwise correlation ρ gives variance ρσ² + (1 − ρ)σ²/B: bias is unchanged, the ' +
+            'uncorrelated part shrinks with B, and the correlated part ρσ² does not. Galton\'s 1907 ox (the median of 787 ' +
+            'guesses, 1,207 lb, against a dressed weight of 1,198 lb) is the classic story; the arithmetic is the majority-vote ' +
+            'binomial, which only works when the voters\' errors are not all the same.',
+          viz: ['w10-crowd'],
+          keypoint: 'An ensemble needs members that are better than chance and do not all make the same mistakes.' },
+
+        { id: 'bagging', nav: '2. Bagging and OOB',
+          title: '2. Bagging, the bootstrap, and out-of-bag error',
+          body:
+            'Bagging (Breiman 1996) fits each tree to a bootstrap sample: n rows drawn with replacement. A given tumour is in a ' +
+            'bag with probability 1 − (1 − 1/n)ⁿ, which is 0.632 for n = 569 and tends to ' +
+            '1 − 1/e ≈ 0.632. Each tumour is therefore out of bag for about a third of the trees, and those trees can predict it ' +
+            'honestly: the out-of-bag (OOB) estimate. With 500 trees the OOB accuracy is 96.1% ' +
+            'against 95.4% from 5-fold CV. OOB assumes independent rows: several samples from one ' +
+            'patient, or homologous proteins, make it optimistic, exactly like a random split.',
+          viz: ['w10-bootstrap'],
+          keypoint: 'OOB error is a free held-out estimate, valid only when the rows are independent.' },
+
+        { id: 'forest', nav: '3. Random forests',
+          title: '3. Random forests: decorrelating the trees',
+          body:
+            'A random forest (Breiman 2001, building on Ho 1998) also draws a fresh random subset of m features at every split ' +
+            '(scikit-learn\'s classifier default is √p, so 5 of 30 for WDBC). Smaller m makes trees weaker but less alike. ' +
+            'Measured on WDBC: from m = 1 to m = 30, mean single-tree accuracy rises from 89.8% to ' +
+            '92.1% and the correlation of tree errors from 0.341 to 0.437, while the ' +
+            'forest stays between 95.3% and 96.0%: ' +
+            'the two effects cancel on this dataset. Deep single trees overfit (best at depth 3, 92.5%; fully grown ' +
+            '91.0%); a forest of fully grown trees does not (95.3%). Adding trees never ' +
+            'overfits; it only approaches the ρσ² floor.',
+          viz: ['w10-trees', 'random-forest'],
+          keypoint: 'More trees cannot overfit. The protocol around them can.' },
+
+        { id: 'robust', nav: '4. Robustness',
+          title: '4. Robust to noise and scaling, not to protocol',
+          body:
+            'With 300 pure-noise columns appended to WDBC, the forest goes from 95.3% to 94.7%, logistic ' +
+            'regression from 97.4% to 93.2%, and k-NN from 96.3% to ' +
+            '87.5%. A split asks only whether a value is below a threshold, so scaling changes nothing ' +
+            '(forest 95.4% raw and standardised; k-NN 93.5% ' +
+            'raw against 96.3%). None of this protects against tuning on the test set, ' +
+            'selecting features outside the cross-validation loop, or related samples on both sides of a split.',
+          viz: ['w10-robust'],
+          keypoint: 'A forest tuned on the test set is overfitted exactly as badly as any other model.' },
+
+        { id: 'importance', nav: '5. Feature importance',
+          title: '5. Two importances, two failure modes',
+          body:
+            'Impurity importance (MDI) adds up the weighted impurity decrease of every split on a feature, on the training data. ' +
+            'Permutation importance shuffles one column of held-out data and measures the drop in score. On WDBC the full-data MDI ' +
+            'of worst perimeter and worst area is 0.136 and 0.127 (r = 0.98), but no ' +
+            'single feature\'s permutation costs more than 0.0059 AUC. The nine radius, perimeter and ' +
+            'area features (mean |r| = 0.85) permuted together cost 0.160 AUC. ' +
+            'Remove worst area\'s eight relatives and its MDI rises from 0.134 to ' +
+            '0.225 with unchanged accuracy. A pure-noise continuous column gets several times ' +
+            'the MDI of a pure-noise binary one (Strobl et al. 2007); permutation gives both about zero.',
+          viz: ['w10-importance'],
+          keypoint: 'Importance measures what the model relies on, not what the biology does.' },
+
+        { id: 'embeddings', nav: '6. Foundation-model features',
+          title: '6. A forest on ESM-2 embeddings, against designed features',
+          body:
+            'The 2,000 Week 7 proteins, the same split and selection protocol. Test ROC AUC for transmembrane prediction: ' +
+            'classical descriptors with a forest 0.982, with logistic regression ' +
+            '0.979; ESM-2 with logistic regression 0.978, with a forest ' +
+            '0.946. The ESM-2 forest minus the classical forest is -0.036 (paired bootstrap 95% CI ' +
+            '-0.064 to -0.013); for signal peptides -0.016 (-0.046 to ' +
+            '+0.009), no detectable difference. On the embedding a linear head did better than a forest; a plausible ' +
+            'reason, not proven here, is that embedding information is spread across many dimensions, which trees must ' +
+            'approximate with axis-aligned splits. The classical forest\'s top features are the hydropathy descriptors that were ' +
+            'designed from the biology of signal peptides and membrane helices: a sanity check, not a discovery.',
+          viz: ['w10-proteins', 'leaderboard'],
+          keypoint: 'Run the cheap, frozen-embedding baseline with several heads before anything more expensive.' }
+      ],
+      interactiveIndex: [
+        { id: 'w10-crowd', label: '1. The wisdom of crowds: accuracy and correlation', note: 'section 1; lecture slide 12' },
+        { id: 'w10-bootstrap', label: '2. Bootstrap samples and out-of-bag tumours', note: 'section 2; lab Task 1; lecture slide 18' },
+        { id: 'w10-trees', label: '3. Features per split and number of trees', note: 'section 3; lab Task 3; lecture slide 26' },
+        { id: 'random-forest', label: '4. Grow a forest in your browser (random forest visualiser)', note: 'section 3; lab Tasks 2 and 4; lecture slide 30' },
+        { id: 'w10-robust', label: '5. Irrelevant features and scaling', note: 'section 4; lab Task 5; lecture slide 30' },
+        { id: 'w10-importance', label: '6. Two kinds of importance', note: 'section 5; lab Tasks 6–7; lecture slide 39' },
+        { id: 'w10-proteins', label: '7. Classical descriptors or ESM-2 embeddings?', note: 'section 6; lab Task 8; lecture slide 50' },
+        { id: 'leaderboard', label: '8. Model comparison on WDBC (model comparison lab)', note: 'section 6; lab Tasks 2 and 9; lecture slide 50' }
       ],
       concepts: [
         { term: 'The wisdom of crowds', body: 'Averaging many independent, individually mediocre estimates can beat any one of them. The word doing the work is "independent", and the whole design of a random forest is an attempt to buy independence.' },
         { term: 'Bagging', body: 'Bootstrap aggregating: fit each tree on a resample drawn with replacement, then average. Individual trees are high-variance; the average is not.' },
         { term: 'Random feature subsetting', body: 'At each split, consider only a random subset of features. Without this, every tree would pick the same dominant feature at the root and the ensemble would be highly correlated.' },
         { term: 'Out-of-bag error', body: 'Roughly a third of samples are omitted from each bootstrap, giving a free held-out estimate without a separate validation set.' },
-        { term: 'Feature importance, with care', body: 'Impurity-based importance is biased towards high-cardinality and continuous features, and splits importance arbitrarily between correlated features. On WDBC, "worst area" and "worst perimeter" score almost identically (0.129 and 0.129) because they measure nearly the same thing. Permutation importance on held-out data is more trustworthy, and neither is a causal claim.' },
+        { term: 'Feature importance, with care', body: 'Impurity-based importance is biased towards high-cardinality and continuous features, and splits importance arbitrarily between correlated features. On WDBC, "worst perimeter" and "worst area" score 0.136 and 0.127 (r = 0.98) because they measure nearly the same thing. Permutation importance on held-out data is more trustworthy, and neither is a causal claim.' },
         { term: 'Robustness', body: 'Forests tolerate irrelevant features, outliers and unscaled data far better than k-NN or linear models, which is much of why they are a good default.' },
         { term: 'Where forests still overfit', body: 'They resist overfitting in depth but not in protocol. A forest tuned on the test set is overfitted exactly as badly as anything else.' }
       ],
@@ -2247,14 +2339,14 @@ window.COURSE = {
         keypoint: 'Compare on the axes that will decide whether the model gets used, not only on the one that is easiest to report.'
       },
       fm: {
-        title: 'Embeddings plus a forest',
+        title: 'Embeddings plus a forest, measured',
         body:
-          'Where a suitable pretrained model does exist, embeddings into a random forest is ' +
-          'a strong and underrated pipeline. The forest is cheap, needs no GPU, gives ' +
-          'importances over embedding dimensions (though those dimensions rarely mean ' +
-          'anything individually), and can be cross-validated honestly in seconds. It is a ' +
-          'genuine competitor to fine-tuning, and it should be run before fine-tuning is ' +
-          'considered, so that fine-tuning has something to beat.',
+          'Where a suitable pretrained model exists, a frozen embedding fed to a small model is the cheap baseline to run ' +
+          'before any fine-tuning. Measured on the Week 7 proteins: a forest on ESM-2 (8M) embeddings reached test AUC ' +
+          '0.946 for transmembrane proteins, below logistic regression on the same embedding ' +
+          '(0.978) and below a forest on 23 designed descriptors (0.982). ' +
+          'So try several heads, linear first, and keep the forest\'s importances over embedding dimensions in perspective: ' +
+          'those dimensions rarely mean anything individually.',
         models: ['esm2', 'nucleotideTransformer', 'dnabert2']
       },
       scientist:
@@ -2266,7 +2358,7 @@ window.COURSE = {
           options: ['To speed up training', 'To decorrelate the trees, since bootstrapping alone leaves them all splitting on the same dominant feature', 'To handle missing values', 'To reduce memory use'],
           answer: 1,
           why: 'Averaging only reduces variance to the extent the estimates are independent. Feature subsetting is what buys that independence, and it is why a random forest beats plain bagged trees.' },
-        { q: 'Two features have importances of 0.129 and 0.129 and are highly correlated. What follows?',
+        { q: 'Two features have impurity importances of 0.136 and 0.127 and are highly correlated (r = 0.98). What follows?',
           options: ['Both are causally important', 'The forest has split the credit between two near-duplicate measurements; neither figure supports a causal claim', 'One is redundant and should be dropped', 'The model is overfitting'],
           answer: 1,
           why: 'This is the measured situation for "worst area" and "worst perimeter" on WDBC, which are geometrically almost the same quantity. Correlated features share importance arbitrarily, and importance was never a causal measure to begin with.' },
@@ -2276,14 +2368,14 @@ window.COURSE = {
           why: 'Both figures come from the same cross-validation protocol on this page. When the simpler model matches or beats the complex one, the burden of proof sits with the complex one.' }
       ],
       lab: 'lab10',
-      datasets: ['wdbc', 'proteinSim'],
+      datasets: ['wdbc', 'uniprotHuman'],
       reading: [
         { ref: 'greener2022', note: 'On model selection for biological data.' },
         { ref: 'geron', note: 'Chapter 7 on ensembles.' }
       ],
       provenance: {
-        kept: 'The wisdom-of-crowds motivation, bagging, random forests and the aggregation material from the 2025/26 Week 10-11 deck, together with the tree-based feature selection from the Week 7 deck.',
-        changed: 'The ox-weight and bicycle-demand examples are replaced by biological ones. The ensemble slides that currently appear inside the data-preparation deck are consolidated here. The three-way model comparison and the non-accuracy columns are new. The lab moves from credit scoring to WDBC.'
+        kept: 'The wisdom-of-crowds motivation (Galton\'s ox), the two conditions for a good ensemble, bagging, aggregation and random forests from the 2025/26 Week 10-11 deck, together with the tree-based feature importance from the Week 7 deck.',
+        changed: 'The 2026/27 lecture (Week 10, 55 slides, Canvas) replaces the bicycle and credit examples with WDBC and the Week 7 proteins; boosting moves to Week 11. New: the variance formula and majority-vote arithmetic, the 63.2% derivation, out-of-bag error, the strength/correlation trade-off measured on real data, impurity versus permutation importance with a correlated group and noise columns, robustness, and the forest-on-ESM-2 comparison with a bootstrap interval. Every number on this page is computed by data/scripts/24_build_week10_data.py. The lab moves from credit scoring to WDBC and the Week 7 proteins.'
       }
     },
 

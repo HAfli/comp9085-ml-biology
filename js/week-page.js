@@ -1124,7 +1124,7 @@
     },
 
     'clustering': {
-      title: 'Exercise 7. Biological subgroup explorer',
+      title: 'Exercise 7. Biological subgroup explorer (clustering simulator)',
       intro: 'Three clustering algorithms on real data, with an injectable ' +
              'batch effect. Watch what the silhouette score does and does not ' +
              'tell you.',
@@ -1168,8 +1168,110 @@
       altLabel: 'Read the cluster quality measures as text'
     },
 
+    'w10-crowd': {
+      title: 'Exercise 1. The wisdom of crowds: accuracy and correlation',
+      intro: 'B voters, each right with probability p, vote by majority. With independent voters the accuracy is an exact ' +
+             'binomial sum; with correlated voters (pairwise correlation ρ) it is simulated in your browser. Predict first: ' +
+             'how much of the crowd\'s advantage survives ρ = 0.3?',
+      banner: 'week10-arith',
+      controls:
+        U.slider({ id: 'w10c-p', label: 'Each voter right with p =', min: 0.3, max: 0.9, step: 0.01, value: 0.6 }) +
+        U.slider({ id: 'w10c-b', label: 'Voters B =', min: 1, max: 201, step: 2, value: 25 }) +
+        U.slider({ id: 'w10c-rho', label: 'Correlation ρ =', min: 0, max: 0.9, step: 0.05, value: 0 }),
+      readout:
+        U.metric('w10c-one', 'One voter', '—', ' ') + U.metric('w10c-ind', 'Majority, independent', '—', ' ') +
+        U.metric('w10c-cor', 'Majority, correlated', '—', ' ') + U.metric('w10c-var', 'Variance ratio', '—', ' '),
+      explain: '',
+      altLabel: 'Read the accuracies for every B as text'
+    },
+
+    'w10-bootstrap': {
+      title: 'Exercise 2. Bootstrap samples and out-of-bag tumours',
+      intro: 'Draw bootstrap samples of n tumours with replacement, in your browser. Each box shows how often one tumour was ' +
+             'drawn; red boxes are out of bag. Where does the running out-of-bag share settle?',
+      banner: 'week10-arith',
+      controls:
+        U.slider({ id: 'w10b-n', label: 'Tumours n =', min: 5, max: 100, value: 20 }) +
+        '<div class="control w10-btns"><button type="button" class="btn" id="w10b-one">Draw one sample</button>' +
+        '<button type="button" class="btn" id="w10b-many">Draw 100 more</button></div>',
+      readout:
+        U.metric('w10b-distinct', 'Distinct', '—', ' ') + U.metric('w10b-oob', 'Out of bag', '—', ' ') +
+        U.metric('w10b-mean', 'Mean OOB share', '—', ' ') + U.metric('w10b-exp', 'Expected', '—', ' '),
+      explain: '',
+      altLabel: 'Read the samples drawn so far as text'
+    },
+
+    'w10-trees': {
+      title: 'Exercise 3. Features per split and number of trees',
+      intro: 'Measured on the real WDBC tumours with scikit-learn: how the number of features considered at each split (m) ' +
+             'changes single-tree strength, the correlation between trees and the forest, and how out-of-bag error falls as ' +
+             'trees are added.',
+      banner: 'week10-real',
+      controls:
+        U.slider({ id: 'w10t-m', label: 'Features per split m =', min: 0, max: 7, value: 3 }) +
+        U.slider({ id: 'w10t-t', label: 'Trees =', min: 0, max: 11, value: 11 }),
+      readout:
+        U.metric('w10t-tree', 'Single tree', '—', ' ') + U.metric('w10t-rho', 'Error correlation', '—', ' ') +
+        U.metric('w10t-forest', 'Forest', '—', ' ') + U.metric('w10t-oob', 'OOB error (m = 5)', '—', ' '),
+      explain: '',
+      altLabel: 'Read every m and every number of trees as text'
+    },
+
+    'w10-robust': {
+      title: 'Exercise 5. Irrelevant features and scaling',
+      intro: 'Pure-noise columns appended to the 30 real WDBC features, and the effect of switching scaling off: forest, ' +
+             'logistic regression and k-NN, measured with 5-fold cross-validation.',
+      banner: 'week10-real',
+      controls:
+        U.slider({ id: 'w10r-k', label: 'Noise features added =', min: 0, max: 4, value: 0 }) +
+        U.segmented({ id: 'w10r-scaling', label: 'Scaling (no noise)', value: 'standardised',
+          options: [{ value: 'standardised', label: 'Standardised' }, { value: 'raw', label: 'Raw' }] }),
+      readout:
+        U.metric('w10r-rf', 'Forest', '—', ' ') + U.metric('w10r-knn', 'k-NN', '—', ' ') +
+        U.metric('w10r-lr', 'Logistic', '—', ' ') + U.metric('w10r-scale', 'Forest / k-NN', '—', ' '),
+      explain: '',
+      altLabel: 'Read the accuracies as text'
+    },
+
+    'w10-importance': {
+      title: 'Exercise 6. Two kinds of importance',
+      intro: 'Impurity importance (MDI) and permutation importance from the same 500-tree forest on WDBC. Then expose the two ' +
+             'failure modes: a group of nine near-copies, and pure-noise columns.',
+      banner: 'week10-real',
+      controls:
+        U.checkbox({ id: 'w10i-g', label: 'Permute the nine size features as one group' }) +
+        U.checkbox({ id: 'w10i-k', label: 'Keep only worst area from the size group (refit)' }) +
+        U.checkbox({ id: 'w10i-n', label: 'Add two pure-noise columns (refit)' }) +
+        U.segmented({ id: 'w10i-top', label: 'Features shown', value: '10',
+          options: [{ value: '10', label: 'Top 10' }, { value: '20', label: 'Top 20' }, { value: '30', label: 'All 30' }] }),
+      readout:
+        U.metric('w10i-mdi', 'Top MDI', '—', ' ') + U.metric('w10i-perm', 'Top single permutation', '—', ' ') +
+        U.metric('w10i-group', 'Size group permuted', '—', ' ') + U.metric('w10i-area', 'Worst area MDI', '—', ' '),
+      explain: '',
+      altLabel: 'Read all 30 importances as text'
+    },
+
+    'w10-proteins': {
+      title: 'Exercise 7. Classical descriptors or ESM-2 embeddings?',
+      intro: 'The 2,000 Week 7 proteins, the Week 7 split and protocol. A forest, logistic regression and (from Week 7) k-NN on ' +
+             'the 23 classical descriptors, the ESM-2 embedding, and the shuffled-sequence control. All measured; the test set ' +
+             'was used once per pipeline.',
+      banner: 'week10-real',
+      controls:
+        U.segmented({ id: 'w10p-task', label: 'Label', value: 'transmembrane',
+          options: [{ value: 'signal_peptide', label: 'Signal peptide' }, { value: 'transmembrane', label: 'Transmembrane' }] }) +
+        U.segmented({ id: 'w10p-rep', label: 'Highlight representation', value: 'classical',
+          options: [{ value: 'classical', label: 'Classical (23)' }, { value: 'esm2', label: 'ESM-2 (320)' },
+                    { value: 'esm2_shuffled', label: 'Shuffled ESM-2' }] }),
+      readout:
+        U.metric('w10p-rf', 'Forest AUC', '—', ' ') + U.metric('w10p-lr', 'Logistic AUC', '—', ' ') +
+        U.metric('w10p-knn', 'k-NN AUC', '—', ' ') + U.metric('w10p-diff', 'ESM-2 − classical forest', '—', ' '),
+      explain: '',
+      altLabel: 'Read every pipeline\'s results as text'
+    },
+
     'random-forest': {
-      title: 'Random forest visualiser',
+      title: 'Exercise 4. Grow a forest in your browser (random forest visualiser)',
       intro: 'A real forest, grown in your browser. The duplicate-feature ' +
              'control is the one worth spending time on.',
       banner: 'real',
@@ -1189,7 +1291,7 @@
     },
 
     'leaderboard': {
-      title: 'Model comparison lab',
+      title: 'Exercise 8. Model comparison on WDBC (model comparison lab)',
       intro: 'Every classical model measured on the real WDBC data under one ' +
              'protocol, with the columns that actually decide deployment.',
       banner: 'real',
@@ -1335,6 +1437,19 @@
         'ESM-2 (8M, 320-d) embeddings, the Week 7 lab\'s files; 1,500 training and 500 test proteins, the lab\'s split. ' +
         'Measured with scikit-learn' + W7v + ' by data/scripts/20_build_week07_refresh.py. Labels are UniProt keywords, ' +
         'mostly from sequence analysis: annotations, not ground truth.</span></div></div>';
+    }
+    if (kind === 'week10-real' || kind === 'week10-arith') {
+      var W10v = window.WEEK10 ? ' ' + U.esc(window.WEEK10.sklearn) : '';
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0">' +
+        '<div class="control"><span class="provenance provenance-real">' +
+        (kind === 'week10-real' ? '● Real data' : '● Arithmetic and simulation, computed in your browser') + '</span></div>' +
+        '<div class="control"><span class="small muted" style="max-width:70ch">' +
+        (kind === 'week10-arith' ? 'This exercise is arithmetic (an exact binomial sum and a formula) and seeded simulation. ' +
+          'It illustrates the lecture\'s argument; it is not biological data. ' :
+          'Real data: UCI Breast Cancer Wisconsin (Diagnostic), 569 tumours, 30 features, CC BY 4.0; and the Week 7 ' +
+          'proteins (2,000 human Swiss-Prot entries, release 2026_03, with ESM-2 8M embeddings; the Week 7 split). ' +
+          'Measured with scikit-learn' + W10v + ' by data/scripts/24_build_week10_data.py. Protein labels are UniProt ' +
+          'annotations, not ground truth.') + '</span></div></div>';
     }
     if (kind === 'week9-real' || kind === 'week9-sim') {
       var W9v = window.WEEK09 ? ' ' + U.esc(window.WEEK09.sklearn) : '';
