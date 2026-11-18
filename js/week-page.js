@@ -1218,7 +1218,7 @@
     },
 
     'w10-robust': {
-      title: 'Exercise 5. Irrelevant features and scaling',
+      title: 'Exercise 9 (optional). Irrelevant features and scaling',
       intro: 'Pure-noise columns appended to the 30 real WDBC features, and the effect of switching scaling off: forest, ' +
              'logistic regression and k-NN, measured with 5-fold cross-validation.',
       banner: 'week10-real',
@@ -1234,7 +1234,7 @@
     },
 
     'w10-importance': {
-      title: 'Exercise 6. Two kinds of importance',
+      title: 'Exercise 5. Two kinds of importance',
       intro: 'Impurity importance (MDI) and permutation importance from the same 500-tree forest on WDBC. Then expose the two ' +
              'failure modes: a group of nine near-copies, and pure-noise columns.',
       banner: 'week10-real',
@@ -1252,7 +1252,7 @@
     },
 
     'w10-proteins': {
-      title: 'Exercise 7. Classical descriptors or ESM-2 embeddings?',
+      title: 'Exercise 10 (optional). Classical descriptors or ESM-2 embeddings?',
       intro: 'The 2,000 Week 7 proteins, the Week 7 split and protocol. A forest, logistic regression and (from Week 7) k-NN on ' +
              'the 23 classical descriptors, the ESM-2 embedding, and the shuffled-sequence control. All measured; the test set ' +
              'was used once per pipeline.',
@@ -1268,6 +1268,58 @@
         U.metric('w10p-knn', 'k-NN AUC', '—', ' ') + U.metric('w10p-diff', 'ESM-2 − classical forest', '—', ' '),
       explain: '',
       altLabel: 'Read every pipeline\'s results as text'
+    },
+
+    'w10-adaboost': {
+      title: 'Exercise 6. Boosting, one stump at a time',
+      intro: 'The lecture\'s boosting algorithm on a food-safety question: will a mesophilic bacterium grow at a given storage ' +
+             'temperature? Step through the iterations: the weights, the stump chosen, ε, α, and the weighted vote of the ' +
+             'ensemble so far. Then query a temperature.',
+      banner: 'week10e-toy',
+      controls:
+        '<div class="control w10e-btns"><button type="button" class="btn" id="w10a-prev">◀ Previous iteration</button>' +
+        '<button type="button" class="btn" id="w10a-next">Next iteration ▶</button></div>' +
+        U.slider({ id: 'w10a-q', label: 'Query temperature =', min: 0, max: 55, value: 25 }),
+      readout:
+        U.metric('w10a-eps', 'ε', '—', ' ') + U.metric('w10a-alpha', 'α', '—', ' ') +
+        U.metric('w10a-err', 'Ensemble errors', '—', ' ') + U.metric('w10a-pred', 'Prediction at query', '—', ' '),
+      explain: '',
+      altLabel: 'Read all ten iterations as text'
+    },
+
+    'w10-gboost': {
+      title: 'Exercise 7. Gradient boosting on clinical data',
+      intro: 'The lecture\'s gradient-boosting example with 442 real patients: BMI at baseline and a measure of diabetes ' +
+             'progression one year later. Start from the mean and add regression stumps fitted to the residuals; then see ' +
+             'what the learning rate and the number of trees do to error on held-out patients.',
+      banner: 'week10e-real',
+      controls:
+        '<div class="control w10e-btns"><button type="button" class="btn" id="w10g-add1">Add 1 stump</button>' +
+        '<button type="button" class="btn" id="w10g-add10">Add 10</button>' +
+        '<button type="button" class="btn" id="w10g-add100">Add 100</button></div>' +
+        U.slider({ id: 'w10g-slider', label: 'Stumps =', min: 0, max: 300, value: 0 }) +
+        U.segmented({ id: 'w10g-lr', label: 'Learning rate', value: '1.0',
+          options: [{ value: '1.0', label: '1.0 (as on the slides)' }, { value: '0.1', label: '0.1' }] }),
+      readout:
+        U.metric('w10g-n', 'Stumps', '—', ' ') + U.metric('w10g-mse', 'Training MSE', '—', ' ') +
+        U.metric('w10g-r2', 'Training R²', '—', ' ') + U.metric('w10g-test', 'Held-out MSE', '—', ' '),
+      explain: '',
+      altLabel: 'Read the errors for each number of stumps as text'
+    },
+
+    'w10-compare': {
+      title: 'Exercise 8. Single models against ensembles, on the same folds',
+      intro: 'A single tree, bagging, a random forest, AdaBoost, gradient boosting, two simple models and two voting ensembles, ' +
+             'each evaluated on the same five cross-validation folds, for a classification and a regression problem.',
+      banner: 'week10e-real',
+      controls:
+        U.segmented({ id: 'w10m-ds', label: 'Dataset', value: 'wdbc',
+          options: [{ value: 'wdbc', label: 'Tumour diagnosis (WDBC)' }, { value: 'diabetes', label: 'Diabetes progression' }] }),
+      readout:
+        U.metric('w10m-tree', 'Single tree', '—', ' ') + U.metric('w10m-ens', 'Best ensemble', '—', ' ') +
+        U.metric('w10m-simple', 'Best simple model', '—', ' ') + U.metric('w10m-sd', 'Fold-to-fold SD', '—', ' '),
+      explain: '',
+      altLabel: 'Read every model\'s result as text'
     },
 
     'random-forest': {
@@ -1291,7 +1343,7 @@
     },
 
     'leaderboard': {
-      title: 'Exercise 8. Model comparison on WDBC (model comparison lab)',
+      title: 'Exercise 11 (optional). Model comparison on WDBC (model comparison lab)',
       intro: 'Every classical model measured on the real WDBC data under one ' +
              'protocol, with the columns that actually decide deployment.',
       banner: 'real',
@@ -1437,6 +1489,21 @@
         'ESM-2 (8M, 320-d) embeddings, the Week 7 lab\'s files; 1,500 training and 500 test proteins, the lab\'s split. ' +
         'Measured with scikit-learn' + W7v + ' by data/scripts/20_build_week07_refresh.py. Labels are UniProt keywords, ' +
         'mostly from sequence analysis: annotations, not ground truth.</span></div></div>';
+    }
+    if (kind === 'week10e-real' || kind === 'week10e-toy') {
+      var W10e = window.WEEK10E ? ' ' + U.esc(window.WEEK10E.sklearn) : '';
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0">' +
+        '<div class="control"><span class="provenance provenance-real">' +
+        (kind === 'week10e-real' ? '● Real data' : '● Illustrative teaching table, computed in your browser') + '</span></div>' +
+        '<div class="control"><span class="small muted" style="max-width:70ch">' +
+        (kind === 'week10e-toy' ? 'The 10-row table is ILLUSTRATIVE, like the lecture\'s bicycle table: mesophilic food-borne ' +
+          'bacteria typically grow between roughly 8 and 45 °C, so growth within 48 h is low in chilled storage and above the ' +
+          'maximum. It is not measured data. The boosting arithmetic is the lecture\'s, computed in your browser. ' :
+          'Real data: UCI Breast Cancer Wisconsin (Diagnostic), 569 tumours, 30 features, CC BY 4.0; and the diabetes data of ' +
+          'Efron, Hastie, Johnstone and Tibshirani (2004): 442 patients, age, sex, BMI, blood pressure and six blood-serum ' +
+          'measures at baseline, and disease progression one year later. Measured with scikit-learn' + W10e +
+          ' by data/scripts/26_build_week10_ensembles.py, or computed in your browser where stated. ') +
+        '</span></div></div>';
     }
     if (kind === 'week10-real' || kind === 'week10-arith') {
       var W10v = window.WEEK10 ? ' ' + U.esc(window.WEEK10.sklearn) : '';

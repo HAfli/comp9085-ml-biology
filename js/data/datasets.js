@@ -284,5 +284,34 @@ window.DATASETS = [
       'Real ESM-2 embeddings on real families would behave differently in detail, which is precisely why script 04 is provided.'
     ],
     citation: 'Generated for COMP9085. Hydropathy values from Kyte, J. & Doolittle, R. F. (1982). J Mol Biol 157:105-132.'
+  },
+  {
+    id: 'diabetesEfron',
+    name: 'Diabetes progression (Efron et al. 2004)',
+    aka: 'scikit-learn diabetes',
+    domain: 'Healthcare',
+    modality: 'Tabular, clinical and blood-serum measurements',
+    inSite: true,
+    weeks: [10],
+    source: 'Efron, Hastie, Johnstone & Tibshirani (2004), distributed with scikit-learn',
+    sourceRef: 'efron2004',
+    url: 'https://www4.stat.ncsu.edu/~boos/var.select/diabetes.html',
+    licence: 'No licence stated by the original authors; redistributed with scikit-learn (sklearn.datasets.load_diabetes).',
+    access: 'Bundled with scikit-learn as sklearn.datasets.load_diabetes; this website uses the unscaled copy (scaled=False).',
+    samples: '442',
+    features: '10: age, sex, body-mass index, average blood pressure and six blood-serum measurements (total cholesterol, LDL, HDL, total/HDL cholesterol ratio, log of serum triglycerides, blood glucose), all at baseline.',
+    target: 'A quantitative measure of disease progression one year after baseline (25 to 346).',
+    biology:
+      'Baseline anthropometric and blood measurements of 442 people with diabetes, and a measure of how far the disease ' +
+      'had progressed a year later. BMI and serum triglycerides, both established correlates of metabolic disease, carry ' +
+      'most of the predictive signal, which makes the dataset a clear illustration of feature importance and of the gap ' +
+      'between an association and a cause.',
+    limitations: [
+      'One cohort of 442 patients; the public sources do not document how the progression measure was defined or who was sampled.',
+      'Observational: associations between baseline measures and progression are not causal effects.',
+      'Small n: differences between models of a few hundredths of R² are within fold-to-fold variation.',
+      'Several serum measures are strongly correlated (total cholesterol and LDL r = 0.90), which splits or hides importance.'
+    ],
+    citation: 'Efron, B., Hastie, T., Johnstone, I. & Tibshirani, R. (2004). Least angle regression. The Annals of Statistics 32(2):407-499. DOI 10.1214/009053604000000067'
   }
 ];

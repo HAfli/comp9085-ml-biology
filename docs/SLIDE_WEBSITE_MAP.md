@@ -26,8 +26,11 @@ theatre.
 | 7 | 21 | Dimensionality reduction and foundation-model embeddings | Foundation Model Embedding Explorer | Interactive | `weeks/week07.html#interactive` |
 | 8 | 18 | k-NN and biological similarity | Biological Similarity Explorer | Interactive | `weeks/week08.html#interactive` |
 | 9 | 18 | Clustering biological data | Clustering Simulator | Interactive | `weeks/week09.html#interactive` |
-| 10 | 17 | Random forests and foundation-model representations | Random Forest Visualiser | Interactive | `weeks/week10.html#interactive` |
-| 10 | 18 | Random forests and foundation-model representations | Model Comparison Lab | Interactive | `weeks/week10.html#interactive` |
+| 10 | 20 | Ensemble learning (2026 revision of the 2025 deck) | Exercise 2: bootstrap samples and out-of-bag tumours | Interactive | `weeks/week10.html#interactive` |
+| 10 | 28 | Ensemble learning (2026 revision of the 2025 deck) | Exercise 5: two kinds of importance | Interactive | `weeks/week10.html#interactive` |
+| 10 | 71 | Ensemble learning (2026 revision of the 2025 deck) | Exercise 6: boosting, one stump at a time | Interactive | `weeks/week10.html#interactive` |
+| 10 | 112 | Ensemble learning (2026 revision of the 2025 deck) | Exercise 7: gradient boosting on clinical data | Interactive | `weeks/week10.html#interactive` |
+| 10 | 117 | Ensemble learning (2026 revision of the 2025 deck) | Exercise 8: single models against ensembles | Interactive | `weeks/week10.html#interactive` |
 | 11 | 19 | Boosting and foundation-model adaptation | Fine-Tuning Simulator | Interactive | `weeks/week11.html#interactive` |
 | 12 | 19 | Can we trust the model? | Would You Trust This Model? | Interactive | `weeks/week12.html#interactive` |
 | 12 | 20 | Can we trust the model? | Should I Use a Foundation Model? | Interactive | `weeks/week12.html#interactive` |
@@ -45,7 +48,7 @@ theatre.
 | 7 | 30 | `slides/week07/COMP9085_Week07.pptx` | `slides/week07/COMP9085_Week07.pdf` |
 | 8 | 27 | `slides/week08/COMP9085_Week08.pptx` | `slides/week08/COMP9085_Week08.pdf` |
 | 9 | 27 | `slides/week09/COMP9085_Week09.pptx` | `slides/week09/COMP9085_Week09.pdf` |
-| 10 | 27 | `slides/week10/COMP9085_Week10.pptx` | `slides/week10/COMP9085_Week10.pdf` |
+| 10 | 122 | Canvas only: `Week10/Week10_ML_Ensemble_Learning_2026.pptx` (instructor folder, not in this repository) | `Week10/Week10_ML_Ensemble_Learning_2026.pdf` |
 | 11 | 28 | `slides/week11/COMP9085_Week11.pptx` | `slides/week11/COMP9085_Week11.pdf` |
 | 12 | 29 | `slides/week12/COMP9085_Week12.pptx` | `slides/week12/COMP9085_Week12.pdf` |
 

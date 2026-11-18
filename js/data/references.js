@@ -261,6 +261,47 @@ window.REFERENCES = {
     url: 'https://pubmed.ncbi.nlm.nih.gov/7108955/',
     checked: '2026-09'
   },
+  breiman1996: {
+    tag: 'Breiman 1996',
+    cite: 'Breiman, L. (1996). Bagging predictors. Machine Learning 24(2):123-140.',
+    doi: '10.1007/BF00058655',
+    url: 'https://doi.org/10.1007/BF00058655',
+    checked: '2026-11'
+  },
+  breiman2001: {
+    tag: 'Breiman 2001',
+    cite: 'Breiman, L. (2001). Random forests. Machine Learning 45(1):5-32.',
+    doi: '10.1023/A:1010933404324',
+    url: 'https://doi.org/10.1023/A:1010933404324',
+    checked: '2026-11'
+  },
+  freund1997: {
+    tag: 'Freund & Schapire 1997',
+    cite: 'Freund, Y. & Schapire, R. E. (1997). A decision-theoretic generalization of on-line learning and an application to boosting. Journal of Computer and System Sciences 55(1):119-139.',
+    doi: '10.1006/jcss.1997.1504',
+    url: 'https://doi.org/10.1006/jcss.1997.1504',
+    checked: '2026-11'
+  },
+  friedman2001: {
+    tag: 'Friedman 2001',
+    cite: 'Friedman, J. H. (2001). Greedy function approximation: a gradient boosting machine. The Annals of Statistics 29(5):1189-1232.',
+    doi: '10.1214/aos/1013203451',
+    url: 'https://doi.org/10.1214/aos/1013203451',
+    checked: '2026-11'
+  },
+  efron2004: {
+    tag: 'Efron et al. 2004',
+    cite: 'Efron, B., Hastie, T., Johnstone, I. & Tibshirani, R. (2004). Least angle regression. The Annals of Statistics 32(2):407-499.',
+    doi: '10.1214/009053604000000067',
+    url: 'https://doi.org/10.1214/009053604000000067',
+    checked: '2026-11'
+  },
+  kelleher2020: {
+    tag: 'Kelleher et al. 2020',
+    cite: "Kelleher, J. D., Mac Namee, B. & D'Arcy, A. (2020). Fundamentals of Machine Learning for Predictive Data Analytics, 2nd edition. MIT Press. ISBN 9780262044691.",
+    url: 'https://mitpress.mit.edu/9780262044691/',
+    checked: '2026-11'
+  },
   geron: {
     tag: 'Geron',
     cite: "Geron, A. Hands-On Machine Learning with Scikit-Learn, Keras and TensorFlow. O'Reilly Media. ISBN 9781492032649.",

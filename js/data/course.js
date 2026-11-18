@@ -2194,188 +2194,229 @@ window.COURSE = {
     /* ----------------------------------------------------------------- 10 */
     {
       n: 10,
-      title: 'Random forests and foundation-model representations',
+      title: 'Ensemble learning: bagging, random forests and boosting',
       strand: 'adaptation',
-      short: 'Ensembles, feature importance, and the first three-way model comparison.',
+      short: 'The 2025 ensemble lecture, revised: why crowds of models work, bagging, random forests, boosting and gradient boosting, on biological data.',
       los: ['LO1', 'LO2', 'LO3', 'LO5'],
       biology:
-        'Random forests remain one of the most reliable defaults for tabular biological data ' +
-        'and are extensively used in genomics and clinical prediction. They need little ' +
-        'tuning, handle mixed feature types, are robust to outliers and irrelevant features, ' +
-        'and provide a feature-importance ranking. That last property is what makes them ' +
-        'attractive to biologists, and also what most often gets over-interpreted.',
+        'Random forests and gradient-boosted trees are among the most reliable methods for tabular biological and clinical ' +
+        'data: tumour diagnosis from cell measurements, disease progression from blood tests, food safety from storage ' +
+        'conditions. They need little tuning and handle mixed features, and forests provide a feature-importance ranking. ' +
+        'That last property is what makes them attractive to biologists, and also what most often gets over-interpreted.',
       objectives: [
-        'Explain why a deep decision tree has high variance and how averaging reduces it, using Var = ρσ² + (1 − ρ)σ²/B.',
-        'Describe bootstrap sampling and bagging, derive the 63.2% in-bag share, and compute and interpret out-of-bag error.',
-        'Explain how random feature subsetting at each split decorrelates the trees, and choose forest hyperparameters defensibly.',
-        'Compute and interpret impurity and permutation importance, including the correlated-feature and cardinality caveats.',
-        'Explain why a feature importance is neither a causal nor a biological claim.',
-        'Compare engineered features with a frozen foundation-model embedding under one protocol, with an uncertainty interval.',
-        'Compare models on more than accuracy: labels, compute, interpretability and validation burden.'
+        'Explain why voting or averaging over independent weak models gives a strong model, using the majority-vote binomial (the wisdom of crowds).',
+        'Describe bagging: bootstrap samples, models trained in parallel, aggregation by majority vote or average, and why it reduces variance.',
+        'Explain how a random forest adds random feature (subspace) sampling to bagging to reduce the correlation between trees.',
+        'Carry out the boosting algorithm by hand: weighted error ε, confidence α = ½ ln((1 − ε)/ε), and the weight-update rules.',
+        'Explain gradient boosting as adding models fitted to the residuals of the ensemble so far, and the role of the learning rate.',
+        'Compare ensembles with single models on the same cross-validation folds, and interpret feature importance without causal claims.',
+        'State the limitations of ensembles in biology: interpretability, overfitting (boosting) and dataset bias.'
       ],
       sections: [
-        { id: 'bridge', nav: '1. From one tree to many',
-          title: '1. Why one tree is not enough',
+        { id: 'crowds', nav: '1. The big idea',
+          title: '1. The wisdom of crowds (lecture slides 3–12)',
           body:
-            'Week 2\'s decision trees are readable but unstable: resample the tumours and the tree changes. On WDBC an unpruned ' +
-            'tree reaches 100% training accuracy but 91.0% with 5-fold cross-validation. Averaging B trees whose ' +
-            'predictions have variance σ² and pairwise correlation ρ gives variance ρσ² + (1 − ρ)σ²/B: bias is unchanged, the ' +
-            'uncorrelated part shrinks with B, and the correlated part ρσ² does not. Galton\'s 1907 ox (the median of 787 ' +
-            'guesses, 1,207 lb, against a dressed weight of 1,198 lb) is the classic story; the arithmetic is the majority-vote ' +
-            'binomial, which only works when the voters\' errors are not all the same.',
+            'Galton\'s 1907 ox: no villager guessed the weight correctly, but the average of 787 guesses was almost exact. The ' +
+            'lecture\'s arithmetic: 50 independent classifiers that are each only 60% accurate give a majority vote that is right ' +
+            '90.2% of the time (binomial P(X ≥ 25)); at 70% each, 99.76%. The two conditions for a good ensemble: members as ' +
+            'strong as possible, and weakly correlated with each other (diverse). They pull against each other. If every member ' +
+            'makes the same mistakes, voting cannot help: the exercise below lets you add correlation and watch the crowd stop working.',
           viz: ['w10-crowd'],
-          keypoint: 'An ensemble needs members that are better than chance and do not all make the same mistakes.' },
+          keypoint: 'Voting over independent weak classifiers gives a strong classifier; averaging over independent weak regressors gives a strong regressor.' },
 
-        { id: 'bagging', nav: '2. Bagging and OOB',
-          title: '2. Bagging, the bootstrap, and out-of-bag error',
+        { id: 'bagging', nav: '2. Bagging',
+          title: '2. Bagging: bootstrap aggregating (slides 14–20)',
           body:
-            'Bagging (Breiman 1996) fits each tree to a bootstrap sample: n rows drawn with replacement. A given tumour is in a ' +
-            'bag with probability 1 − (1 − 1/n)ⁿ, which is 0.632 for n = 569 and tends to ' +
-            '1 − 1/e ≈ 0.632. Each tumour is therefore out of bag for about a third of the trees, and those trees can predict it ' +
-            'honestly: the out-of-bag (OOB) estimate. With 500 trees the OOB accuracy is 96.1% ' +
-            'against 95.4% from 5-fold CV. OOB assumes independent rows: several samples from one ' +
-            'patient, or homologous proteins, make it optimistic, exactly like a random split.',
+            'Bagging trains E models in parallel, each on a bootstrap sample (n rows drawn with replacement from the training set), ' +
+            'and aggregates them by majority vote (classification) or average (regression). The lecture\'s worked example is a ' +
+            'cardiovascular-risk table (exercise, smoker, obese, family history). On real data, 569 breast tumours (WDBC), the ' +
+            'same five folds for every model: one unpruned tree 91.0% ± 2.8%, 500 bagged trees ' +
+            '95.6% ± 1.8%. Bagging also makes predictions stable: resample the training ' +
+            'patients 20 times and two single trees disagree on 9.5% of held-out tumours, two bagged ' +
+            'ensembles on 4.8%. A bootstrap sample leaves out about a third of the rows (1 − 1/e ≈ ' +
+            '36.8%), which gives the out-of-bag estimate: 96.1% for a 500-tree forest against 95.4% ' +
+            'from 5-fold CV. Out-of-bag assumes independent rows: several samples from one patient make it optimistic.',
           viz: ['w10-bootstrap'],
-          keypoint: 'OOB error is a free held-out estimate, valid only when the rows are independent.' },
+          keypoint: 'Bagging reduces variance: higher, steadier accuracy and more stable predictions than one tree.' },
 
         { id: 'forest', nav: '3. Random forests',
-          title: '3. Random forests: decorrelating the trees',
+          title: '3. Random forests: decorrelating the trees (slides 22–27)',
           body:
-            'A random forest (Breiman 2001, building on Ho 1998) also draws a fresh random subset of m features at every split ' +
-            '(scikit-learn\'s classifier default is √p, so 5 of 30 for WDBC). Smaller m makes trees weaker but less alike. ' +
-            'Measured on WDBC: from m = 1 to m = 30, mean single-tree accuracy rises from 89.8% to ' +
-            '92.1% and the correlation of tree errors from 0.341 to 0.437, while the ' +
-            'forest stays between 95.3% and 96.0%: ' +
-            'the two effects cancel on this dataset. Deep single trees overfit (best at depth 3, 92.5%; fully grown ' +
-            '91.0%); a forest of fully grown trees does not (95.3%). Adding trees never ' +
-            'overfits; it only approaches the ρσ² floor.',
+            'Bagged trees are all trained on variations of the same data, so they are highly correlated and the improvement is ' +
+            'limited. A random forest also samples a random subset of features (the subspace) so that the trees disagree more; ' +
+            'aggregation is again by majority vote. The lecture shows three trees grown on bootstrap samples restricted to Exercise, ' +
+            'Smoker and Obese, voting Risk = high for a new patient. On WDBC a 500-tree forest reaches 95.4% ± ' +
+            '1.3%. Adding trees never overfits; the forest only approaches the limit set by the correlation between trees.',
           viz: ['w10-trees', 'random-forest'],
-          keypoint: 'More trees cannot overfit. The protocol around them can.' },
+          keypoint: 'An ensemble of trees is a forest; random feature sampling is what makes its trees diverse.' },
 
-        { id: 'robust', nav: '4. Robustness',
-          title: '4. Robust to noise and scaling, not to protocol',
+        { id: 'importance', nav: '4. Feature importance',
+          title: '4. What does a forest rely on? Feature importance in biology (slide 28)',
           body:
-            'With 300 pure-noise columns appended to WDBC, the forest goes from 95.3% to 94.7%, logistic ' +
-            'regression from 97.4% to 93.2%, and k-NN from 96.3% to ' +
-            '87.5%. A split asks only whether a value is below a threshold, so scaling changes nothing ' +
-            '(forest 95.4% raw and standardised; k-NN 93.5% ' +
-            'raw against 96.3%). None of this protects against tuning on the test set, ' +
-            'selecting features outside the cross-validation loop, or related samples on both sides of a split.',
-          viz: ['w10-robust'],
-          keypoint: 'A forest tuned on the test set is overfitted exactly as badly as any other model.' },
-
-        { id: 'importance', nav: '5. Feature importance',
-          title: '5. Two importances, two failure modes',
-          body:
-            'Impurity importance (MDI) adds up the weighted impurity decrease of every split on a feature, on the training data. ' +
-            'Permutation importance shuffles one column of held-out data and measures the drop in score. On WDBC the full-data MDI ' +
-            'of worst perimeter and worst area is 0.136 and 0.127 (r = 0.98), but no ' +
-            'single feature\'s permutation costs more than 0.0059 AUC. The nine radius, perimeter and ' +
-            'area features (mean |r| = 0.85) permuted together cost 0.160 AUC. ' +
-            'Remove worst area\'s eight relatives and its MDI rises from 0.134 to ' +
-            '0.225 with unchanged accuracy. A pure-noise continuous column gets several times ' +
-            'the MDI of a pure-noise binary one (Strobl et al. 2007); permutation gives both about zero.',
+            'Impurity importance (MDI) adds up the impurity decrease of every split on a feature, on the training data; permutation ' +
+            'importance shuffles one column of held-out data and measures the drop in score. On 442 diabetes patients (baseline ' +
+            'BMI, blood pressure and six blood-serum measures; target: progression one year later) both put BMI first (MDI ' +
+            "0.45, permutation 0.26 R²) and log serum triglycerides second (0.20, " +
+            "0.18). Total cholesterol and LDL are correlated (r = 0.90): shuffle one and " +
+            'the other still carries the information, so each looks unimportant on its own. On WDBC (Exercise 5) ' +
+            "worst perimeter and worst area get full-data MDI 0.136 and " +
+            "0.127 (r = 0.98), yet the nine size " +
+            "features permuted together cost 0.160 AUC. " +
+            'Importance describes the model, not the biology, and it is never evidence of a cause.',
           viz: ['w10-importance'],
           keypoint: 'Importance measures what the model relies on, not what the biology does.' },
 
-        { id: 'embeddings', nav: '6. Foundation-model features',
-          title: '6. A forest on ESM-2 embeddings, against designed features',
+        { id: 'boosting', nav: '5. Boosting',
+          title: '5. Boosting: models that learn from each other\'s mistakes (slides 30–72)',
           body:
-            'The 2,000 Week 7 proteins, the same split and selection protocol. Test ROC AUC for transmembrane prediction: ' +
-            'classical descriptors with a forest 0.982, with logistic regression ' +
-            '0.979; ESM-2 with logistic regression 0.978, with a forest ' +
-            '0.946. The ESM-2 forest minus the classical forest is -0.036 (paired bootstrap 95% CI ' +
-            '-0.064 to -0.013); for signal peptides -0.016 (-0.046 to ' +
-            '+0.009), no detectable difference. On the embedding a linear head did better than a forest; a plausible ' +
-            'reason, not proven here, is that embedding information is spread across many dimensions, which trees must ' +
-            'approximate with axis-aligned splits. The classical forest\'s top features are the hydropathy descriptors that were ' +
-            'designed from the biology of signal peptides and membrane helices: a sanity check, not a discovery.',
+            'Boosting adds models one at a time. Each instance has a weight, initially 1/n. After each model the total error ε is ' +
+            'the sum of the weights of the misclassified instances; misclassified weights are multiplied by 1/(2ε) and correct ones ' +
+            'by 1/(2(1 − ε)); the model gets a confidence α = ½ ln((1 − ε)/ε); predictions are the sign of Σ αᵢMᵢ(q). The lecture ' +
+            'works this by hand on a 10-row bicycle table. The same arithmetic on an illustrative food-safety table (will a ' +
+            "mesophilic bacterium grow at a storage temperature?) gives exactly the same first step: ε = 0.200, α = 0.6931. " +
+            "On real tumours, one decision stump is 89.5% accurate on held-out data and 50 boosted stumps " +
+            "98.2%; training accuracy reaches 100% while held-out accuracy plateaus.",
+          viz: ['w10-adaboost'],
+          keypoint: 'Bagging builds independent models in parallel; boosting builds dependent models in sequence, each focused on the previous errors.' },
+
+        { id: 'gboost', nav: '6. Gradient boosting',
+          title: '6. Gradient boosting: fitting the residuals (slides 74–115)',
+          body:
+            'Gradient boosting starts from a model that predicts the mean, M₀, and repeatedly adds a model fitted to the residuals ' +
+            't − Mᵢ₋₁(d): Mᵢ(d) = Mᵢ₋₁(d) + MΔᵢ(d). Shallow trees (stumps) are typical. The lecture uses bicycle demand; the same ' +
+            "steps on 442 patients (BMI → diabetes progression): M₀ = 152.1, training MSE 5,930 → " +
+            "4,279 after one stump (split at BMI 27.25) → 3,615 after 20. " +
+            'Unlike a forest, a boosted ensemble overfits as trees are added. With all ten measures and held-out patients, ' +
+            "learning rate 1.0 is best after 1 tree and reaches MSE 5,775 after 300; " +
+            "rate 0.1 is best after 54 trees (MSE 2,688). Choose the number of trees by " +
+            'cross-validation or early stopping, never on the test set. XGBoost is a widely used, scalable implementation.',
+          viz: ['w10-gboost'],
+          keypoint: 'Small learning rate, and the number of trees chosen on validation data.' },
+
+        { id: 'practice', nav: '7. Ensembles in practice',
+          title: '7. Comparing ensembles with single models, and their limitations (slides 116–119)',
+          body:
+            'A fair comparison uses the same folds for every model. On WDBC: single tree ' + '91.0%, bagging ' +
+            '95.6%, random forest 95.4%, AdaBoost 96.7%, gradient boosting ' +
+            '95.1%, logistic regression 97.4%, soft voting of logistic regression, k-NN and a ' +
+            'forest 97.0%. On the diabetes data (R²): depth-3 tree 0.33, forest 0.44, ' +
+            'gradient boosting 0.44, linear regression 0.48. Ensembles reliably fix the ' +
+            'instability of one tree; they do not automatically beat a well-specified simple model, and differences of about one ' +
+            'standard deviation are not evidence. Limitations: hundreds of trees cannot be read like one; boosting overfits with ' +
+            'too many rounds or a high learning rate; and an ensemble learns the biases of its data (one hospital, one cohort, ' +
+            'related samples across a split).',
+          viz: ['w10-compare'],
+          keypoint: 'Compare on the same folds, report the spread, and prefer the simpler model when the evidence does not separate them.' },
+
+        { id: 'robust', nav: 'Optional: robustness',
+          title: 'Optional extension: robust to noise and scaling, not to protocol',
+          body:
+            'Not in the lecture. With 300 pure-noise columns appended to WDBC, the forest goes from 95.3% to 94.7%, logistic ' +
+            'regression from 97.4% to 93.2%, and k-NN from 96.3% to 87.5%. A split asks only whether a value is below a threshold, ' +
+            'so scaling changes nothing for a forest. None of this protects against tuning on the test set or related samples on ' +
+            'both sides of a split.',
+          viz: ['w10-robust'],
+          keypoint: 'A forest tuned on the test set is overfitted exactly as badly as any other model.' },
+
+        { id: 'embeddings', nav: 'Optional: foundation-model features',
+          title: 'Optional extension: a forest on ESM-2 protein embeddings (and the Week 10 lab)',
+          body:
+            'Not in the lecture; used by the Week 10 lab. The 2,000 Week 7 proteins under one protocol: test ROC AUC for ' +
+            'transmembrane prediction is 0.982 for a forest on 23 designed descriptors and 0.946 for a forest on ESM-2 embeddings, ' +
+            'where logistic regression on the same embedding reaches 0.978. Try several heads, linear first, before anything more ' +
+            'expensive.',
           viz: ['w10-proteins', 'leaderboard'],
           keypoint: 'Run the cheap, frozen-embedding baseline with several heads before anything more expensive.' }
       ],
       interactiveIndex: [
-        { id: 'w10-crowd', label: '1. The wisdom of crowds: accuracy and correlation', note: 'section 1; lecture slide 12' },
-        { id: 'w10-bootstrap', label: '2. Bootstrap samples and out-of-bag tumours', note: 'section 2; lab Task 1; lecture slide 18' },
-        { id: 'w10-trees', label: '3. Features per split and number of trees', note: 'section 3; lab Task 3; lecture slide 26' },
-        { id: 'random-forest', label: '4. Grow a forest in your browser (random forest visualiser)', note: 'section 3; lab Tasks 2 and 4; lecture slide 30' },
-        { id: 'w10-robust', label: '5. Irrelevant features and scaling', note: 'section 4; lab Task 5; lecture slide 30' },
-        { id: 'w10-importance', label: '6. Two kinds of importance', note: 'section 5; lab Tasks 6–7; lecture slide 39' },
-        { id: 'w10-proteins', label: '7. Classical descriptors or ESM-2 embeddings?', note: 'section 6; lab Task 8; lecture slide 50' },
-        { id: 'leaderboard', label: '8. Model comparison on WDBC (model comparison lab)', note: 'section 6; lab Tasks 2 and 9; lecture slide 50' }
+        { id: 'w10-crowd', label: '1. The wisdom of crowds: accuracy and correlation', note: 'section 1; lecture slides 5–10' },
+        { id: 'w10-bootstrap', label: '2. Bootstrap samples and out-of-bag tumours', note: 'section 2; lecture slides 14–20; lab Task 1' },
+        { id: 'w10-trees', label: '3. Features per split and number of trees', note: 'section 3; lecture slides 23–27; lab Task 3' },
+        { id: 'random-forest', label: '4. Grow a forest in your browser (random forest visualiser)', note: 'section 3; lecture slides 23–27; lab Tasks 2 and 4' },
+        { id: 'w10-importance', label: '5. Two kinds of importance', note: 'section 4; lecture slide 28; lab Tasks 6–7' },
+        { id: 'w10-adaboost', label: '6. Boosting, one stump at a time', note: 'section 5; lecture slides 31–71' },
+        { id: 'w10-gboost', label: '7. Gradient boosting on clinical data', note: 'section 6; lecture slides 75–115' },
+        { id: 'w10-compare', label: '8. Single models against ensembles, on the same folds', note: 'section 7; lecture slides 117–118' },
+        { id: 'w10-robust', label: '9. Optional: irrelevant features and scaling', note: 'optional extension; lab Task 5' },
+        { id: 'w10-proteins', label: '10. Optional: classical descriptors or ESM-2 embeddings?', note: 'optional extension; lab Task 8' },
+        { id: 'leaderboard', label: '11. Optional: model comparison on WDBC (model comparison lab)', note: 'optional extension; lab Tasks 2 and 9' }
       ],
       concepts: [
-        { term: 'The wisdom of crowds', body: 'Averaging many independent, individually mediocre estimates can beat any one of them. The word doing the work is "independent", and the whole design of a random forest is an attempt to buy independence.' },
-        { term: 'Bagging', body: 'Bootstrap aggregating: fit each tree on a resample drawn with replacement, then average. Individual trees are high-variance; the average is not.' },
-        { term: 'Random feature subsetting', body: 'At each split, consider only a random subset of features. Without this, every tree would pick the same dominant feature at the root and the ensemble would be highly correlated.' },
-        { term: 'Out-of-bag error', body: 'Roughly a third of samples are omitted from each bootstrap, giving a free held-out estimate without a separate validation set.' },
-        { term: 'Feature importance, with care', body: 'Impurity-based importance is biased towards high-cardinality and continuous features, and splits importance arbitrarily between correlated features. On WDBC, "worst perimeter" and "worst area" score 0.136 and 0.127 (r = 0.98) because they measure nearly the same thing. Permutation importance on held-out data is more trustworthy, and neither is a causal claim.' },
-        { term: 'Robustness', body: 'Forests tolerate irrelevant features, outliers and unscaled data far better than k-NN or linear models, which is much of why they are a good default.' },
-        { term: 'Where forests still overfit', body: 'They resist overfitting in depth but not in protocol. A forest tuned on the test set is overfitted exactly as badly as anything else.' }
+        { term: 'Aggregation', body: 'Combining the predictions of several models: majority voting for categorical targets, averaging for continuous ones, or a weighted vote (boosting). The aggregate of multiple combined models is more effective than any individual model when the members are better than chance and diverse.' },
+        { term: 'Bagging', body: 'Bootstrap aggregating: train each model on a sample drawn with replacement (100% sampling with replacement) and aggregate. Individual trees are high-variance; their average is not.' },
+        { term: 'Random forest', body: 'Bagging plus random feature (subspace) sampling, so that the trees are less correlated. Any base model can be used, but decision trees are most common: an ensemble of trees is a forest.' },
+        { term: 'Boosting', body: 'Models are added in sequence; each is trained on a weighted dataset that emphasises the instances the previous models misclassified, and votes with a confidence α that grows as its weighted error ε falls.' },
+        { term: 'Gradient boosting', body: 'Each new model predicts the residuals of the ensemble built so far, and is added to it. Typically shallow trees, a learning rate below 1, and a number of trees chosen on validation data. XGBoost, LightGBM and CatBoost are engineering refinements of the idea.' },
+        { term: 'Out-of-bag error', body: 'About a third of the rows are left out of each bootstrap sample, giving a held-out estimate without a separate validation set, valid only when the rows are independent.' },
+        { term: 'Feature importance, with care', body: 'Impurity importance is computed on training data and splits credit arbitrarily between correlated features; permutation importance on held-out data is more trustworthy. Neither is a causal claim: BMI being important for predicting diabetes progression in this cohort does not show that changing BMI changes progression.' },
+        { term: 'Limitations', body: 'Ensembles are harder to interpret than one tree, boosting can overfit, and every ensemble inherits the biases of its data: one hospital, one population, unbalanced classes, related samples on both sides of a split.' }
       ],
       viz: 'random-forest',
       viz2: 'leaderboard',
       worked: {
-        title: 'Three models, and the columns that are not accuracy',
+        title: 'One boosting iteration by hand, on a food-safety question',
         body:
-          'Model A, engineered features into a random forest: 95.4 per cent cross-validated ' +
-          'accuracy on WDBC, measured. Trains in seconds on a laptop, no GPU, gives a feature ' +
-          'ranking a clinician can read.\n\n' +
-          'Model B, foundation-model embeddings into a random forest: needs a pretrained ' +
-          'model appropriate to the data type. For WDBC there is none, because the input is ' +
-          'thirty morphometric numbers rather than a sequence, an image or text. This row is ' +
-          'not "worse"; it is not applicable, and recognising inapplicability is a skill.\n\n' +
-          'Model C, a fine-tuned foundation model: only in play where a suitable pretrained ' +
-          'model exists. It requires a GPU, careful regularisation on small data, and a much ' +
-          'more demanding validation protocol.\n\n' +
-          'The comparison table on this page therefore has columns for training-data ' +
-          'requirement, compute cost, interpretability and validation burden alongside ' +
-          'accuracy. A model that wins on accuracy and loses on the other four is not ' +
-          'obviously the right choice, and for a clinical application it is usually the ' +
-          'wrong one.\n\n' +
-          'Note the honest scoreboard on the real data: plain logistic regression reaches ' +
-          '97.4 per cent, PCA followed by logistic regression 97.7 per cent, and the ' +
-          '500-tree random forest 95.4 per cent. The simplest model in the comparison wins. ' +
-          'That happens more often than the literature would suggest.',
-        keypoint: 'Compare on the axes that will decide whether the model gets used, not only on the one that is easiest to report.'
+          'Ten storage temperatures (4, 5, 7, 12, 18, 23, 30, 37, 46 and 50 °C) and whether a mesophilic bacterium grows ' +
+          'within 48 h: Low, Low, Low, High × 5, Low, Low. This table is illustrative, like the lecture\'s bicycle table.\n\n' +
+          'Iteration 0. Every weight is 0.1. The best stump is "Temp < 9.5 → Low, otherwise High"; it misclassifies the ' +
+          'two hot samples, so ε = 0.1 + 0.1 = 0.200 and α = ½ ln(0.8/0.2) = 0.6931.\n\n' +
+          'Update. The two misclassified weights become 0.1 × 1/(2 × 0.2) = 0.250; the eight correct ones 0.1 × 1/(2 × 0.8) = ' +
+          '0.0625. The weights still sum to 1.\n\n' +
+          'Iteration 1. With the hot samples now heavy, the best stump is "Temp ≥ 41.5 → Low, otherwise High": it ' +
+          'misclassifies the three cold samples, ε = 3 × 0.0625 = 0.1875, α = 0.7332.\n\n' +
+          'Prediction at 25 °C: both stumps say High, Σ αM(q) = 0.6931 + 0.7332 > 0, so High. At 4 °C the ' +
+          'two stumps disagree and the more confident one wins: −0.6931 + 0.7332 > 0, High, which is ' +
+          'wrong. More rounds are needed; Exercise 6 steps through ten.',
+        keypoint: 'Weights move towards the mistakes; confidence α decides who wins a disagreement.'
       },
       fm: {
-        title: 'Embeddings plus a forest, measured',
+        title: 'Embeddings plus a forest, measured (optional)',
         body:
-          'Where a suitable pretrained model exists, a frozen embedding fed to a small model is the cheap baseline to run ' +
-          'before any fine-tuning. Measured on the Week 7 proteins: a forest on ESM-2 (8M) embeddings reached test AUC ' +
-          '0.946 for transmembrane proteins, below logistic regression on the same embedding ' +
-          '(0.978) and below a forest on 23 designed descriptors (0.982). ' +
-          'So try several heads, linear first, and keep the forest\'s importances over embedding dimensions in perspective: ' +
-          'those dimensions rarely mean anything individually.',
+          'Where a suitable pretrained model exists, a frozen embedding fed to a small model is the cheap baseline to run before ' +
+          'any fine-tuning. Measured on the Week 7 proteins: a forest on ESM-2 (8M) embeddings reached test AUC 0.946 for ' +
+          'transmembrane proteins, below logistic regression on the same embedding (0.978) and below a forest on 23 designed ' +
+          'descriptors (0.982). This is the subject of the Week 10 lab, not of the lecture.',
         models: ['esm2', 'nucleotideTransformer', 'dnabert2']
       },
       scientist:
-        'Your forest ranks gene X as the most important predictor of treatment response. ' +
-        'A colleague proposes targeting gene X therapeutically. Explain, in terms a ' +
-        'non-specialist would follow, why feature importance does not support that step.',
+        'Your gradient-boosting model ranks serum triglycerides as the second most important predictor of diabetes ' +
+        'progression. A colleague proposes a trial of a triglyceride-lowering drug to slow progression. Explain, in terms a ' +
+        'non-specialist would follow, what the importance score does and does not support, and what evidence would be needed.',
       quiz: [
-        { q: 'Why does a random forest sample features at each split as well as bootstrapping the rows?',
-          options: ['To speed up training', 'To decorrelate the trees, since bootstrapping alone leaves them all splitting on the same dominant feature', 'To handle missing values', 'To reduce memory use'],
+        { q: 'Fifty independent classifiers are each 60% accurate. Roughly how accurate is their majority vote?',
+          options: ['30%', '60%', 'About 90%', '100%'],
+          answer: 2,
+          why: 'P(X ≥ 25) for a binomial with n = 50 and p = 0.6 is 0.902 (lecture slide 6). The result depends on the classifiers being independent; correlated classifiers gain much less.' },
+        { q: 'What is the essential difference between bagging and boosting?',
+          options: ['Boosting uses more trees', 'Bagging trains models independently on bootstrap samples and averages them; boosting trains them in sequence, each emphasising the previous models\' errors', 'Boosting is always more accurate', 'Bagging cannot use trees'],
           answer: 1,
-          why: 'Averaging only reduces variance to the extent the estimates are independent. Feature subsetting is what buys that independence, and it is why a random forest beats plain bagged trees.' },
-        { q: 'Two features have impurity importances of 0.136 and 0.127 and are highly correlated (r = 0.98). What follows?',
-          options: ['Both are causally important', 'The forest has split the credit between two near-duplicate measurements; neither figure supports a causal claim', 'One is redundant and should be dropped', 'The model is overfitting'],
+          why: 'The dependence structure is the whole difference: bagging reduces variance and is hard to overfit by adding models; boosting reduces bias and needs the number of rounds chosen on validation data.' },
+        { q: 'A boosting model has weighted error ε = 0.2. What is its confidence α, and what happens to the weight of a misclassified instance with weight 0.1?',
+          options: ['α = 0.2; the weight stays 0.1', 'α = ½ ln(4) ≈ 0.693; the weight becomes 0.1 × 1/(2 × 0.2) = 0.25', 'α = 0.8; the weight halves', 'α = ln(0.2); the weight becomes 0'],
           answer: 1,
-          why: 'This is the measured situation for "worst area" and "worst perimeter" on WDBC, which are geometrically almost the same quantity. Correlated features share importance arbitrarily, and importance was never a causal measure to begin with.' },
-        { q: 'On WDBC, logistic regression reaches 97.4 per cent and a 500-tree random forest 95.4 per cent. What is the right conclusion?',
-          options: ['The forest was configured incorrectly', 'On this dataset the simpler model is at least as good, so the added complexity is not justified by the evidence', 'Accuracy is the wrong metric', 'More trees would help'],
+          why: 'α = ½ ln((1 − ε)/ε) = ½ ln(4) = 0.6931, and misclassified weights are multiplied by 1/(2ε). These are the numbers of the bicycle and bacterial-growth examples.' },
+        { q: 'In gradient boosting, what does each new model predict?',
+          options: ['The target t', 'The residuals t − Mᵢ₋₁(d) of the ensemble built so far', 'The weights of the instances', 'The mean of the target'],
           answer: 1,
-          why: 'Both figures come from the same cross-validation protocol on this page. When the simpler model matches or beats the complex one, the burden of proof sits with the complex one.' }
+          why: 'Mᵢ(d) = Mᵢ₋₁(d) + MΔᵢ(d), where MΔᵢ is trained to predict t − Mᵢ₋₁(d). The first model, M₀, predicts the mean.' },
+        { q: 'On WDBC, logistic regression reaches 97.4% and the best ensemble 97.0%, each with a fold-to-fold SD of about 1.6 points. What is the right conclusion?',
+          options: ['The ensemble is better', 'The evidence does not separate them, so the simpler model is the reasonable choice', 'Accuracy is the wrong metric', 'More trees would help'],
+          answer: 1,
+          why: 'Both come from the same folds. A difference far smaller than the spread across folds is not evidence; when a simpler model matches a complex one, the burden of proof sits with the complex one.' }
       ],
       lab: 'lab10',
-      datasets: ['wdbc', 'uniprotHuman'],
+      datasets: ['wdbc', 'diabetesEfron', 'uniprotHuman'],
       reading: [
-        { ref: 'greener2022', note: 'On model selection for biological data.' },
-        { ref: 'geron', note: 'Chapter 7 on ensembles.' }
+        { ref: 'kelleher2020', note: 'The textbook source of the lecture\'s bicycle-demand boosting and gradient-boosting examples (ensembles chapter).' },
+        { ref: 'breiman1996', note: 'Bagging, in the original paper.' },
+        { ref: 'breiman2001', note: 'Random forests, including feature importance.' },
+        { ref: 'freund1997', note: 'AdaBoost, the boosting algorithm of the lecture.' },
+        { ref: 'friedman2001', note: 'Gradient boosting.' },
+        { ref: 'geron', note: 'Chapter 7 on ensembles: a practical scikit-learn treatment.' }
       ],
       provenance: {
-        kept: 'The wisdom-of-crowds motivation (Galton\'s ox), the two conditions for a good ensemble, bagging, aggregation and random forests from the 2025/26 Week 10-11 deck, together with the tree-based feature importance from the Week 7 deck.',
-        changed: 'The 2026/27 lecture (Week 10, 55 slides, Canvas) replaces the bicycle and credit examples with WDBC and the Week 7 proteins; boosting moves to Week 11. New: the variance formula and majority-vote arithmetic, the 63.2% derivation, out-of-bag error, the strength/correlation trade-off measured on real data, impurity versus permutation importance with a correlated group and noise columns, robustness, and the forest-on-ESM-2 comparison with a bootstrap interval. Every number on this page is computed by data/scripts/24_build_week10_data.py. The lab moves from credit scoring to WDBC and the Week 7 proteins.'
+        kept: 'The 2025/26 Week 10-11 ensemble lecture is the lecture, almost unchanged: all 112 original slides in their original order, with their images, animations and transitions (the wisdom of crowds and Galton\'s ox, the binomial argument, aggregation, bagging with the cardiovascular-risk example, random forests with subspace sampling, boosting worked by hand on bicycle demand, gradient boosting worked by hand on bicycle demand, the gradient-boosting algorithm and its variants).',
+        changed: 'Revised for 2026/27 (122 slides, Canvas): small text corrections and ten new slides with biology and nutrition examples on real data: bagging on breast tumours (accuracy and prediction stability), forest feature importance on diabetes progression, the boosting arithmetic on a food-safety table, boosted stumps on tumours, gradient boosting on diabetes progression, learning rate and overfitting, a same-folds comparison of single models and ensembles, the scikit-learn code, and limitations. New on this page: three exercises that mirror those slides (6, 7, 8); the forest and importance exercises are kept; robustness and the protein-embedding comparison remain as optional extensions used by the lab. Numbers: data/scripts/24_build_week10_data.py and 26_build_week10_ensembles.py.'
       }
     },
 

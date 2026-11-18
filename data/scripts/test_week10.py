@@ -59,14 +59,14 @@ def main():
         pg.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
         pg.goto(BASE + "/weeks/week10.html")
         pg.wait_for_timeout(4000)
-        ids = ["w10-crowd", "w10-bootstrap", "w10-trees", "random-forest", "w10-robust", "w10-importance",
-               "w10-proteins", "leaderboard"]
+        ids = ["w10-crowd", "w10-bootstrap", "w10-trees", "random-forest", "w10-importance", "w10-adaboost", "w10-gboost",
+               "w10-compare", "w10-robust", "w10-proteins", "leaderboard"]     # 2026 revision: lecture order, optional last
         for v in ids:
             el = pg.locator(f"#viz-{v}")
             check(f"{v}: present and drawn", el.count() == 1 and ("<svg" in el.inner_html() or "<table" in el.inner_html()) and
                   "failed to render" not in el.inner_text() and el.locator("[data-viz-reset]").count() == 1, v)
         idx = [a.get_attribute("href") for a in pg.locator("#interactive li a").all()]
-        check("eight exercises in the index, in lecture order", len(idx) == 8 and all(f"viz-{v}" in h for v, h in zip(ids, idx)), idx)
+        check("eleven exercises in the index, in lecture order", len(idx) == 11 and all(f"viz-{v}" in h for v, h in zip(ids, idx)), idx)
         check("no link to solutions", pg.locator("a[href*='solutions']").count() == 0)
         check("no .pptx or .pdf links", pg.locator("a[href$='.pptx'], a[href$='.pdf']").count() == 0)
         check("lab notebook linked", pg.locator("a[href$='labs/week10/COMP9085_Week10_Lab.ipynb']").count() >= 1)

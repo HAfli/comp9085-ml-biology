@@ -94,7 +94,9 @@ WEEK_SCRIPTS = {
     9: ["js/data/week09.js",
         "js/visualisations/w9-clustering.js"],
     10: ["js/data/week10.js",
-         "js/visualisations/w10-forests.js"],
+         "js/data/week10_ensembles.js",
+         "js/visualisations/w10-forests.js",
+         "js/visualisations/w10-boosting.js"],
 }
 
 TEMPLATE = """<!DOCTYPE html>
