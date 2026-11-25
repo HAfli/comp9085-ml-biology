@@ -2423,103 +2423,136 @@ window.COURSE = {
     /* ----------------------------------------------------------------- 11 */
     {
       n: 11,
-      title: 'Boosting and foundation-model adaptation',
+      title: 'Boosting and fine-tuning foundation models',
       strand: 'adaptation',
-      short: 'Sequential ensembles, then the full adaptation ladder from zero-shot to LoRA.',
+      short: 'Boosting in practice, then pretrained protein language models: zero-shot, frozen embeddings, LoRA and fine-tuning, on one signal-peptide task.',
       los: ['LO1', 'LO2', 'LO3', 'LO5'],
-      biology:
-        'Gradient-boosted trees are, in practice, the strongest general method for tabular ' +
-        'biological data, and they remain competitive with deep learning on that data type. ' +
-        'Meanwhile, for sequence data, the practical question has become how to adapt a ' +
-        'pretrained model to a task with a few hundred labels. This week covers both, ' +
-        'because both are answers to the same question: how do you get good performance ' +
-        'without a large labelled dataset?',
+      biology: 'Gradient-boosted trees are among the strongest methods for tabular biological and clinical data. For sequences, the practical question has become how to adapt a model pretrained on millions of unlabelled proteins to a task with a few hundred labels. Both are answers to the same problem: good predictions without a large labelled dataset, evaluated so that the result can be trusted. This week follows one question, whether a human protein carries a signal peptide, through every approach.',
       objectives: [
-        'Explain boosting as sequential error correction and contrast it with bagging.',
-        'Describe gradient boosting as fitting successive models to the residuals of the current ensemble.',
-        'Place zero-shot use, feature extraction, fine-tuning and parameter-efficient fine-tuning on a single ladder of increasing cost and data requirement.',
-        'Compute the trainable-parameter count for a LoRA configuration and compare it with full fine-tuning.',
-        'Choose an adaptation strategy given a labelled-data budget, a compute budget and an interpretability requirement.'
+        'Explain boosting as sequential error correction, contrast it with bagging, and explain why a boosted ensemble can overfit as models are added.',
+        'Describe gradient boosting as fitting each tree to the negative gradient of the loss, and the effects of learning rate, number of trees, depth and subsampling.',
+        'Tune a boosted model without touching the test set, compare it with honest baselines, and interpret feature importance without causal claims.',
+        'Distinguish zero-shot use, fixed embeddings with a classifier, full fine-tuning and parameter-efficient fine-tuning (LoRA, adapters) of a protein language model.',
+        'Compute LoRA\'s trainable parameters and weigh the trade-offs of each approach: labels, compute, overfitting and validation burden.',
+        'Evaluate sequence models with similarity-aware splits, awareness of pretraining overlap and label provenance, and a test set used once.'
+      ],
+      sections: [
+        { id: 'context', nav: '1. From Week 10, and the question',
+          title: '1. From Week 10 to Week 11, and one biological question (lecture slides 2–6)',
+          body: 'Week 10 built ensembles of trees: bagging and random forests in parallel, and boosting and gradient boosting worked by hand. Week 11 takes boosting into practice and then asks the question that dominates modern sequence biology: how do you adapt a model pretrained on millions of unlabelled proteins to a task with a few hundred labels? One question runs through the week: does a human protein carry an N-terminal signal peptide, the short hydrophobic address label (n-region, h-region, c-region, cleavage site) that sends it into the secretory pathway? The data are the Week 7 proteins: 2,000 reviewed human Swiss-Prot proteins, one per UniRef50 cluster; 350 (17.5%) carry the UniProt keyword Signal. Of those labels, 237 rest on sequence analysis (agreement of prediction tools) and 81 on experiments: the model learns an annotation, not a measurement.',
+          keypoint: 'A trustworthy result is a protocol, not just a score: the same split, the same validation rules, a test set used once.' },
+        { id: 'boosting', nav: '2. Boosting and gradient boosting',
+          title: '2. Boosting: sequential error correction, and gradient boosting (slides 8–12)',
+          body: 'Bagging trains independent models in parallel and averages them (it reduces variance); boosting trains dependent models in sequence, each concentrating on what the ensemble still gets wrong (it reduces bias). AdaBoost does this by reweighting the examples (Week 10). Gradient boosting changes the targets instead: start from a constant F₀ (for classification, the log-odds of the base rate), compute the negative gradient of the loss for every example (for squared error the residual t − F(x); for log-loss y − p(x)), fit a small regression tree to it, and add a damped copy: Fₘ(x) = Fₘ₋₁(x) + ν·hₘ(x). On our 1,200 fit proteins the very first stump splits on the mean hydropathy of the first 25 residues: the hydrophobic h-region, found without being told. Because the trees are dependent, adding more can fit noise. With depth-3 trees and five-fold CV on the training proteins, learning rate 1.0 is best after 2 trees (held-out log-loss 0.305, 0.719 after 400); rate 0.1 is best after 88 (0.207).',
+          viz: ['w11-gbtune'],
+          keypoint: 'Learning rate and number of trees are tuned together, on validation data, never on the test set.' },
+        { id: 'practice', nav: '3. XGBoost, tuning and baselines',
+          title: '3. XGBoost-style implementations, honest tuning and baselines (slides 13–18, 21)',
+          body: 'XGBoost adds second-order (Newton) steps, penalties on leaf values and sparse-data handling to gradient boosting; LightGBM bins features into histograms; scikit-learn\'s HistGradientBoostingClassifier is the same histogram family and needs no extra install (XGBoost on macOS also needs the OpenMP runtime). The settings that matter are the learning rate, the number of trees, tree depth, subsampling and leaf regularisation. Tune them inside cross-validation on the training data or with early stopping on an internal validation split, then score the test set once. On the 23 descriptors (5-fold CV on the 1,500 training proteins, settings chosen by that CV, 500 test proteins scored once):',
+          html: '<div class="table-scroll"><table><caption>Signal peptides from 23 designed descriptors</caption><thead><tr><th scope="col">Model</th><th scope="col">CV ROC AUC (± SD)</th><th scope="col">Test ROC AUC</th></tr></thead><tbody><tr><th scope="row">Always predict the majority class</th><td class="num">0.500</td><td class="num">0.500</td></tr><tr><th scope="row">Logistic regression</th><td class="num">0.945 ± 0.004</td><td class="num">0.948</td></tr><tr><th scope="row">Single decision tree</th><td class="num">0.913 ± 0.020</td><td class="num">0.915</td></tr><tr><th scope="row">Random forest (500 trees)</th><td class="num">0.956 ± 0.019</td><td class="num">0.960</td></tr><tr><th scope="row">AdaBoost (decision stumps)</th><td class="num">0.951 ± 0.012</td><td class="num">0.961</td></tr><tr><th scope="row">Gradient boosting (scikit-learn)</th><td class="num">0.955 ± 0.013</td><td class="num">0.958</td></tr><tr><th scope="row">Histogram gradient boosting (XGBoost/LightGBM-style)</th><td class="num">0.961 ± 0.010</td><td class="num">0.958</td></tr></tbody></table></div><pre>from sklearn.ensemble import HistGradientBoostingClassifier\nfrom sklearn.model_selection import GridSearchCV, StratifiedKFold\n\ncv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)\ngrid = {"learning_rate": [0.03, 0.1], "max_leaf_nodes": [7, 31], "l2_regularization": [0.0, 1.0]}\nhgb = HistGradientBoostingClassifier(max_iter=1000, early_stopping=True, random_state=42)\nsearch = GridSearchCV(hgb, grid, scoring="roc_auc", cv=cv).fit(X[train], y[train])\np_test = search.best_estimator_.predict_proba(X[test])[:, 1]   # once, at the end</pre>',
+          keypoint: 'Every ensemble beats one tree; the tuned ensembles are within about one SD of each other, and logistic regression is not far behind.' },
+        { id: 'importance', nav: '4. Feature importance',
+          title: '4. What does the boosted model rely on, and what that does not mean (slides 19–20)',
+          body: 'Permutation importance on the test proteins puts nterm hydropathy 25 first: median 0.992 for proteins with a signal peptide against -0.328 without. That agrees with the biology, but the importance describes this model reproducing these labels: the labels were largely produced by tools that look for the same hydrophobic core, correlated features share credit, and impurity importance is computed on training data. Mechanism needs an experiment, such as mutating the h-region and measuring secretion.',
+          viz: ['w11-importance'],
+          keypoint: 'An importance is not a mechanism, and a prediction is not a diagnosis.' },
+        { id: 'foundation', nav: '5. Foundation models and embeddings',
+          title: '5. Foundation models, pretraining and embeddings (slides 23–26)',
+          body: 'A foundation model is pretrained once, with self-supervision on a broad unlabelled corpus, and adapted to many downstream tasks; a model trained from scratch starts from random weights for every task. Protein language models such as ESM-2 are pretrained by masked language modelling: hide some residues and predict them from the rest. To do that well the model has to learn which residues co-occur and which segments are hydrophobic, conserved or disordered. The final layer gives one 320-number vector per residue (ESM-2 8M); averaging them gives one vector per protein. What you average matters: a 20-residue signal peptide averaged with 500 other residues is diluted. Four ways to use the model: zero-shot (no labels), fixed embeddings with a conventional classifier, parameter-efficient fine-tuning (LoRA, adapters) and full fine-tuning. Each step up needs more labels, more compute and more choices that must be validated.' },
+        { id: 'zeroshot', nav: '6. Zero-shot prediction',
+          title: '6. Zero-shot: using the pretraining objective directly (slide 27)',
+          body: 'Zero-shot means no task labels and no training. For a protein language model the classic case is variant scoring: mask a position and compare the probability the model gives a substitute with the wild type, log p(sub) − log p(wt) [ref:meier2021]. The exercise shows every substitution in the signal peptide of human preproinsulin, scored by ESM-2 8M with each position masked in the full 110-residue precursor. It is an illustration on one protein with the smallest ESM-2: a plausibility under evolution\'s sequences, not a measured effect on secretion. Zero-shot works only when the task is something the pretraining objective already models; \'does this protein have a signal peptide\' is not, so it needs labels.',
+          viz: ['w11-zeroshot'],
+          keypoint: 'Zero-shot scores are free to compute and hard to validate: treat them as hypotheses.' },
+        { id: 'adapt', nav: '7. Fine-tuning, LoRA and adapters',
+          title: '7. Fixed embeddings, fine-tuning, LoRA and adapters (slides 28–33)',
+          body: 'Fixed embeddings: one forward pass per protein, then an ordinary classifier with a few hundred parameters; cheap, robust, honestly cross-validatable, and the baseline everything else must beat. Full fine-tuning adds a task head and updates every weight: the highest ceiling, but on small biological datasets many parameters meet few examples, the model can drift from what pretraining learned, and results depend on learning rate, epochs and seed. Parameter-efficient fine-tuning trains a small add-on: adapters insert small bottleneck modules between frozen layers [ref:houlsby2019]; LoRA keeps each pretrained matrix W (d × k) frozen and learns W + BA with B (d × r) and A (r × k), r(d + k) parameters instead of dk [ref:lora]. For ESM-2 8M (d = 320, 6 layers) at rank 8 on query and value: 5,120 per matrix × 12 = 61,440, plus a 103,362-parameter head = 164,802 trainable parameters, exactly the number the peft library reported, against 7,512,443 for full fine-tuning. Rank, targets, learning rate and epochs are still hyperparameters to validate.',
+          viz: ['w11-lora'],
+          keypoint: 'Start with frozen embeddings and a simple head; fine-tune only when validation shows the frozen rung has run out.' },
+        { id: 'ladder', nav: '8. One task, every rung',
+          title: '8. One protein task, every rung, the same proteins (slides 37–44)',
+          body: 'Every pipeline is fitted on the same 1,200 proteins, tuned on the same 300 validation proteins and scored once on the same 500 test proteins; the fine-tuning runs (LoRA rank 8 and full fine-tuning of ESM-2 8M on the first 100 residues, learning rate and epoch chosen on validation, three seeds) ran on a laptop CPU in minutes. Two results matter. First, what you pool: the same frozen model gives 0.964 averaged over the whole sequence and 0.979 over the first 100 residues. Second, the size of the fine-tuning gain: LoRA 0.991 ± 0.003 and full fine-tuning 0.989 ± 0.001 (three seeds); LoRA minus the frozen first-100 head (seed 0) +0.009, 95% CI +0.002 to +0.018; full minus frozen +0.008 (+0.000 to +0.021). Designed descriptors with boosting reach 0.962.',
+          html: '<div class="table-scroll"><table><caption>The adaptation ladder: 500 test proteins, used once per pipeline</caption><thead><tr><th scope="col">Pipeline</th><th scope="col">Test ROC AUC</th><th scope="col">95% bootstrap interval</th><th scope="col">Trainable parameters</th></tr></thead><tbody><tr><th scope="row">Majority class (no model)</th><td class="num">0.500</td><td class="num">0.500–0.500</td><td class="num">0</td></tr><tr><th scope="row">Logistic regression, 23 descriptors</th><td class="num">0.948</td><td class="num">0.926–0.967</td><td class="num">24</td></tr><tr><th scope="row">Random forest, 23 descriptors</th><td class="num">0.957</td><td class="num">0.939–0.973</td><td class="num">trees</td></tr><tr><th scope="row">Gradient boosting (histogram), 23 descriptors</th><td class="num">0.962</td><td class="num">0.944–0.977</td><td class="num">trees</td></tr><tr><th scope="row">Frozen ESM-2, whole sequence + logistic regression</th><td class="num">0.964</td><td class="num">0.938–0.984</td><td class="num">321</td></tr><tr><th scope="row">Frozen ESM-2, first 100 residues + logistic regression</th><td class="num">0.979</td><td class="num">0.954–0.996</td><td class="num">321</td></tr><tr><th scope="row">Frozen ESM-2, first 100 residues + gradient boosting</th><td class="num">0.982</td><td class="num">0.968–0.993</td><td class="num">trees</td></tr><tr><th scope="row">LoRA fine-tuning of ESM-2 (first 100 residues)</th><td class="num">0.991 ± 0.003</td><td class="num">0.971–0.999</td><td class="num">164,802</td></tr><tr><th scope="row">Full fine-tuning of ESM-2 (first 100 residues)</th><td class="num">0.989 ± 0.001</td><td class="num">0.965–0.999</td><td class="num">7,512,443</td></tr></tbody></table></div><p class="small muted">Fine-tuning rows: mean ± SD of three seeds; interval for seed 0. Numbers: data/scripts/27_build_week11_finetune.py and 28_build_week11_data.py.</p>',
+          viz: ['w11-ladder'],
+          keypoint: 'Model complexity does not automatically mean a better scientific result: read the interval and the cost.' },
+        { id: 'evaluation', nav: '9. Evaluation and leakage',
+          title: '9. Evaluation: homology, pretraining overlap and tuning (slides 34–35, 43)',
+          body: 'Biological datasets contain related observations. A random split of redundant protein data puts near-identical relatives on both sides, and the test score then measures recognition of relatives rather than generalisation; split by sequence-similarity clusters. Our proteins were already reduced to one per UniRef50 cluster, and keeping gene families together changed little: boosting on descriptors 0.955 with random folds against 0.947 with family folds; logistic regression on ESM-2 0.972 against 0.964. ESM-2 was pretrained on UniRef sequences that almost certainly include these proteins: no labels leaked, but generalisation to genuinely new proteins is not tested. Learning rate, epochs, pooling, rank and seed are all choices; make them on validation data, and report several seeds and an interval.',
+          keypoint: 'Split by similarity, remember what the model saw in pretraining, and score the test set once.' },
+        { id: 'larger', nav: 'Optional: larger models',
+          title: 'Optional: the adaptation ladder at larger scales',
+          body: 'Not in the lecture. The earlier Week 11 simulator is kept for exploring larger models: its parameter arithmetic is exact, and its performance curves are a labelled simulation, not measured results.',
+          viz: ['fine-tuning'] }
+      ],
+      interactiveIndex: [
+        { id: 'w11-gbtune', label: '1. Tuning gradient boosting: learning rate, depth, subsampling and trees', note: 'section 2; lecture slides 15–16; lab Tasks 3–4' },
+        { id: 'w11-importance', label: '2. What does the boosted model rely on?', note: 'section 4; lecture slides 19–20; lab Task 6' },
+        { id: 'w11-ladder', label: '3. The adaptation ladder on one protein task', note: 'section 8; lecture slides 39–42; lab Tasks 8–9' },
+        { id: 'w11-zeroshot', label: '4. Zero-shot substitution scores', note: 'section 6; lecture slide 27' },
+        { id: 'w11-lora', label: '5. How many parameters does LoRA train?', note: 'section 7; lecture slides 30–31; lab Task 9d' },
+        { id: 'fine-tuning', label: '6. Optional: fine-tuning simulator for larger models', note: 'optional; simulated performance curves' }
       ],
       concepts: [
-        { term: 'Boosting', body: 'Fit a weak learner, find what it got wrong, fit the next learner to concentrate on those cases, repeat. Bagging builds its models in parallel and independently; boosting builds them in sequence and dependently.' },
-        { term: 'Gradient boosting', body: 'Each new tree is fitted to the negative gradient of the loss with respect to the current predictions. For squared error that is simply the residuals. XGBoost, LightGBM and CatBoost are engineering refinements of this idea.' },
-        { term: 'Boosting overfits differently', body: 'A random forest is difficult to overfit by adding trees. A boosted ensemble is not: too many stages, or too high a learning rate, will fit noise. Early stopping on a validation set is not optional.' },
-        { term: 'Zero-shot', body: 'Use the pretrained model with no task-specific training at all. Requires the task to be expressible in terms the model already handles. Costs no labels, and the ceiling can be low.' },
-        { term: 'Feature extraction', body: 'Freeze the model, take embeddings, train a small classical head. Works with a few hundred labels, needs no GPU after the embeddings are computed, and is the baseline everything else must beat.' },
-        { term: 'Fine-tuning', body: 'Continue training the model\'s weights on your task. Highest ceiling, highest cost, and on small biological datasets a real risk of catastrophic forgetting and of overfitting a very large parameter count to very few examples.' },
-        { term: 'Parameter-efficient fine-tuning', body: 'Update a small number of parameters and freeze the rest. Adapters insert small trainable modules between layers. LoRA injects trainable low-rank matrices, leaving the pretrained weights untouched.' },
-        { term: 'LoRA', body: 'Instead of updating a weight matrix W of size d by k, learn A of size d by r and B of size r by k with r much smaller than both, and use W + BA. On GPT-3 175B this reduced trainable parameters by a factor of 10,000 and GPU memory by a factor of 3, with no added inference latency [ref:lora]. DNABERT-2 uses LoRA for exactly this reason [ref:dnabert2].' }
+        { term: 'Boosting', body: 'Sequentially train weak models, each concentrating on what the ensemble so far gets wrong, and combine them in a weighted sum. Reduces bias; can overfit as models are added.' },
+        { term: 'Gradient boosting', body: 'Each new tree is fitted to the negative gradient of the loss at the current predictions (residuals for squared error, y − p for log-loss) and added with a learning rate: Fₘ = Fₘ₋₁ + ν·hₘ.' },
+        { term: 'Learning rate and early stopping', body: 'A smaller rate needs more trees and usually overfits more gently. Choose the number of trees on validation data or stop when an internal validation loss stops improving.' },
+        { term: 'XGBoost / histogram boosting', body: 'Engineering refinements of gradient boosting: second-order steps, leaf penalties, histogram binning, missing-value handling. scikit-learn\'s HistGradientBoostingClassifier belongs to the same family [ref:chen2016].' },
+        { term: 'Foundation model', body: 'A model pretrained with self-supervision on broad unlabelled data, intended to be adapted to many tasks. ESM-2 is pretrained on protein sequences by masked language modelling [ref:esm2].' },
+        { term: 'Embedding', body: 'The model\'s internal numbers for a residue or (pooled) a protein. Mean pooling over the whole sequence or over a window are different representations.' },
+        { term: 'Zero-shot prediction', body: 'Use the pretrained model with no task labels, e.g. masked-marginal substitution scores. Free, but only for tasks the pretraining objective already models.' },
+        { term: 'Fine-tuning', body: 'Continue training the pretrained weights on labelled examples with a task head. Highest ceiling; on small data a real risk of overfitting and of dependence on seed and learning rate.' },
+        { term: 'PEFT, LoRA and adapters', body: 'Train a small number of added parameters while the pretrained model stays frozen. LoRA learns a low-rank update BA beside a weight matrix; adapters insert small bottleneck modules [ref:lora] [ref:houlsby2019].' },
+        { term: 'Homology-aware evaluation', body: 'Split protein data by sequence-similarity clusters so that close relatives cannot sit on both sides; remember that a pretrained model may have seen the test sequences.' }
       ],
-      viz: 'fine-tuning',
       worked: {
-        title: 'The adaptation ladder, with the arithmetic',
+        title: 'One gradient-boosting step, and the LoRA count, by hand',
         body:
-          'The rungs, in increasing order of cost:\n\n' +
-          'Zero-shot. No labels, no training. Try it first, because it is free and it ' +
-          'occasionally suffices.\n\n' +
-          'Feature extraction. A few hundred labels, one forward pass per example, then a ' +
-          'logistic regression. This is the rung most projects should stop at.\n\n' +
-          'Parameter-efficient fine-tuning. Low thousands of labels, a GPU for an hour. Take ' +
-          'a model with 12 layers and hidden size 768, and apply LoRA at rank 8 to the query ' +
-          'and value projections. Each adapted matrix contributes r(d + k) = 8(768 + 768) = ' +
-          '12,288 parameters. Two projections per layer across 12 layers gives 12 x 2 x ' +
-          '12,288 = 294,912 trainable parameters. Against a 117-million-parameter backbone ' +
-          'that is roughly 0.25 per cent. The simulator on this page recomputes this exactly ' +
-          'for whatever configuration you set.\n\n' +
-          'Full fine-tuning. Tens of thousands of labels, real GPU time, and every parameter ' +
-          'in play. On a few hundred biological examples this is usually the wrong tool, ' +
-          'because you are fitting a hundred million parameters to a few hundred points and ' +
-          'the validation protocol has to be correspondingly strict.\n\n' +
-          'The general shape of the learning curve is not a matter of opinion: it was ' +
-          'measured on real data for this module. On WDBC, logistic regression goes from ' +
-          '89.3 per cent accuracy with 11 labelled examples to 96.5 per cent with 114 and ' +
-          '97.6 per cent with 455. Steep gains early, flat later. That diminishing return is ' +
-          'why the labelled-data budget, not the model, usually decides which rung you can ' +
-          'reach.',
-        keypoint: 'Climb the ladder one rung at a time, and only when the rung below has demonstrably run out.'
+          'Gradient boosting, first step, on the 1,200 fit proteins. The base rate of signal peptides is p₀ ≈ 0.175, so F₀ = log(0.175/0.825) ≈ −1.55. The negative gradient of the log-loss is y − p₀: about +0.825 for each protein with a signal peptide and −0.175 for each without. A depth-1 regression tree fitted to these values splits on the N-terminal hydropathy; each leaf gets a Newton step γ = Σ(y − p)/Σ p(1 − p), and F₁ = F₀ + 0.1·γ moves the probability up for proteins with a hydrophobic N-terminus and down for the rest. Later trees repeat this on what is still wrong.\n\nLoRA count for ESM-2 8M. Hidden size d = 320, 6 layers, rank r = 8 on the query and value matrices. Each adapted 320 × 320 matrix gets B (320 × 8) and A (8 × 320): 5,120 parameters. Twelve matrices give 61,440. The classification head adds 103,362, for 164,802 trainable parameters against 7,512,443 for full fine-tuning.',
+        keypoint: 'Gradient boosting changes the targets; LoRA changes a few parameters. Both still need validation data and an untouched test set.'
       },
-      fm: {
-        title: 'A note on what the simulator is',
-        body:
-          'Fine-tuning a real foundation model cannot happen in a browser tab. The simulator ' +
-          'on this page therefore does two different things, and it is worth being clear ' +
-          'about which is which. The parameter arithmetic is exact: given your architecture ' +
-          'and rank, it computes the true trainable-parameter counts and memory ratios. The ' +
-          'performance curves are a transparent parametric model of learning-curve behaviour, ' +
-          'with the assumptions written on screen, calibrated so that its qualitative ' +
-          'behaviour matches the real learning curve measured on WDBC. It is a model of how ' +
-          'these methods behave, not a record of measured results, and it says so.',
-        models: ['lora', 'dnabert2', 'nucleotideTransformer', 'esm2', 'hyenadna']
-      },
-      scientist:
-        'You have 340 labelled sequences and access to one GPU for a day. Argue for the ' +
-        'adaptation strategy you would choose, then argue against it. Which argument is ' +
-        'stronger, and what single piece of evidence would settle it?',
+      fm: { inline: true, title: 'Foundation models in this week', body: 'Sections 5 to 9 of this page are the foundation-model material: pretraining, embeddings, zero-shot use, fine-tuning, LoRA and adapters, and how to evaluate them.', models: ['esm2', 'lora'] },
+      scientist: 'You have 340 labelled sequences and one GPU for a day. Argue for an adaptation strategy, then against it. Which argument is stronger, and what single piece of evidence would settle it?',
       quiz: [
         { q: 'What is the essential difference between bagging and boosting?',
           options: ['Boosting uses more trees', 'Bagging trains models independently in parallel and averages them; boosting trains them sequentially, each correcting its predecessors', 'Boosting is always more accurate', 'Bagging cannot use trees'],
           answer: 1,
-          why: 'The dependence structure is the whole difference, and it explains the rest: bagging reduces variance and is hard to overfit by adding models, boosting reduces bias and requires early stopping.' },
-        { q: 'LoRA at rank 8 on query and value projections, 12 layers, hidden size 768. How many trainable parameters?',
-          options: ['12,288', '294,912', '1,179,648', '117,000,000'],
+          why: 'The dependence structure is the whole difference: bagging reduces variance and does not overfit by adding models; boosting reduces bias and needs its number of models chosen.' },
+        { q: 'In gradient boosting for classification with log-loss, what is each new tree fitted to?',
+          options: ['The original labels', 'The misclassified examples only', 'The negative gradient, y − p(x), at the current predictions', 'Bootstrap samples of the data'],
+          answer: 2,
+          why: 'For log-loss the negative gradient with respect to the log-odds is the label minus the predicted probability; for squared error it is the residual.' },
+        { q: 'Your boosted model\'s held-out loss is lowest after 60 trees at learning rate 0.1. You halve the learning rate. What do you expect?',
+          options: ['The same 60 trees', 'Roughly twice as many trees needed, with a similar or slightly better minimum', 'Fewer trees needed', 'The model can no longer overfit'],
           answer: 1,
-          why: 'r(d+k) = 8 x 1536 = 12,288 per adapted matrix; two matrices per layer over 12 layers gives 294,912. Roughly a quarter of one per cent of a 117-million-parameter backbone.' },
-        { q: 'You have 200 labelled examples and a suitable pretrained model. What should you try first?',
-          options: ['Full fine-tuning', 'Feature extraction: frozen embeddings plus a small classical head', 'LoRA at rank 64', 'Train from scratch'],
+          why: 'Each step is half as large, so about twice as many are needed; smaller steps usually give a flatter, slightly better minimum.' },
+        { q: 'Which of these uses a protein language model zero-shot?',
+          options: ['Training logistic regression on its embeddings', 'Scoring a substitution by log p(substitute) − log p(wild type) at a masked position', 'Fine-tuning it with LoRA', 'Training it from scratch'],
           answer: 1,
-          why: 'With 200 examples, full fine-tuning fits an enormous parameter count to very little data. Frozen embeddings plus logistic regression is cheap, robust, honestly cross-validatable, and is the baseline anything more elaborate has to beat.' }
+          why: 'Zero-shot uses the pretraining objective directly, with no task labels.' },
+        { q: 'LoRA at rank 8 on query and value of ESM-2 8M (6 layers, d = 320). How many LoRA parameters, without the head?',
+          options: ['5,120', '61,440', '320,000', '7,512,443'],
+          answer: 1,
+          why: 'r(d + k) = 8 × 640 = 5,120 per matrix; 2 matrices × 6 layers = 61,440.' },
+        { q: 'A paper reports 0.99 AUC for a fine-tuned protein model on a random split of all human UniProt proteins. What should you check first?',
+          options: ['Whether they used a GPU', 'Whether close homologues sit on both sides of the split, how settings were chosen, and how the labels were made', 'Whether the model is larger than ESM-2', 'Nothing; 0.99 is conclusive'],
+          answer: 1,
+          why: 'Random splits of redundant sequence data, tuning on the test set and tool-derived labels all inflate scores.' }
       ],
       lab: 'lab11',
-      datasets: ['proteinSim', 'wdbc'],
+      datasets: ['uniprotHuman'],
       reading: [
+        { ref: 'friedman2001', note: 'Gradient boosting, in the original paper.' },
+        { ref: 'chen2016', note: 'XGBoost: what it adds to gradient boosting.' },
+        { ref: 'esm2', note: 'ESM-2, the protein language model used throughout.' },
+        { ref: 'meier2021', note: 'Zero-shot prediction of mutation effects with protein language models.' },
         { ref: 'lora', note: 'The original LoRA paper. The method section is short and worth reading properly.' },
-        { ref: 'dnabert2', note: 'A genomics model that uses LoRA, with the efficiency comparison against the Nucleotide Transformer.' },
+        { ref: 'houlsby2019', note: 'Adapters: parameter-efficient transfer learning.' },
+        { ref: 'teufel2022', note: 'SignalP 6.0: how the signal-peptide problem is solved in practice, with a protein language model.' },
         { ref: 'geron', note: 'Chapter 7 on boosting.' }
       ],
       provenance: {
-        kept: 'Boosting, the weight-update rules, gradient boosting as residual fitting, and the gradient-boosting variants from the 2025/26 Week 10-11 deck.',
-        changed: 'The bicycle-demand running example is replaced. The entire adaptation section, from zero-shot through LoRA, is new. The existing ensemble lab, which uses credit-scoring data, is rewritten around biological data.'
+        kept: 'From the earlier Week 11 page and draft: the bagging/boosting contrast, gradient boosting as residual fitting, the adaptation ladder from zero-shot to full fine-tuning, the LoRA arithmetic and the 340-sequence discussion question. The fine-tuning simulator is kept as an optional exercise.',
+        changed: 'Rebuilt for 2026/27 around one real protein task (signal peptides in the Week 7 proteins), with a new lecture (Canvas), a new lab and five new exercises on real data: boosting curves and importance, the ladder with recorded LoRA and full fine-tuning runs, zero-shot scores and exact LoRA counts. Hand-worked AdaBoost and gradient boosting now live in Week 10 and are not repeated. Numbers: data/scripts/27_build_week11_finetune.py and 28_build_week11_data.py.'
       }
     },
 

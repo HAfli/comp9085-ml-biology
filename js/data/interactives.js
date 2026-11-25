@@ -128,6 +128,12 @@ window.INTERACTIVES = [
       learn: 'Every classical model under one protocol; sort by something other than accuracy.' }
   ] },
   { week: 11, items: [
+    { id: 'w11-gbtune', kind: 'interactive', title: 'Tuning gradient boosting',
+      learn: 'Learning rate, depth, subsampling and number of trees on real protein data.', slides: '15, 16' },
+    { id: 'w11-ladder', kind: 'interactive', title: 'The adaptation ladder',
+      learn: 'Boosting, frozen ESM-2 embeddings, LoRA and full fine-tuning on the same proteins.', slides: '39, 40, 41' },
+    { id: 'w11-zeroshot', kind: 'interactive', title: 'Zero-shot substitution scores',
+      learn: 'What a protein language model expects in the insulin signal peptide, with no labels.', slides: '27' },
     { id: 'fine-tuning', kind: 'interactive', title: 'Fine-tuning simulator',
       learn: 'Exact parameter arithmetic for each rung of the adaptation ladder.' }
   ] },

@@ -128,6 +128,35 @@ window.REFERENCES = {
     checked: '2026-09'
   },
 
+  houlsby2019: {
+    tag: 'Adapters',
+    cite: 'Houlsby, N. et al. (2019). Parameter-Efficient Transfer Learning for NLP. ICML 2019 (PMLR 97).',
+    doi: '10.48550/arXiv.1902.00751',
+    url: 'https://arxiv.org/abs/1902.00751',
+    checked: '2026-11'
+  },
+  meier2021: {
+    tag: 'Zero-shot variant effects',
+    cite: 'Meier, J. et al. (2021). Language models enable zero-shot prediction of the effects of mutations on protein function. NeurIPS 34 (bioRxiv preprint DOI).',
+    doi: '10.1101/2021.07.09.450648',
+    url: 'https://doi.org/10.1101/2021.07.09.450648',
+    checked: '2026-11'
+  },
+  teufel2022: {
+    tag: 'SignalP 6.0',
+    cite: 'Teufel, F. et al. (2022). SignalP 6.0 predicts all five types of signal peptides using protein language models. Nature Biotechnology 40:1023-1025.',
+    doi: '10.1038/s41587-021-01156-3',
+    url: 'https://doi.org/10.1038/s41587-021-01156-3',
+    checked: '2026-11'
+  },
+  chen2016: {
+    tag: 'XGBoost',
+    cite: 'Chen, T. & Guestrin, C. (2016). XGBoost: A Scalable Tree Boosting System. Proceedings of KDD 2016, 785-794.',
+    doi: '10.1145/2939672.2939785',
+    url: 'https://doi.org/10.1145/2939672.2939785',
+    checked: '2026-11'
+  },
+
   /* ---------- Methodology, evaluation and critique ---------- */
   jones2019: {
     tag: 'Jones 2019',

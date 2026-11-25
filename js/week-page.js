@@ -1322,6 +1322,90 @@
       altLabel: 'Read every model\'s result as text'
     },
 
+    'w11-gbtune': {
+      title: 'Exercise 1. Tuning gradient boosting: learning rate, depth, subsampling and trees',
+      intro: 'Gradient boosting on 23 classical descriptors of 1,500 real human proteins, predicting a signal peptide. Each curve ' +
+             'is the mean over the same five cross-validation folds. Change one setting at a time and watch where the held-out ' +
+             'log-loss is lowest.',
+      banner: 'week11-real',
+      controls:
+        U.segmented({ id: 'w11t-lr', label: 'Learning rate', value: '0.1',
+          options: [{ value: '1.0', label: '1.0' }, { value: '0.3', label: '0.3' }, { value: '0.1', label: '0.1' }, { value: '0.03', label: '0.03' }] }) +
+        U.segmented({ id: 'w11t-depth', label: 'Tree depth', value: '3',
+          options: [{ value: '1', label: '1 (stumps)' }, { value: '3', label: '3' }, { value: '6', label: '6' }] }) +
+        U.segmented({ id: 'w11t-sub', label: 'Subsample', value: '1.0',
+          options: [{ value: '1.0', label: '1.0 (all rows)' }, { value: '0.5', label: '0.5 (stochastic)' }] }) +
+        U.slider({ id: 'w11t-trees', label: 'Trees =', min: 0, max: 50, value: 50 }),
+      readout:
+        U.metric('w11t-best', 'Best number of trees', '—', ' ') + U.metric('w11t-bestll', 'Held-out log-loss at best', '—', ' ') +
+        U.metric('w11t-n', 'Held-out log-loss at slider', '—', ' ') + U.metric('w11t-auc', 'Held-out ROC AUC at slider', '—', ' '),
+      explain: '',
+      altLabel: 'Read the curves as text'
+    },
+
+    'w11-importance': {
+      title: 'Exercise 2. What does the boosted model rely on?',
+      intro: 'Impurity importance (from training) and permutation importance (drop in ROC AUC on the 500 test proteins) for the ' +
+             'chosen gradient-boosting model.',
+      banner: 'week11-real',
+      controls:
+        U.segmented({ id: 'w11i-n', label: 'Show', value: '10',
+          options: [{ value: '10', label: 'Top 10' }, { value: '23', label: 'All 23' }] }),
+      readout:
+        U.metric('w11i-top', 'Most important', '—', ' ') + U.metric('w11i-drop', 'AUC lost when shuffled', '—', ' ') +
+        U.metric('w11i-med', 'N-terminal hydropathy', '—', ' '),
+      explain: '',
+      altLabel: 'Read every importance as text'
+    },
+
+    'w11-ladder': {
+      title: 'Exercise 3. The adaptation ladder on one protein task',
+      intro: 'Designed descriptors with boosting, frozen ESM-2 embeddings with a simple head, LoRA and full fine-tuning: all trained ' +
+             'on the same 1,200 proteins, tuned on the same 300 and tested once on the same 500. Fine-tuning ran offline on a laptop ' +
+             'CPU; the browser shows the recorded results.',
+      banner: 'week11-real',
+      controls:
+        U.segmented({ id: 'w11l-view', label: 'Show', value: 'auc',
+          options: [{ value: 'auc', label: 'Test ROC AUC' }, { value: 'params', label: 'Trainable parameters' }] }),
+      readout:
+        U.metric('w11l-desc', 'Descriptors + boosting', '—', ' ') + U.metric('w11l-frozen', 'Frozen embedding + LR', '—', ' ') +
+        U.metric('w11l-lora', 'LoRA', '—', ' ') + U.metric('w11l-full', 'Full fine-tuning', '—', ' '),
+      explain: '',
+      altLabel: 'Read the whole ladder as text'
+    },
+
+    'w11-zeroshot': {
+      title: 'Exercise 4. Zero-shot: what does the pretrained model expect in a signal peptide?',
+      intro: 'No labels and no training: ESM-2 (8M) scores every possible substitution in the signal peptide of human insulin by ' +
+             'masking one position at a time. Click a column or use the slider.',
+      banner: 'week11-real',
+      controls:
+        U.slider({ id: 'w11z-slider', label: 'Position', min: 0, max: 23, value: 11 }),
+      readout:
+        U.metric('w11z-pos', 'Position', '—', ' ') + U.metric('w11z-worst', 'Least plausible', '—', ' ') +
+        U.metric('w11z-best', 'Most plausible', '—', ' ') + U.metric('w11z-core', 'Core: charged vs hydrophobic', '—', ' '),
+      explain: '',
+      altLabel: 'Read the scores at the selected position as text'
+    },
+
+    'w11-lora': {
+      title: 'Exercise 5. How many parameters does LoRA train?',
+      intro: 'Exact LoRA arithmetic for the ESM-2 family. The 8M row is checked against the count reported by the peft library for ' +
+             'the fine-tuning run in Exercise 3.',
+      banner: 'week11-arith',
+      controls:
+        U.segmented({ id: 'w11r-model', label: 'ESM-2 model', value: '8M',
+          options: [{ value: '8M', label: '8M' }, { value: '35M', label: '35M' }, { value: '150M', label: '150M' }, { value: '650M', label: '650M' }] }) +
+        U.segmented({ id: 'w11r-tgt', label: 'Adapted matrices', value: 'qv',
+          options: [{ value: 'qv', label: 'query, value' }, { value: 'qkvo', label: 'all attention' }, { value: 'all', label: 'attention + feed-forward' }] }) +
+        U.slider({ id: 'w11r-rank', label: 'Rank r =', min: 0, max: 6, value: 3 }),
+      readout:
+        U.metric('w11r-per', 'Per matrix', '—', ' ') + U.metric('w11r-tot', 'LoRA parameters', '—', ' ') +
+        U.metric('w11r-pct', 'Share of backbone', '—', ' ') + U.metric('w11r-check', 'Check: peft count (8M run)', '—', ' '),
+      explain: '',
+      altLabel: 'Read the parameter counts as text'
+    },
+
     'random-forest': {
       title: 'Exercise 4. Grow a forest in your browser (random forest visualiser)',
       intro: 'A real forest, grown in your browser. The duplicate-feature ' +
@@ -1489,6 +1573,19 @@
         'ESM-2 (8M, 320-d) embeddings, the Week 7 lab\'s files; 1,500 training and 500 test proteins, the lab\'s split. ' +
         'Measured with scikit-learn' + W7v + ' by data/scripts/20_build_week07_refresh.py. Labels are UniProt keywords, ' +
         'mostly from sequence analysis: annotations, not ground truth.</span></div></div>';
+    }
+    if (kind === 'week11-real' || kind === 'week11-arith') {
+      var W11v = window.WEEK11 ? ' ' + U.esc(window.WEEK11.sklearn) : '';
+      return '<div class="viz-controls" style="border-bottom:0;padding-bottom:0">' +
+        '<div class="control"><span class="provenance provenance-real">' +
+        (kind === 'week11-real' ? '● Real data' : '● Exact arithmetic, computed in your browser') + '</span></div>' +
+        '<div class="control"><span class="small muted" style="max-width:70ch">' +
+        (kind === 'week11-arith' ? 'Parameter counts are exact formulas for the ESM-2 architectures (Lin et al. 2023); the backbone ' +
+          'sizes of the larger models are the nominal sizes in their names. ' : '') +
+        'Real data: 2,000 human UniProtKB/Swiss-Prot proteins (release 2026_03, one per UniRef50 cluster; CC BY 4.0), the Week 7 ' +
+        'files; label: UniProt keyword Signal (KW-0732), mostly from sequence analysis: annotations, not ground truth. ESM-2 8M ' +
+        '(facebook/esm2_t6_8M_UR50D, MIT). Measured with scikit-learn' + W11v + ' by data/scripts/28_build_week11_data.py; ' +
+        'embeddings and fine-tuning by data/scripts/27_build_week11_finetune.py (PyTorch, laptop CPU).</span></div></div>';
     }
     if (kind === 'week10e-real' || kind === 'week10e-toy') {
       var W10e = window.WEEK10E ? ' ' + U.esc(window.WEEK10E.sklearn) : '';

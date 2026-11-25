@@ -356,27 +356,50 @@ window.LABS = {
   },
 
   lab11: {
-    week: 11, title: 'Boosting, and costing an adaptation strategy',
-    dataset: 'proteinSim', duration: '2 hours',
-    goal: 'Tune a boosted ensemble properly, then cost out the four rungs of the adaptation ladder for a realistic project.',
+    week: 11, title: 'Boosting, pretrained protein embeddings and fine-tuning, on one biological question',
+    dataset: 'uniprotHuman', duration: '2 hours',
+    goal: 'Predict signal peptides in 2,000 real human proteins with designed descriptors and gradient boosting, with frozen ESM-2 embeddings, and (from recorded runs) with LoRA and full fine-tuning, all under one protocol; then recommend an approach.',
     tasks: [
-      'Fit GradientBoostingClassifier on WDBC. Sweep learning_rate and n_estimators over a grid and plot validation accuracy as a heatmap. Identify the trade-off between the two.',
-      'Add early stopping with a validation fraction. Show a configuration that overfits without it and does not overfit with it.',
-      'Compare gradient boosting with the random forest from Week 10 on accuracy, training time and sensitivity to hyperparameters. Which would you rather hand to a collaborator, and why?',
-      'On the protein set, train logistic regression on the frozen embedding for the hasSite label. This is the feature-extraction rung. Record accuracy and wall-clock time.',
-      'Using the LoRA arithmetic from the lecture, compute the trainable-parameter count for a 12-layer, 768-hidden model at ranks 4, 8, 16 and 64 applied to query and value projections. Express each as a percentage of a 117-million-parameter backbone.',
-      'Write a one-page adaptation plan for a project with 340 labelled sequences and one GPU-day. State which rung you would use, what you would measure to know whether to climb higher, and what would make you stop.'
+      'Inspect the proteins: class balance, the evidence behind the signal-peptide labels, and the N-terminal sequences of proteins with and without a signal peptide.',
+      'Baselines under 5-fold CV on the training proteins: always-the-base-rate, logistic regression, a single tree and a random forest.',
+      'Gradient boosting: plot fit and validation log-loss against the number of trees for learning rates 1.0, 0.3, 0.1 and 0.03.',
+      'Vary tree depth and subsampling; use early stopping with HistGradientBoostingClassifier.',
+      'Tune gradient boosting with GridSearchCV on the training proteins only, then score the test proteins once against the baselines.',
+      'Compare impurity and permutation importance, and explain why neither is a biological mechanism.',
+      'Compare random folds with folds that keep gene families together.',
+      'Frozen ESM-2 embeddings: logistic regression on the whole-sequence and first-100-residue embeddings, settings chosen on 300 validation proteins.',
+      'Read the recorded LoRA and full fine-tuning runs: seeds, validation curves, a bootstrap interval against the frozen head, and the LoRA parameter count.',
+      'Fill in the comparison table and write a recommendation for a collaborator with 400 labelled proteins of a new organism.'
     ],
     starter:
-      'from sklearn.ensemble import GradientBoostingClassifier\n\n' +
-      'gb = GradientBoostingClassifier(n_estimators=200, learning_rate=0.1,\n' +
-      '                                validation_fraction=0.15, n_iter_no_change=10,\n' +
-      '                                random_state=42).fit(X_tr, y_tr)\n' +
-      'print(gb.n_estimators_, "stages actually used")\n\n' +
-      '# LoRA parameter count\n' +
-      'def lora_params(rank, d_model, n_layers, n_matrices=2):\n' +
-      '    return rank * (d_model + d_model) * n_matrices * n_layers',
-    deliverable: 'The heatmap, the early-stopping demonstration, the LoRA table, and your one-page adaptation plan.',
+      'from sklearn.ensemble import GradientBoostingClassifier\n' +
+      'from sklearn.metrics import log_loss\n\n' +
+      'gb = GradientBoostingClassifier(learning_rate=0.1, n_estimators=400, max_depth=3,\n' +
+      '                                random_state=42).fit(X[fit], y[fit])\n' +
+      'val_loss = [log_loss(y[val], p[:, 1]) for p in gb.staged_predict_proba(X[val])]\n' +
+      'print("best number of trees:", 1 + int(np.argmin(val_loss)))',
+    files: [
+      { label: 'Download the notebook (.ipynb)',
+        href: 'labs/week11/COMP9085_Week11_Lab.ipynb', download: true },
+      { label: 'Read it in the browser (.html)',
+        href: 'labs/week11/COMP9085_Week11_Lab.html' },
+      { label: 'Optional: fine-tuning demonstration notebook (.ipynb; needs PyTorch)',
+        href: 'labs/week11/COMP9085_Week11_FineTuning_Demo.ipynb', download: true },
+      { label: 'Proteins: sequences and annotations (.csv)',
+        href: 'labs/week11/data/swissprot_human_2000.csv', download: true },
+      { label: 'Protein descriptors and labels (.csv)',
+        href: 'labs/week11/data/proteins_classical_features.csv', download: true },
+      { label: 'ESM-2 embeddings, whole sequence (.csv.gz)',
+        href: 'labs/week11/data/esm2_t6_8M_embeddings.csv.gz', download: true },
+      { label: 'ESM-2 embeddings, first 100 residues (.csv.gz)',
+        href: 'labs/week11/data/esm2_t6_8M_nterm100_embeddings.csv.gz', download: true },
+      { label: 'Recorded fine-tuning runs (.json)',
+        href: 'labs/week11/data/week11_finetune_results.json', download: true },
+      { label: 'Data dictionary and provenance',
+        href: 'labs/week11/data/README.md' }
+    ],
+    deliverable: 'The executed notebook with every question answered from your own numbers: the boosting curves, the tuned comparison on the test set, the importance and family-split analyses, the frozen-embedding heads, the fine-tuning interval and parameter count, the comparison table and your recommendation.',
+    note: 'No GPU and no deep-learning package are needed: the embeddings and the fine-tuning runs are precomputed. Keep the data folder next to the notebook; in Google Colab the notebook downloads the files from this site. It runs in a few minutes on a laptop. The fine-tuning demonstration notebook is optional and needs torch, transformers and peft (CPU is enough, about five minutes).',
     los: ['LO1', 'LO2', 'LO3', 'LO5']
   },
 

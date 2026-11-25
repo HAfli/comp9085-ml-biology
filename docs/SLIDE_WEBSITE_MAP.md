@@ -31,7 +31,11 @@ theatre.
 | 10 | 71 | Ensemble learning (2026 revision of the 2025 deck) | Exercise 6: boosting, one stump at a time | Interactive | `weeks/week10.html#interactive` |
 | 10 | 112 | Ensemble learning (2026 revision of the 2025 deck) | Exercise 7: gradient boosting on clinical data | Interactive | `weeks/week10.html#interactive` |
 | 10 | 117 | Ensemble learning (2026 revision of the 2025 deck) | Exercise 8: single models against ensembles | Interactive | `weeks/week10.html#interactive` |
-| 11 | 19 | Boosting and foundation-model adaptation | Fine-Tuning Simulator | Interactive | `weeks/week11.html#interactive` |
+| 11 | 15 | Boosting and fine-tuning foundation models (2026) | Exercise 1: tuning gradient boosting | Interactive | `weeks/week11.html#interactive` |
+| 11 | 19 | Boosting and fine-tuning foundation models (2026) | Exercise 2: what does the boosted model rely on? | Interactive | `weeks/week11.html#interactive` |
+| 11 | 27 | Boosting and fine-tuning foundation models (2026) | Exercise 4: zero-shot substitution scores | Interactive | `weeks/week11.html#interactive` |
+| 11 | 31 | Boosting and fine-tuning foundation models (2026) | Exercise 5: how many parameters does LoRA train? | Interactive | `weeks/week11.html#interactive` |
+| 11 | 41 | Boosting and fine-tuning foundation models (2026) | Exercise 3: the adaptation ladder on one protein task | Interactive | `weeks/week11.html#interactive` |
 | 12 | 19 | Can we trust the model? | Would You Trust This Model? | Interactive | `weeks/week12.html#interactive` |
 | 12 | 20 | Can we trust the model? | Should I Use a Foundation Model? | Interactive | `weeks/week12.html#interactive` |
 
@@ -49,7 +53,7 @@ theatre.
 | 8 | 27 | `slides/week08/COMP9085_Week08.pptx` | `slides/week08/COMP9085_Week08.pdf` |
 | 9 | 27 | `slides/week09/COMP9085_Week09.pptx` | `slides/week09/COMP9085_Week09.pdf` |
 | 10 | 122 | Canvas only: `Week10/Week10_ML_Ensemble_Learning_2026.pptx` (instructor folder, not in this repository) | `Week10/Week10_ML_Ensemble_Learning_2026.pdf` |
-| 11 | 28 | `slides/week11/COMP9085_Week11.pptx` | `slides/week11/COMP9085_Week11.pdf` |
+| 11 | 49 | Canvas only: `Week11-12/Week11_Boosting_Foundation_Models_2026.pptx` (instructor folder, not in this repository; supersedes the September draft `slides/week11/COMP9085_Week11.pptx`) | `Week11-12/Week11_Boosting_Foundation_Models_2026.pdf` |
 | 12 | 29 | `slides/week12/COMP9085_Week12.pptx` | `slides/week12/COMP9085_Week12.pdf` |
 
 Both formats are linked at the top of every week page, on the resources page and on `canvas.html`.

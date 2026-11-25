@@ -1,0 +1,36 @@
+{
+ "created": "2026-11-24",
+ "files": {
+  "esm2_t6_8M_embeddings.csv.gz": {
+   "sha256": "4ecd8f754a93a3ea044ec340f80c796fc83f6fe3e09a033a4ffa3d0d6c5e5a83",
+   "bytes": 1814605
+  },
+  "esm2_t6_8M_nterm100_embeddings.csv.gz": {
+   "sha256": "ff83d49ef329e186d2543fcbf921cbda3bd8837224056f47b14f196f453cd516",
+   "bytes": 1816266
+  },
+  "proteins_classical_features.csv": {
+   "sha256": "f56828ee7f9f7ca1bc37704d3ba80877d191fff06ad8f68454e58df3f574a12d",
+   "bytes": 1204331
+  },
+  "swissprot_human_2000.csv": {
+   "sha256": "b1cfd339339e9b48c7f68958f774aa6f357441973f3768d4cf26f1d51875191f",
+   "bytes": 1988665
+  },
+  "week11_finetune_results.json": {
+   "sha256": "6c90fcd5940d3cb4101b6b9e7107c67b914c95dbc4e73387529b686d210ced77",
+   "bytes": 80179
+  }
+ },
+ "copied_unchanged_from": {
+  "swissprot_human_2000.csv": "labs/week07/data/",
+  "esm2_t6_8M_embeddings.csv.gz": "labs/week07/data/",
+  "proteins_classical_features.csv": "labs/week10/data/"
+ },
+ "new": {
+  "esm2_t6_8M_nterm100_embeddings.csv.gz": "data/scripts/27_build_week11_finetune.py",
+  "week11_finetune_results.json": "data/scripts/27_build_week11_finetune.py"
+ },
+ "model": "facebook/esm2_t6_8M_UR50D, revision c731040fcd8d73dceaa04b0a8e6329b345b0f5df (MIT)",
+ "licence_data": "UniProt CC BY 4.0"
+}
